@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Übung 1: Variables",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/1_variables.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 2: Types",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/2_types.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 3: Operands",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/3_operands.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 4: Conditionals",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/4_conditionals.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 5: Loops",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/5_loops.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 6: Functions",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/6_functions.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 7: Arrays",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/7_arrays.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 8: Objects",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/8_objects.js",
+            "cwd": "${workspaceRoot}"
+        }
+    ]
+}
