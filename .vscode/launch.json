@@ -2,6 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Playground",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/playground.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
             "name": "Übung 1: Variables",
             "type": "node",
             "request": "launch",
@@ -37,25 +44,39 @@
             "cwd": "${workspaceRoot}"
         },
         {
-            "name": "Übung 6: Functions",
+            "name": "Übung 6: Scopes",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/6_functions.js",
+            "program": "${workspaceRoot}/6_scopes.js",
             "cwd": "${workspaceRoot}"
         },
         {
-            "name": "Übung 7: Arrays",
+            "name": "Übung 7: Functions",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/7_arrays.js",
+            "program": "${workspaceRoot}/7_functions.js",
             "cwd": "${workspaceRoot}"
         },
         {
-            "name": "Übung 8: Objects",
+            "name": "Übung 8: Builtins",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/8_objects.js",
+            "program": "${workspaceRoot}/8_builtins.js",
             "cwd": "${workspaceRoot}"
-        }
+        },
+        {
+            "name": "Übung 9: Arrays",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/9_arrays.js",
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Übung 10: Objects",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/10_objects.js",
+            "cwd": "${workspaceRoot}"
+        },
     ]
 }
