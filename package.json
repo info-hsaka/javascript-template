@@ -1,4 +1,7 @@
 {
     "name": "js-kurs-template",
-    "type": "module"
+    "type": "module",
+    "devDependencies": {
+        "prettier": "^3.2.5"
+    }
 }

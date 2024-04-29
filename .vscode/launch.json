@@ -77,6 +77,6 @@
             "request": "launch",
             "program": "${workspaceRoot}/10_objects.js",
             "cwd": "${workspaceRoot}"
-        },
+        }
     ]
 }
