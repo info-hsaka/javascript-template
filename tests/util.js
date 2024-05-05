@@ -5,7 +5,7 @@ export async function test(file, name, calls) {
 }
 
 async function loadUserFunction(file, name) {
-    const module = await import(`../${file}`)
+    const module = await import(`../uebungen/${file}`)
     const fun = module[name]
 
     if (fun == null) {

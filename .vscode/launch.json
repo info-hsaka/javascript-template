@@ -5,77 +5,77 @@
             "name": "Playground",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/playground.js",
+            "program": "${workspaceRoot}/uebungen/playground.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 1: Variables",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/1_variables.js",
+            "program": "${workspaceRoot}/uebungen/1_variables.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 2: Types",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/2_types.js",
+            "program": "${workspaceRoot}/uebungen/2_types.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 3: Operands",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/3_operands.js",
+            "program": "${workspaceRoot}/uebungen/3_operands.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 4: Conditionals",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/4_conditionals.js",
+            "program": "${workspaceRoot}/uebungen/4_conditionals.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 5: Loops",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/5_loops.js",
+            "program": "${workspaceRoot}/uebungen/5_loops.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 6: Scopes",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/6_scopes.js",
+            "program": "${workspaceRoot}/uebungen/6_scopes.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 7: Functions",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/7_functions.js",
+            "program": "${workspaceRoot}/tests/funs.test.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 8: Builtins",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/8_builtins.js",
+            "program": "${workspaceRoot}/tests/builtins.test.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 9: Arrays",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/9_arrays.js",
+            "program": "${workspaceRoot}/tests/arrays.test.js",
             "cwd": "${workspaceRoot}"
         },
         {
             "name": "Übung 10: Objects",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/10_objects.js",
+            "program": "${workspaceRoot}/tests/objects.test.js",
             "cwd": "${workspaceRoot}"
         }
     ]
