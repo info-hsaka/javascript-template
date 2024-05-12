@@ -5,7 +5,7 @@
             "name": "Playground",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceRoot}/uebungen/playground.js",
+            "program": "${workspaceRoot}/playground.js",
             "cwd": "${workspaceRoot}"
         },
         {
