@@ -1,0 +1,192 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 2.3 — Loops</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithTimeout } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Loops 🔁
+
+    Bisher sind unsere Programme **geradlinig** von oben nach unten durchgelaufen.
+    Manchmal möchte man in einem Programm aber denselben Code **häufig hintereinander**
+    ausführen. Dafür gibt es sogenannte **Loops** (Schleifen).
+
+    > ⚠️ **Warnung**: Wenn du eine Schleife schreibst, deren Bedingung nie `false` wird,
+    > läuft sie für immer ("Endlosschleife"). In diesem Notebook bricht der Browser
+    > nach **1 Sekunde** automatisch ab — keine Sorge, dein Tab friert nicht ein.
+  </script>
+
+  <script id="while-md" type="text/markdown">
+    ## `while`-Loop
+
+    Mit einem `while`-Loop können wir ein Stück Code ausführen, wenn eine Bedingung
+    gilt — genau wie mit einem `if`. Allerdings führt `while` den Code **immer und
+    immer wieder** aus, solange die Bedingung `true` bleibt.
+
+    Man liest allgemein **`while (A) { B }`** als **"Solange A gilt, mach immer wieder B"**.
+  </script>
+
+  <script id="while-demo" type="module">
+    const demo_while = view(codeEditor("loops:while", {
+      value: 'let i = 1\n\nwhile (i <= 10) {\n  console.log(i)\n  i = i + 1\n}\n\nconsole.log("Fertig!")',
+      minHeight: "200px"
+    }));
+  </script>
+
+  <script id="while-out" type="module">
+    display(consoleOutput(await runWithTimeout(demo_while)));
+  </script>
+
+  <script id="while-md2" type="text/markdown">
+    Beachte die Zeile `i = i + 1`: ohne sie würde `i` immer `1` bleiben, die Bedingung
+    `i <= 10` wäre immer `true`, und die Schleife würde nie aufhören. Probier es aus —
+    kommentiere die Zeile mit `//` aus und schau, was passiert.
+  </script>
+
+  <script id="break-md" type="text/markdown">
+    ## `break` — Schleife abbrechen
+
+    Mit `break` kannst du eine Schleife **sofort abbrechen**, mitten im Durchlauf.
+  </script>
+
+  <script id="break-demo" type="module">
+    const demo_break = view(codeEditor("loops:break", {
+      value: 'let i = 1\n\nwhile (i <= 100) {\n  if (i > 3) {\n    break\n  }\n  console.log(i)\n  i = i + 1\n}\n\nconsole.log("Fertig!")',
+      minHeight: "240px"
+    }));
+  </script>
+
+  <script id="break-out" type="module">
+    display(consoleOutput(await runWithTimeout(demo_break)));
+  </script>
+
+  <script id="continue-md" type="text/markdown">
+    ## `continue` — eine Runde überspringen
+
+    `continue` ist wie `break`, aber bricht **nur die aktuelle Runde** ab und springt
+    zur **nächsten** Runde der Schleife. Beispiel: nur ungerade Zahlen ausgeben.
+  </script>
+
+  <script id="continue-demo" type="module">
+    const demo_continue = view(codeEditor("loops:continue", {
+      value: 'let i = 0\n\nwhile (i < 10) {\n  i = i + 1\n  if (i % 2 == 0) {\n    continue // gerade Zahlen überspringen\n  }\n  console.log(i)\n}',
+      minHeight: "220px"
+    }));
+  </script>
+
+  <script id="continue-out" type="module">
+    display(consoleOutput(await runWithTimeout(demo_continue)));
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯 — Collatz-Folge
+
+    Die **Collatz-Folge** ist eine berühmte Zahlenreihe:
+
+    - Starte mit irgendeiner Zahl `n`.
+    - Wenn `n` **gerade** ist: teile sie durch 2.
+    - Wenn `n` **ungerade** ist: rechne `3 * n + 1`.
+    - Wiederhole, bis du bei `1` ankommst.
+
+    Es ist eine offene Frage in der Mathematik, ob die Folge **immer** bei `1` endet —
+    aber für alle bisher getesteten Zahlen tut sie das.
+
+    Schreib ein Programm, das die Collatz-Folge für die Startzahl **123** berechnet
+    und jede Zahl mit `console.log` ausgibt. Stoppe, wenn du den sich wiederholenden
+    Zyklus `4, 2, 1` erreicht hast.
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Verwende `let` für deine Variable, weil sie sich verändert.
+    - In der Schleife: prüfe mit `%`, ob die Zahl gerade ist.
+    - Stoppe mit `break`, wenn die Zahl `1` ist (oder mach es eleganter über die `while`-Bedingung).
+
+    </details>
+
+    > 🧐 **Lösungshinweis**: Die größte Zahl, die dein Programm auf dem Weg ausgeben
+    > sollte, ist **`628`**.
+
+    > 💡 **Trivia**: Bis heute wird zwar vermutet, dass jede ganze positive Zahl
+    > irgendwann in der `4, 2, 1`-Folge landet — bewiesen ist das aber noch nicht.
+    > Mit Computerprogrammen wie deinem hat man schon sehr, sehr viele Zahlen
+    > ausprobiert und noch kein Gegenbeispiel gefunden.
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("loops:final", {
+      value: "",
+      minHeight: "200px"
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungRun = await runWithTimeout(uebung_code);
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(consoleOutput(uebungRun));
+  </script>
+
+  <script id="uebung-feedback" type="module">
+    {
+      const src = uebung_code;
+      const usesWhile = /\bwhile\s*\(/.test(src);
+      const usesMod = /%/.test(src);
+      const has123 = /\b123\b/.test(src);
+      const numbers = uebungRun.logs.map(l => Number(l.trim())).filter(n => Number.isFinite(n));
+      const startsAt123 = numbers[0] === 123;
+      const reachesOne = numbers.includes(1);
+      const max = Math.max(...numbers, 0);
+
+      if (!src.trim())
+        display(hint(html`Fang an mit <code>let n = 123</code> und einer <code>while</code>-Schleife.`));
+      else if (uebungRun.timedOut)
+        display(err(html`Endlosschleife erkannt — vermutlich vergisst du, <code>n</code> zu verändern, oder die Bedingung wird nie <code>false</code>.`));
+      else if (uebungRun.error)
+        display(err(html`Fehler: ${uebungRun.error}`));
+      else if (!has123)
+        display(err(html`Du sollst mit der Zahl <code>123</code> starten.`));
+      else if (!usesWhile)
+        display(err(html`Du brauchst eine <code>while</code>-Schleife.`));
+      else if (!usesMod)
+        display(err(html`Du brauchst <code>%</code>, um zu prüfen, ob eine Zahl gerade oder ungerade ist.`));
+      else if (numbers.length < 5)
+        display(err(html`Du loggst zu wenige Zahlen — die Folge ist deutlich länger.`));
+      else if (!startsAt123)
+        display(err(html`Die erste geloggte Zahl sollte <code>123</code> sein, war aber <code>${numbers[0]}</code>.`));
+      else if (!reachesOne)
+        display(err(html`Deine Folge erreicht nie <code>1</code> — vielleicht stoppst du zu früh?`));
+      else if (max !== 628)
+        display(err(html`Die größte Zahl in deiner Folge sollte <code>628</code> sein, ist aber <code>${max}</code>. Vielleicht stimmt die Berechnung nicht ganz?`));
+      else
+        display(ok(html`🎉 Collatz für 123 läuft korrekt durch! ${numbers.length} Zahlen, Maximum <code>628</code>.`));
+    }
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt:
+
+    - **`while`** — Schleifen mit einer Bedingung
+    - **`break`** — Schleife sofort abbrechen
+    - **`continue`** — eine Runde überspringen
+
+    Als Nächstes: **[Scopes →](./7_scopes)**
+
+    > 📌 [Zurück zur Übersicht](./)
+  </script>
+</notebook>

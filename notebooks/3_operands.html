@@ -1,0 +1,285 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 1.3 — Operatoren</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runAndExtract } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Operatoren ➕
+
+    Euch ist vielleicht aufgefallen, dass wir bisher nicht wirklich Daten **verarbeitet**
+    haben. Wir haben nur feste Daten in unser Programm geschrieben und diese ausgegeben.
+    Das ändern wir jetzt.
+  </script>
+
+  <script id="arith-md" type="text/markdown">
+    ## Arithmetische Operatoren
+
+    Operatoren erlauben es, **neue Werte aus anderen Werten zusammenzubauen**. Das
+    klingt sehr abstrakt — aber du benutzt sie jede Woche im Matheunterricht. Zum
+    Beispiel den `+`-Operator, der zwei `number`s zu einer neuen `number` zusammenbaut,
+    die ihre Summe ist:
+  </script>
+
+  <script id="arith-demo1" type="module">
+    const demo_arith1 = view(codeEditor("operands:demo_arith1", {
+      value: 'const answer = 30 + 12\nconsole.log(answer)'
+    }));
+  </script>
+
+  <script id="arith-out1" type="module">
+    display(consoleOutput(runWithConsole(demo_arith1)));
+  </script>
+
+  <script id="arith-md2" type="text/markdown">
+    `answer` ist jetzt eine Variable mit dem Wert `42`.
+
+    Du kannst natürlich auch Variablen miteinander verknüpfen, nicht nur feste Zahlen —
+    z.B. um die Gesamtkosten eines Frühstücks zu berechnen:
+  </script>
+
+  <script id="arith-demo2" type="module">
+    const demo_arith2 = view(codeEditor("operands:demo_arith2", {
+      value: 'const cappucinoPrice = 4.5\nconst croissantPrice = 2\nconst totalPrice = cappucinoPrice + croissantPrice\n\nconsole.log(totalPrice)'
+    }));
+  </script>
+
+  <script id="arith-out2" type="module">
+    display(consoleOutput(runWithConsole(demo_arith2)));
+  </script>
+
+  <script id="arith-md3" type="text/markdown">
+    Es gibt viele verschiedene Operatoren. Wir schauen uns zunächst den Rest der
+    klassischen **arithmetischen** Operatoren an, die du bereits aus der Mathematik kennst:
+
+    - `-` Subtraktion
+    - `*` Multiplikation
+    - `/` Division
+
+    Es gibt noch zwei weitere arithmetische Operatoren, die du so geschrieben eventuell
+    noch nicht kennst:
+
+    - `%` (gelesen "Modulo") — den **Rest** einer Division
+    - `**` — um **Potenzen** zu bilden (`a ** b` ist `a` hoch `b`)
+
+    Spiel mit den Werten unten — was passiert, wenn du andere Zahlen einsetzt?
+  </script>
+
+  <script id="arith-demo3" type="module">
+    const demo_arith3 = view(codeEditor("operands:demo_arith3", {
+      value: 'console.log(4 + 2)\nconsole.log(10 - 12)\nconsole.log(5 * 7)\nconsole.log(28 / 4)\nconsole.log(43 % 10)\nconsole.log(2 ** 3)',
+      minHeight: "120px"
+    }));
+  </script>
+
+  <script id="arith-out3" type="module">
+    display(consoleOutput(runWithConsole(demo_arith3)));
+  </script>
+
+  <script id="arith-md4" type="text/markdown">
+    Mit diesen Operatoren lässt sich ein Computer bereits wie ein **Taschenrechner mit
+    Zwischenspeicher** benutzen. Zum Beispiel, um festzustellen, wie viele Sekunden
+    eigentlich in einer Stunde oder einem Jahr stecken:
+  </script>
+
+  <script id="arith-demo4" type="module">
+    const demo_arith4 = view(codeEditor("operands:demo_arith4", {
+      value: 'const secondsPerMinute = 60\nconst minutesPerHour = 60\nconst hoursPerDay = 24\nconst daysPerYear = 365\n\nconst secondsPerHour = secondsPerMinute * minutesPerHour\nconst secondsPerYear = secondsPerHour * hoursPerDay * daysPerYear\n\nconsole.log(secondsPerHour)\nconsole.log(secondsPerYear)',
+      minHeight: "180px"
+    }));
+  </script>
+
+  <script id="arith-out4" type="module">
+    display(consoleOutput(runWithConsole(demo_arith4)));
+  </script>
+
+  <script id="vergleich-md" type="text/markdown">
+    ## Vergleichsoperatoren
+
+    Es gibt neben arithmetischen Operatoren auch sogenannte **Vergleichsoperatoren**,
+    welche aus zwei Werten einen `boolean` (Wahrheits-)Wert zusammenbauen. Du kennst
+    sie wahrscheinlich auch schon aus der Schule:
+
+    - `>` überprüft, ob die linke `number` **größer** als die rechte ist
+    - `>=` überprüft, ob die linke `number` **größer oder gleich** der rechten ist
+    - `<` überprüft, ob die linke `number` **kleiner** als die rechte ist
+    - `<=` überprüft, ob die linke `number` **kleiner oder gleich** der rechten ist
+    - `==` überprüft, ob zwei *beliebige* Werte **gleich** sind
+    - `!=` überprüft, ob zwei *beliebige* Werte **ungleich** sind
+  </script>
+
+  <script id="vergleich-demo" type="module">
+    const demo_vergleich = view(codeEditor("operands:demo_vergleich", {
+      value: 'console.log(5 > 2)\nconsole.log(2 > 10)\nconsole.log(5 >= 5)\nconsole.log(3 < 7)\nconsole.log(8 <= 4)\nconsole.log(4 == 4)\nconsole.log(4 != 5)',
+      minHeight: "140px"
+    }));
+  </script>
+
+  <script id="vergleich-out" type="module">
+    display(consoleOutput(runWithConsole(demo_vergleich)));
+  </script>
+
+  <script id="vergleich-md2" type="text/markdown">
+    > 📌 Achtung: Der Operator `=` (einmal) ist die **Zuweisung** ("ist jetzt"),
+    > der Operator `==` (zweimal) ist der **Vergleich** ("ist gleich"). Das ist eine
+    > der häufigsten Stolperfallen — also gut merken!
+  </script>
+
+  <script id="schalt-md" type="text/markdown">
+    ### 🧠 Kleine Aufgabe zwischendurch — Schaltjahr
+
+    Mit diesen Operatoren können wir bereits einiges ausdrücken:
+
+    ```js
+    const year = 2026
+    const isSchaltjahr = year % 4 == 0
+    ```
+
+    `isSchaltjahr` enthält nun den Wahrheitswert, der angibt, ob `year` ein Schaltjahr
+    ist (vereinfacht — in echt gibt es noch ein paar Spezialregeln). Wir haben hier
+    zum ersten Mal Klammern benutzt — wie in der Mathematik klammert man etwas ein,
+    um zu verdeutlichen, dass es **zuerst** "berechnet" werden soll.
+
+    Berechne unten selbst, ob `2026` ein Schaltjahr ist, und logge das Ergebnis.
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    Verwende den Modulo-Operator `%`, um den Rest einer Division zu bekommen, und
+    den Vergleichs­operator `==`, um zu prüfen, ob der Rest `0` ist.
+
+    </details>
+  </script>
+
+  <script id="schalt-input" type="module">
+    const schalt_code = view(codeEditor("operands:schalt", {
+      value: 'const year = 2026\n// dein Code hier — speichere das Ergebnis in `isSchaltjahr` und logge es'
+    }));
+  </script>
+
+  <script id="schalt-out" type="module">
+    const schaltRun = runWithConsole(schalt_code);
+    display(consoleOutput(schaltRun));
+  </script>
+
+  <script id="schalt-feedback" type="module">
+    {
+      const src = schalt_code;
+      const declares = /\b(let|const)\s+isSchaltjahr\s*=/.test(src);
+      const usesMod = /%/.test(src);
+      const usesEq = /==/.test(src);
+      const logs = /console\s*\.\s*log/.test(src);
+
+      if (!declares && !usesMod)
+        display(hint(html`Probier <code>const isSchaltjahr = year % 4 == 0</code>.`));
+      else if (schaltRun.error)
+        display(err(html`Fehler: ${schaltRun.error}`));
+      else if (!declares)
+        display(err(html`Speichere das Ergebnis in einer Variable namens <code>isSchaltjahr</code>.`));
+      else if (!usesMod)
+        display(err(html`Du brauchst den <code>%</code>-Operator (Modulo).`));
+      else if (!usesEq)
+        display(err(html`Du brauchst den <code>==</code>-Operator (Vergleich).`));
+      else if (!logs)
+        display(err(html`Vergiss nicht, das Ergebnis mit <code>console.log</code> auszugeben.`));
+      else if (!schaltRun.logs.includes("false"))
+        display(err(html`Hmm, da kommt nicht <code>false</code> raus — 2026 ist nämlich kein Schaltjahr.`));
+      else
+        display(ok(html`Richtig, 2026 ist <strong>kein</strong> Schaltjahr — der Rest von 2026 / 4 ist nicht 0. 🎉`));
+    }
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯
+
+    Schreib folgendes Programm:
+
+    - Deklariere eine Variable `age`, die dein Alter enthält.
+    - Deklariere eine Variable `isAdult`, die enthält, ob du volljährig bist oder nicht
+      — abhängig von deinem Alter. Benutz dabei einen der Vergleichsoperatoren von oben.
+    - Deklariere eine Variable `ageInCenturies`, die als Kommazahl angibt, wie viele
+      **Jahrhunderte** du alt bist — abhängig von deinem Alter.
+    - Gib alle drei Variablen in der Konsole aus.
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    Für `isAdult` brauchst du den Operator `>=` ("größer oder gleich"). Für
+    `ageInCenturies` brauchst du `/` (Division durch `100`).
+
+    </details>
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("operands:final", {
+      value: "",
+      minHeight: "150px"
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungRun = runWithConsole(uebung_code);
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(consoleOutput(uebungRun));
+  </script>
+
+  <script id="uebung-feedback" type="module">
+    {
+      const src = uebung_code;
+      const declaresAge = /\b(let|const)\s+age\s*=\s*\d+/.test(src);
+      const declaresAdult = /\b(let|const)\s+isAdult\s*=/.test(src);
+      const usesGte = />=/.test(src);
+      const declaresCenturies = /\b(let|const)\s+ageInCenturies\s*=/.test(src);
+      const usesDiv = /\//.test(src);
+      const logsAge = /console\s*\.\s*log\s*\(\s*age\s*\)/.test(src);
+      const logsAdult = /console\s*\.\s*log\s*\(\s*isAdult\s*\)/.test(src);
+      const logsCenturies = /console\s*\.\s*log\s*\(\s*ageInCenturies\s*\)/.test(src);
+
+      if (!src.trim())
+        display(hint(html`Fang an, die vier Schritte umzusetzen.`));
+      else if (uebungRun.error)
+        display(err(html`Fehler: ${uebungRun.error}`));
+      else if (!declaresAge)
+        display(err(html`Schritt 1 fehlt: <code>age</code> als Zahl deklarieren.`));
+      else if (!declaresAdult)
+        display(err(html`Schritt 2 fehlt: <code>isAdult</code> deklarieren.`));
+      else if (!usesGte)
+        display(err(html`Schritt 2: Verwende den Operator <code>>=</code> für den Vergleich.`));
+      else if (!declaresCenturies)
+        display(err(html`Schritt 3 fehlt: <code>ageInCenturies</code> deklarieren.`));
+      else if (!usesDiv)
+        display(err(html`Schritt 3: Verwende den Operator <code>/</code> für die Division.`));
+      else if (!logsAge || !logsAdult || !logsCenturies)
+        display(err(html`Schritt 4: Gib alle drei Variablen mit <code>console.log</code> aus.`));
+      else
+        display(ok(html`🎉 Übung gelöst! Du beherrschst die Grundrechenarten in JavaScript.`));
+    }
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du hast in diesem Kapitel gelernt:
+
+    - **Arithmetische Operatoren**: `+`, `-`, `*`, `/`, `%`, `**`
+    - **Vergleichsoperatoren**: `>`, `>=`, `<`, `<=`, `==`, `!=`
+    - Den Unterschied zwischen `=` (Zuweisung) und `==` (Vergleich)
+
+    Damit hast du **Kapitel 1** abgeschlossen! 🎉
+
+    > 📌 [Zurück zur Übersicht](./) — dort kannst du deinen Fortschritt als Link teilen.
+  </script>
+</notebook>

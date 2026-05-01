@@ -1,0 +1,278 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 2.2 — Conditionals</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Conditionals 🔀
+
+    Ein Kernelement von allen Programmen, das wir bisher noch nicht abgedeckt haben,
+    sind **Fallunterscheidungen**.
+
+    Häufig möchte man in Code etwas nur tun, wenn eine bestimmte **Bedingung** gilt.
+    Dafür gibt es `if`-Statements.
+  </script>
+
+  <script id="if-md" type="text/markdown">
+    ## `if`
+
+    Mit `if` können wir Code nur dann ausführen, wenn eine bestimmte Aussage wahr ist
+    (erinnerst du dich an die `boolean`-Werte?).
+
+    Dafür schreiben wir nach dem `if` einen `boolean`-Wert in runde Klammern `()`
+    (man nennt ihn die **"Bedingung"** oder *condition*) und danach in geschweiften
+    Klammern `{}` den Code, der ausgeführt werden soll, wenn die Bedingung wahr
+    (`true`) ist.
+  </script>
+
+  <script id="if-demo" type="module">
+    const demo_if = view(codeEditor("conditionals:if", {
+      value: 'const myAge = 30\n\nif (myAge > 19) {\n  console.log("Ich bin kein Teenager mehr")\n}\n\nif (myAge > 29) {\n  console.log("Ich bin auch kein Tweenager mehr")\n}',
+      minHeight: "200px"
+    }));
+  </script>
+
+  <script id="if-out" type="module">
+    display(consoleOutput(runWithConsole(demo_if)));
+  </script>
+
+  <script id="if-md2" type="text/markdown">
+    Wenn du allerdings die Zahl in der ersten Zeile auf `22` änderst und den Code erneut
+    laufen lässt, wird nur noch *"Ich bin kein Teenager mehr"* ausgegeben.
+
+    Man liest allgemein (das ist kein echter Code, er dient nur der Darstellung):
+
+    ```
+    if (A) {
+      B
+    }
+    ```
+
+    als **"Wenn A gilt, dann mach B"**.
+  </script>
+
+  <script id="bool-md" type="text/markdown">
+    ## Mehr `boolean`-Operatoren
+
+    `if`-Statements sind sehr wichtig — "echte" Programme müssen mit dynamischen Daten
+    umgehen, die von Nutzer:innen eingegeben werden. Um komplexere Bedingungen ausdrücken
+    zu können, gibt es eine Reihe weiterer nützlicher Operatoren:
+
+    - **`&&`** (gelesen "and" bzw. "und") — baut aus zwei `boolean`-Werten zusammen,
+      ob sie **beide** `true` sind
+    - **`||`** (gelesen "or" bzw. "oder") — baut aus zwei `boolean`-Werten zusammen,
+      ob **mindestens einer** von ihnen `true` ist
+  </script>
+
+  <script id="bool-demo" type="module">
+    const demo_bool = view(codeEditor("conditionals:bool", {
+      value: 'console.log(4 > 2 && "a" != "b")\nconsole.log(1 != 1 && 4 >= 4)\nconsole.log(3 < 1 || 10 == 10)\nconsole.log(4 == 5 || 5 == 6)',
+      minHeight: "150px"
+    }));
+  </script>
+
+  <script id="bool-out" type="module">
+    display(consoleOutput(runWithConsole(demo_bool)));
+  </script>
+
+  <script id="not-md" type="text/markdown">
+    Es gibt noch einen weiteren `boolean`-Operator. Dieser ist ein wenig anders als
+    alle bisherigen: alle bisherigen Operatoren verbinden **zwei** Werte zu einem
+    neuen. Es gibt aber auch Operatoren, die aus nur **einem** Wert einen neuen Wert
+    erzeugen:
+
+    - **`!`** (gelesen "not" bzw. "nicht") — um einen `boolean`-Wert "umzukehren"
+      (man sagt auch *negieren*) — aus `true` wird `false` und umgekehrt
+  </script>
+
+  <script id="not-demo" type="module">
+    const demo_not = view(codeEditor("conditionals:not", {
+      value: 'const age = 27\nconst isTeenager = age < 20\n\nif (!isTeenager) {\n  console.log("Kein Teenager mehr")\n}',
+      minHeight: "180px"
+    }));
+  </script>
+
+  <script id="not-out" type="module">
+    display(consoleOutput(runWithConsole(demo_not)));
+  </script>
+
+  <script id="else-md" type="text/markdown">
+    ## `else`
+
+    Nach einem `if` erlaubt JavaScript optional ein `else`, das Code enthält, der
+    ausgeführt werden soll, wenn die Bedingung des `if`s `false` war. An einem
+    Beispiel verdeutlicht sich das am einfachsten:
+  </script>
+
+  <script id="else-demo" type="module">
+    const demo_else = view(codeEditor("conditionals:else", {
+      value: 'const year = 2025\nconst isSchaltjahr = year % 4 == 0\n\nif (isSchaltjahr) {\n  console.log("Schaltjahr")\n} else {\n  console.log("Kein Schaltjahr")\n}',
+      minHeight: "200px"
+    }));
+  </script>
+
+  <script id="else-out" type="module">
+    display(consoleOutput(runWithConsole(demo_else)));
+  </script>
+
+  <script id="else-md2" type="text/markdown">
+    Dieses Programm gibt *"Kein Schaltjahr"* aus. Wenn wir `year` zu `2024` ändern,
+    wird *"Schaltjahr"* ausgegeben.
+
+    Man liest allgemein:
+
+    ```
+    if (A) {
+      B
+    } else {
+      C
+    }
+    ```
+
+    als **"Wenn A gilt, dann mach B, sonst mach C"**.
+  </script>
+
+  <script id="elseif-md" type="text/markdown">
+    ### `else if`
+
+    Es ist erlaubt, auf ein `else` direkt wieder ein `if` folgen zu lassen, statt `{}`.
+    Dieses Konstrukt nennt man `else if`. Auch das zeigt sich am besten an einem
+    Beispiel:
+  </script>
+
+  <script id="elseif-demo" type="module">
+    const demo_elseif = view(codeEditor("conditionals:elseif", {
+      value: 'const age = 19\n\nif (age < 17) {\n  console.log("Darf gar kein Auto fahren")\n} else if (age < 18) {\n  console.log("Darf begleitet Auto fahren")\n} else if (age < 21) {\n  console.log("Darf alleine das eigene Auto fahren")\n} else {\n  console.log("Darf Mietwagen fahren")\n}',
+      minHeight: "240px"
+    }));
+  </script>
+
+  <script id="elseif-out" type="module">
+    display(consoleOutput(runWithConsole(demo_elseif)));
+  </script>
+
+  <script id="elseif-md2" type="text/markdown">
+    Man liest allgemein:
+
+    ```
+    if (A) {
+      B
+    } else if (C) {
+      D
+    } else {
+      E
+    }
+    ```
+
+    als **"Wenn A gilt, dann mach B, sonst wenn C gilt mach D, sonst mach E"**.
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯
+
+    Wir fangen ab jetzt an, in den Übungen Stück für Stück **weniger genau einzelne
+    Schritte vorzugeben**, sondern nur ein bestimmtes Ergebnis bzw. Verhalten zu
+    beschreiben, das umzusetzen ist. Das Umsetzen von größeren Zielen in kleineren
+    Programmierschritten ist die **Kernfähigkeit**, die wir entwickeln wollen. Es gibt
+    für die meisten Probleme viele verschiedene legitime Lösungswege — probier
+    verschiedene aus!
+
+    Schreib folgendes Programm:
+
+    - Leg eine Variable `birthYear` an, die dein Geburtsjahr als Zahl enthält.
+    - Leg eine Variable `birthMonth` an, die deinen Geburtstmonat als Zahl enthält
+      (`1` = Januar, `12` = Dezember).
+    - Leg eine Variable `birthDay` an, die den Tag innerhalb des Monats deines
+      Geburtstags als Zahl enthält (z.B. `17` für den 17. Oktober).
+    - Leg eine Variable `currentYear` an, die das aktuelle Jahr als Zahl enthält.
+    - Leg eine Variable `currentMonth` an, die den aktuellen Monat als Zahl enthält.
+    - Leg eine Variable `currentDay` an, die den aktuellen Tag innerhalb des aktuellen
+      Monats als Zahl enthält.
+
+    Dein Programm soll nun die folgenden Informationen ausgeben — **dynamisch** von
+    den oben genannten Variablen abhängig. Das heißt, dass das Programm weiterhin
+    korrekte Angaben machen würde, wenn man _nur_ die obigen Variablen ändert:
+
+    - Dein aktuelles Alter als ganze Zahl.
+    - In welchem Quartal du geboren bist (Q1 = Jan-Mär, Q2 = Apr-Jun, Q3 = Jul-Sep,
+      Q4 = Okt-Dez).
+    - Ob dieses Jahr **sowohl** die Fußball-Europameisterschaft (seit 1960 alle 4 Jahre)
+      **als auch** die Europawahl (seit 1979 alle 5 Jahre) stattfindet.
+    - Ob du heute Geschenke bekommst (wir definieren dafür: an deinem Geburtstag und
+      am 24. Dezember gibt's Geschenke).
+
+    > 💡 Tipp: Teile solche Probleme in **kleine Einzelschritte** auf und speichere
+    > Zwischenergebnisse in Variablen mit aussagekräftigen Namen.
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("conditionals:final", {
+      value: "",
+      minHeight: "300px"
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungRun = runWithConsole(uebung_code);
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(consoleOutput(uebungRun));
+  </script>
+
+  <script id="uebung-feedback" type="module">
+    {
+      const src = uebung_code;
+      const declaresAll = ["birthYear", "birthMonth", "birthDay", "currentYear", "currentMonth", "currentDay"]
+        .every(v => new RegExp(`\\b(let|const)\\s+${v}\\s*=`).test(src));
+      const usesIf = /\bif\s*\(/.test(src);
+      const usesElseIf = /\belse\s+if\b/.test(src);
+      const usesAndOr = /(&&|\|\|)/.test(src);
+
+      if (!src.trim())
+        display(hint(html`Fang an, die vier Punkte umzusetzen.`));
+      else if (uebungRun.error)
+        display(err(html`Fehler: ${uebungRun.error}`));
+      else if (!declaresAll)
+        display(err(html`Lege alle 6 Eingangs-Variablen an: <code>birthYear</code>, <code>birthMonth</code>, <code>birthDay</code>, <code>currentYear</code>, <code>currentMonth</code>, <code>currentDay</code>.`));
+      else if (!usesIf)
+        display(err(html`Du brauchst mindestens ein <code>if</code>-Statement.`));
+      else if (!usesElseIf)
+        display(err(html`Für die Quartal-Logik brauchst du <code>else if</code>.`));
+      else if (!usesAndOr)
+        display(err(html`Für die Geschenke- und EM-Logik brauchst du <code>&&</code> oder <code>||</code>.`));
+      else if (uebungRun.logs.length < 4)
+        display(err(html`Du solltest 4 Werte loggen — Alter, Quartal, EM-Jahr, Geschenke. Bisher nur ${uebungRun.logs.length}.`));
+      else
+        display(ok(html`🎉 Übung gelöst! Vier Aussagen über dich:<br>${uebungRun.logs.slice(0, 4).map(l => html`<div style="font-family:var(--monospace);font-size:12px">${l}</div>`)}`));
+    }
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt:
+
+    - **`if`** — Code nur unter einer Bedingung ausführen
+    - **`else`** und **`else if`** — Alternativen formulieren
+    - **`&&`**, **`||`**, **`!`** — Bedingungen kombinieren
+
+    Als Nächstes: **[Loops →](./6_loops)**
+
+    > 📌 [Zurück zur Übersicht](./)
+  </script>
+</notebook>

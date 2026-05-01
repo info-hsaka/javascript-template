@@ -1,0 +1,162 @@
+<!doctype html>
+<notebook theme="air">
+  <title>JavaScript-Kurs — Übersicht</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { installThemeToggle, installHashImport } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    const imported = installHashImport();
+    if (imported) {
+      display(html`<div class="feedback feedback-info">
+        ✅ Lösungen aus dem Link wurden geladen. Klick auf eine Übung, um deinen Fortschritt zu sehen.
+      </div>`);
+    }
+  </script>
+
+  <script id="welcome" type="text/markdown">
+    # JavaScript-Kurs 🟨
+
+    Willkommen! Hier findest du alle Übungen für die Vorbereitung auf die HSAKA.
+
+    Du brauchst **nichts zu installieren** — alle Übungen laufen direkt im Browser.
+    Dein Fortschritt wird automatisch gespeichert.
+
+    ## Kapitel 1 — Grundlagen
+
+    1. [Variablen](./1_variables) 📦 — `let`, `const`, Werte zuweisen
+    2. [Datentypen](./2_types) 🔤 — Strings, Numbers, Booleans, `null`/`undefined`
+    3. [Operatoren](./3_operands) ➕ — Rechnen und Vergleichen
+
+    ## Kapitel 2 — Kontrollfluss
+
+    4. [Kommentare](./4_comments) 💬 — Code mit `//` erklären
+    5. [Conditionals](./5_conditionals) 🔀 — `if`/`else`, `&&`, `||`, `!`
+    6. [Loops](./6_loops) 🔁 — `while`, `break`, `continue`
+    7. [Scopes](./7_scopes) 🪟 — Geltungsbereiche von Variablen
+    8. [Functions](./8_functions) 🛠️ — Code wiederverwenden mit `function` und `return`
+
+    ## Kapitel 3 — Datenstrukturen & APIs
+
+    9. [Arrays](./9_arrays) 📚 — Listen mit `[]`, Index-Zugriff, `for of`
+    10. [String-Builtins](./10_builtins) 🔤 — Template Strings, `.includes`, `.substring`, …
+    11. [Objects](./11_objects) 🗂️ — Werte mit Namen gruppieren
+  </script>
+
+  <script id="share-md" type="text/markdown">
+    ---
+
+    ## Fortschritt teilen
+
+    Wenn du fertig bist, kannst du deinen kompletten Fortschritt als **einen Link**
+    teilen. Schick uns den Link, dann sehen wir deine Lösungen.
+  </script>
+
+  <script id="share-controls" type="module">
+    import { buildShareUrl, downloadAsFile, importFromFile, importFromUrl } from "./lib/progress.js";
+
+    function makeButton(label, onClick) {
+      const btn = html`<button style="
+        font: 500 14px/1 var(--sans-serif);
+        padding: .55em 1em;
+        border: 1px solid var(--theme-foreground-faintest);
+        border-radius: .4em;
+        background: var(--theme-background);
+        color: var(--theme-foreground);
+        cursor: pointer;
+        margin-right: .5em;
+      ">${label}</button>`;
+      btn.addEventListener("click", onClick);
+      return btn;
+    }
+
+    const status = html`<div style="margin-top:.6em;min-height:1.5em"></div>`;
+
+    function setStatus(node) {
+      status.innerHTML = "";
+      if (node) status.appendChild(node);
+    }
+
+    const shareBtn = makeButton("📋 Lösungen als Link kopieren", async () => {
+      const result = buildShareUrl();
+      if (result.kind === "empty") {
+        setStatus(html`<div style="color:var(--theme-foreground-muted)">Du hast noch keine Lösungen — bearbeite erst eine Übung.</div>`);
+        return;
+      }
+      if (result.kind === "too_long") {
+        setStatus(html`<div style="color:#7a5a00">⚠ Zu viel Fortschritt für einen Link (${result.length} Zeichen). Lade ihn als Datei herunter und schick uns die.</div>`);
+        downloadAsFile();
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(result.url);
+        setStatus(html`<div style="color:#1b6b1b">✅ Link kopiert! Schick ihn uns per Mail oder Discord. (${result.length} Zeichen)</div>`);
+      } catch {
+        setStatus(html`<div>Kopieren hat nicht geklappt. Hier ist der Link zum manuellen Kopieren:<br>
+          <textarea style="width:100%;height:6em;font-family:var(--monospace);font-size:11px;margin-top:.4em" readonly>${result.url}</textarea>
+        </div>`);
+      }
+    });
+
+    const downloadBtn = makeButton("💾 Als Datei speichern", () => {
+      downloadAsFile();
+      setStatus(html`<div style="color:#1b6b1b">✅ <code>fortschritt.json</code> wurde heruntergeladen.</div>`);
+    });
+
+    const fileInput = html`<input type="file" accept=".json,application/json" style="display:none">`;
+    fileInput.addEventListener("change", async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const data = await importFromFile(file);
+        setStatus(html`<div style="color:#1b6b1b">✅ ${Object.keys(data).length} Einträge importiert. Lade eine Übungs-Seite, um deine Lösungen zu sehen.</div>`);
+      } catch (err) {
+        setStatus(html`<div style="color:#a32a1a">❌ Datei konnte nicht gelesen werden: ${err.message}</div>`);
+      }
+    });
+
+    const importFileBtn = makeButton("📂 Datei importieren", () => fileInput.click());
+
+    const urlInput = html`<input type="text" placeholder="Link mit Lösungen einfügen (https://...#p=...)" style="
+      width: 100%;
+      max-width: 600px;
+      padding: .55em .8em;
+      border: 1px solid var(--theme-foreground-faintest);
+      border-radius: .4em;
+      font: 14px/1 var(--sans-serif);
+      margin-top: .8em;
+    ">`;
+    urlInput.addEventListener("change", () => {
+      const data = importFromUrl(urlInput.value);
+      if (!data) {
+        setStatus(html`<div style="color:#a32a1a">❌ Der Link sieht nicht richtig aus.</div>`);
+        return;
+      }
+      setStatus(html`<div style="color:#1b6b1b">✅ ${Object.keys(data).length} Einträge importiert.</div>`);
+      urlInput.value = "";
+    });
+
+    display(html`<div style="margin:.5em 0">
+      <div style="margin-bottom:.5em">${shareBtn}${downloadBtn}${importFileBtn}${fileInput}</div>
+      ${urlInput}
+      ${status}
+    </div>`);
+  </script>
+
+  <script id="howto" type="text/markdown">
+    ---
+
+    ## So funktioniert's
+
+    - Klick auf eine Übung oben.
+    - Lies die Erklärung und probier den Code aus, indem du ihn im Code-Feld änderst.
+    - Sobald du tippst, wird der Code ausgeführt und du siehst die Konsolen-Ausgabe darunter.
+    - Bei den Übungen am Ende jedes Kapitels siehst du ✅ wenn deine Lösung richtig ist.
+    - Du kannst jederzeit zurückkommen — alle Eingaben bleiben gespeichert.
+
+    > 💡 Tipp: Funktioniert am besten in Chrome, Firefox oder Edge.
+  </script>
+</notebook>

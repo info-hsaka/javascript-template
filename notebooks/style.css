@@ -1,0 +1,186 @@
+/* === Dark mode ============================================================
+ * Notebook Kit derives almost everything from --theme-foreground,
+ * --theme-background-a, and the syntax-* color variables. Overriding those
+ * here flips the entire site (text, prose, code blocks, links) to dark mode.
+ *
+ * Two activation paths:
+ *   1. Auto: respects the OS preference via @media (prefers-color-scheme: dark)
+ *      unless the user has explicitly picked a theme (data-theme="light").
+ *   2. Manual: data-theme="dark" / "light" on <html> wins over the OS hint.
+ */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --theme-foreground: #e6e6e6;
+    --theme-background-a: #1b1e23;
+    --theme-foreground-focus: #7a9ce0;
+    color-scheme: dark;
+
+    --syntax-keyword: #ff9959;
+    --syntax-atom: #79b8ff;
+    --syntax-literal: #b392f0;
+    --syntax-string: #85e89d;
+    --syntax-definition: #79b8ff;
+    --syntax-meta: #f97583;
+  }
+}
+
+:root[data-theme="dark"] {
+  --theme-foreground: #e6e6e6;
+  --theme-background-a: #1b1e23;
+  --theme-foreground-focus: #7a9ce0;
+  color-scheme: dark;
+
+  --syntax-keyword: #ff9959;
+  --syntax-atom: #79b8ff;
+  --syntax-literal: #b392f0;
+  --syntax-string: #85e89d;
+  --syntax-definition: #79b8ff;
+  --syntax-meta: #f97583;
+}
+
+/* CodeMirror needs explicit background/foreground in dark mode (its defaults
+ * assume white). We use the theme variables so it tracks any future theme
+ * change automatically. */
+:root[data-theme="dark"] .cm-editor {
+  background: var(--theme-background);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-editor {
+    background: var(--theme-background);
+  }
+}
+
+/* CodeMirror's default active-line highlight is calibrated for light mode and
+ * shows up as an obnoxiously bright gray stripe on dark. Tone it down to a
+ * faint white wash. Same idea for the gutter. */
+:root[data-theme="dark"] .cm-activeLine,
+:root[data-theme="dark"] .cm-activeLineGutter {
+  background: rgba(255, 255, 255, 0.04);
+}
+:root[data-theme="dark"] .cm-activeLineGutter {
+  background: rgba(255, 255, 255, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-activeLine {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  :root:not([data-theme="light"]) .cm-activeLineGutter {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* The default cursor is black — invisible on dark backgrounds. */
+:root[data-theme="dark"] .cm-content {
+  caret-color: var(--theme-foreground);
+}
+:root[data-theme="dark"] .cm-cursor,
+:root[data-theme="dark"] .cm-dropCursor {
+  border-left-color: var(--theme-foreground);
+}
+:root[data-theme="dark"] .cm-selectionBackground,
+:root[data-theme="dark"] .cm-content ::selection {
+  background: rgba(122, 156, 224, 0.35) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-content {
+    caret-color: var(--theme-foreground);
+  }
+  :root:not([data-theme="light"]) .cm-cursor,
+  :root:not([data-theme="light"]) .cm-dropCursor {
+    border-left-color: var(--theme-foreground);
+  }
+  :root:not([data-theme="light"]) .cm-selectionBackground,
+  :root:not([data-theme="light"]) .cm-content ::selection {
+    background: rgba(122, 156, 224, 0.35) !important;
+  }
+}
+
+/* === Theme toggle button ================================================== */
+.theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 1000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--theme-foreground-faintest);
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.theme-toggle:hover {
+  transform: scale(1.06);
+  background: var(--theme-background);
+}
+
+/* === Inline-code chips ===================================================== */
+.observablehq code {
+  background: rgba(125, 125, 125, 0.10);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Code blocks inside <pre> already have their own styling — undo the chip there. */
+.observablehq pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 1em;
+}
+
+/* === Feedback boxes (ok/err/hint/banner) ====================================
+ * Tinted by `--accent`, blended into the theme background so they adapt to
+ * dark mode without re-styling. Override `--accent` in dark mode for a lighter
+ * shade that reads on dark backgrounds.
+ */
+.feedback {
+  padding: 0.6em 0.9em;
+  border-radius: 0.4em;
+  margin: 0.4em 0;
+  background: color-mix(in srgb, var(--accent, var(--theme-foreground)) 10%, var(--theme-background));
+  color: var(--accent, var(--theme-foreground));
+  border: 1px solid color-mix(in srgb, var(--accent, var(--theme-foreground)) 30%, var(--theme-background));
+}
+.feedback-ok    { --accent: #1b6b1b; }
+.feedback-err   { --accent: #a32a1a; }
+.feedback-hint  { --accent: #7a5a00; }
+.feedback-info  { --accent: #1a3a8a; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .feedback-ok    { --accent: #6ec96e; }
+  :root:not([data-theme="light"]) .feedback-err   { --accent: #f08071; }
+  :root:not([data-theme="light"]) .feedback-hint  { --accent: #e0c060; }
+  :root:not([data-theme="light"]) .feedback-info  { --accent: #88a8e8; }
+}
+:root[data-theme="dark"] .feedback-ok    { --accent: #6ec96e; }
+:root[data-theme="dark"] .feedback-err   { --accent: #f08071; }
+:root[data-theme="dark"] .feedback-hint  { --accent: #e0c060; }
+:root[data-theme="dark"] .feedback-info  { --accent: #88a8e8; }
+
+/* === <details> / <summary> reveals ========================================= */
+.observablehq details {
+  margin: 0.5em 0;
+  padding: 0.4em 0.7em;
+  background: rgba(125, 125, 125, 0.05);
+  border-radius: 4px;
+  border: 1px solid var(--theme-foreground-faintest);
+}
+.observablehq details > summary {
+  cursor: pointer;
+  font: 500 14px/1.4 var(--sans-serif);
+  color: var(--theme-foreground-muted);
+  user-select: none;
+}
+.observablehq details[open] > summary {
+  margin-bottom: 0.4em;
+}

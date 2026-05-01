@@ -1,0 +1,239 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 3.1 — Arrays</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runTestCases } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput, testReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Arrays 📚
+
+    Bisher haben wir nur mit Werten von sogenannten **primitiven** Datentypen
+    (Strings, Numbers, Booleans) gearbeitet. Es gibt noch eine weitere Art:
+    **composite** Typen — Datentypen, die aus mehreren Werten zusammengesetzt sind.
+
+    Der erste composite Datentyp, den wir uns anschauen, ist **Array** (Liste).
+  </script>
+
+  <script id="basics-md" type="text/markdown">
+    ## Basics
+
+    Ein Array ist ein Wert, der eine **beliebig lange Liste von Werten** enthält. Ein
+    Array wird mit eckigen Klammern `[]` geschrieben, mit den enthaltenen Werten
+    innerhalb der Klammern, durch Kommas getrennt:
+  </script>
+
+  <script id="basics-demo" type="module">
+    const demo_basics = view(codeEditor("arrays:basics", {
+      value: 'const fruits = ["Apfel", "Orange", "Banane"]\nconst ages = [22, 90, 18, 7, 45]\nconst heroes = ["Hulk", "Thor"]\n\nconsole.log(fruits)\nconsole.log(ages)\nconsole.log(heroes)',
+      minHeight: "200px"
+    }));
+  </script>
+
+  <script id="basics-out" type="module">
+    display(consoleOutput(runWithConsole(demo_basics)));
+  </script>
+
+  <script id="basics-md2" type="text/markdown">
+    Der Array selbst ist ein ganz normaler JavaScript-Wert — du kannst ihn in einer
+    Variable speichern, an Funktionen übergeben, von Funktionen zurückgeben, etc.
+  </script>
+
+  <script id="index-md" type="text/markdown">
+    ## Index Access
+
+    Auf einzelne Elemente eines Arrays greifst du mit dem **Index** zu — die Position
+    in eckigen Klammern. **Achtung:** der erste Index ist `0`, nicht `1`!
+  </script>
+
+  <script id="index-demo" type="module">
+    const demo_index = view(codeEditor("arrays:index", {
+      value: 'const colors = ["Blau", "Rot", "Orange", "Grün"]\n\nconsole.log(colors[0]) // Blau\nconsole.log(colors[2]) // Orange\nconsole.log(colors[3]) // Grün\n\n// Was passiert bei einem Index, den es nicht gibt?\nconsole.log(colors[10]) // undefined',
+      minHeight: "240px"
+    }));
+  </script>
+
+  <script id="index-out" type="module">
+    display(consoleOutput(runWithConsole(demo_index)));
+  </script>
+
+  <script id="assign-md" type="text/markdown">
+    ## Index Assignment
+
+    Mit derselben Notation kannst du Elemente auch **überschreiben** — einfach mit
+    `=` einen neuen Wert zuweisen.
+  </script>
+
+  <script id="assign-demo" type="module">
+    const demo_assign = view(codeEditor("arrays:assign", {
+      value: 'const drinks = ["Wasser", "Saft", "Cola"]\nconsole.log(drinks)\n\ndrinks[1] = "Limonade"\nconsole.log(drinks)',
+      minHeight: "180px"
+    }));
+  </script>
+
+  <script id="assign-out" type="module">
+    display(consoleOutput(runWithConsole(demo_assign)));
+  </script>
+
+  <script id="builtins-md" type="text/markdown">
+    ## Array Builtins
+
+    Arrays haben — ähnlich wie Strings — viele **builtin Methoden und Properties**.
+    Einige davon heißen und funktionieren sogar genauso wie bei Strings:
+
+    - **`.length`** — eine *Property* (kein `()` dahinter), enthält die Anzahl der Elemente
+    - **`.includes(x)`** — eine Funktion, gibt zurück, ob der übergebene Wert im Array enthalten ist
+    - **`.indexOf(x)`** — gibt die Position des Wertes zurück, oder `-1`, falls er nicht enthalten ist
+    - **`.slice(start, end)`** — gibt den entsprechenden Teilbereich des Arrays als neuen Array zurück (genau wie `.substring` auf Strings)
+  </script>
+
+  <script id="builtins-demo" type="module">
+    const demo_builtins = view(codeEditor("arrays:builtins", {
+      value: 'const numbers = [10, 20, 30, 40, 50]\n\nconsole.log(numbers.length)        // 5\nconsole.log(numbers.includes(30))  // true\nconsole.log(numbers.includes(99))  // false\nconsole.log(numbers.indexOf(40))   // 3\nconsole.log(numbers.slice(1, 4))   // [20, 30, 40]',
+      minHeight: "240px"
+    }));
+  </script>
+
+  <script id="builtins-out" type="module">
+    display(consoleOutput(runWithConsole(demo_builtins)));
+  </script>
+
+  <script id="modify-md" type="text/markdown">
+    ### Elemente hinzufügen und entfernen
+
+    - **`.push(x)`** — fügt `x` ans **Ende** an
+    - **`.unshift(x)`** — fügt `x` an den **Anfang** an
+    - **`.pop()`** — entfernt das **letzte** Element und gibt es zurück
+    - **`.shift()`** — entfernt das **erste** Element und gibt es zurück
+  </script>
+
+  <script id="modify-demo" type="module">
+    const demo_modify = view(codeEditor("arrays:modify", {
+      value: 'const todos = ["Wäsche", "Einkaufen"]\n\ntodos.push("Aufräumen")\nconsole.log(todos) // ["Wäsche", "Einkaufen", "Aufräumen"]\n\ntodos.unshift("Aufstehen")\nconsole.log(todos) // ["Aufstehen", "Wäsche", "Einkaufen", "Aufräumen"]\n\nconst entfernt = todos.pop()\nconsole.log(entfernt) // "Aufräumen"\nconsole.log(todos)    // ["Aufstehen", "Wäsche", "Einkaufen"]',
+      minHeight: "300px"
+    }));
+  </script>
+
+  <script id="modify-out" type="module">
+    display(consoleOutput(runWithConsole(demo_modify)));
+  </script>
+
+  <script id="nested-md" type="text/markdown">
+    ## Beliebige Werte — verschachtelte Arrays
+
+    In einem Array können auch **andere Arrays** stehen. Damit lassen sich z.B.
+    zweidimensionale Daten wie ein Tic-Tac-Toe-Brett darstellen:
+  </script>
+
+  <script id="nested-demo" type="module">
+    const demo_nested = view(codeEditor("arrays:nested", {
+      value: 'const ticTacToe = [\n  ["X", "O", "X"],\n  ["O", "X", "O"],\n  ["O", "X", "X"]\n]\n\nconsole.log(ticTacToe[0])    // erste Zeile\nconsole.log(ticTacToe[1][1]) // Mitte: "X"\n// (ticTacToe[1])[1] — erst die zweite Zeile holen, dann das mittlere Element',
+      minHeight: "240px"
+    }));
+  </script>
+
+  <script id="nested-out" type="module">
+    display(consoleOutput(runWithConsole(demo_nested)));
+  </script>
+
+  <script id="forof-md" type="text/markdown">
+    ## `for of`-Loops
+
+    Da man beim Programmieren **sehr häufig** einen Loop schreiben muss, um irgendetwas
+    mit jedem Element eines Arrays zu tun, gibt es hierfür eine **spezielle Kurzform**
+    — den `for of`-Loop:
+
+    Die allgemeine Form ist `for (const <name> of <array>) { <body> }`, wobei
+    `<name>` der Name der neuen lokalen Variable ist, die automatisch pro Durchlauf
+    das aktuelle Element des Arrays enthält.
+  </script>
+
+  <script id="forof-demo" type="module">
+    const demo_forof = view(codeEditor("arrays:forof", {
+      value: 'const devices = ["Laptop", "Tablet", "Handy"]\n\nfor (const device of devices) {\n  console.log("Ich besitze ein " + device + ".")\n}',
+      minHeight: "180px"
+    }));
+  </script>
+
+  <script id="forof-out" type="module">
+    display(consoleOutput(runWithConsole(demo_forof)));
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯 — `filterStrings`
+
+    Schreib eine **exportierte** Funktion `filterStrings(arr)`, die einen Array aus
+    Strings entgegennimmt und einen **neuen** Array aus Strings zurückgibt. Der neue
+    Array soll alle Strings enthalten, die
+
+    - **mindestens 5 Zeichen lang sind** _oder_
+    - **mit `"S"` anfangen**
+
+    — und das in **umgekehrter Reihenfolge**.
+
+    > Beispiel: `filterStrings(["Kugelschreiber", "Salz", "Maus"])`
+    > soll `["Salz", "Kugelschreiber"]` zurückgeben.
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Iteriere mit `for of` durch den Array.
+    - Bau dir einen leeren `result`-Array auf und benutze `.push` für die Treffer.
+    - Am Ende mit `.reverse()` umdrehen — oder direkt mit `.unshift` einfügen.
+    - String-Länge: `.length`. Erstes Zeichen prüfen: `s[0] === "S"` oder `s.startsWith("S")`.
+
+    </details>
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("arrays:final", {
+      value: "",
+      minHeight: "240px"
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungResult = runTestCases({
+      code: uebung_code,
+      fnName: "filterStrings",
+      cases: [
+        [[["Kugelschreiber", "Salz", "Maus"]], ["Salz", "Kugelschreiber"]],
+        [[["Sun", "Stars", "Moon", "Galaxy"]], ["Galaxy", "Stars", "Sun"]],
+        [[[]], []],
+        [[["abc", "xy"]], []],
+        [[["Snake", "Anna"]], ["Snake"]]
+      ]
+    });
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(testReport(uebungResult, "filterStrings"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt:
+
+    - **Arrays** als zusammengesetzte Datenstruktur
+    - **Index-Zugriff** und **-Zuweisung**
+    - Builtins: **`.length`**, **`.includes`**, **`.indexOf`**, **`.slice`**, **`.push`**, **`.pop`**, **`.shift`**, **`.unshift`**
+    - **Verschachtelte Arrays**
+    - **`for of`-Loops**
+
+    Als Nächstes: **[String-Builtins →](./10_builtins)**
+
+    > 📌 [Zurück zur Übersicht](./)
+  </script>
+</notebook>

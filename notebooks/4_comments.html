@@ -1,0 +1,80 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 2.1 — Kommentare</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Kommentare 💬
+
+    Langsam wird der Code, den wir schreiben, komplexer. Um auch längeren und
+    komplizierteren Code lesbar und verständlich zu machen, gibt es sogenannte
+    **Comments** (Kommentare).
+
+    Ein Kommentar ist eine Codezeile, die **nichts tut** — sie wird vom Computer
+    ignoriert und dient nur dazu, Menschen das Lesen von Code zu vereinfachen.
+
+    Kommentare in JavaScript fangen mit `//` an. Ein Beispiel:
+  </script>
+
+  <script id="comments-demo" type="module">
+    const demo = view(codeEditor("comments:demo", {
+      value: '// Hier passiert die Begrüßung\nconst name = "Anna" // der Name der Person\nconsole.log("Hallo, " + name + "!")\n\n// const ungenutzt = "wird nie ausgeführt"\n// console.log("Auch das hier ist auskommentiert")',
+      minHeight: "150px"
+    }));
+  </script>
+
+  <script id="comments-out" type="module">
+    display(consoleOutput(runWithConsole(demo)));
+  </script>
+
+  <script id="quartal-md" type="text/markdown">
+    Hier ist ein etwas größeres Beispiel, in dem Kommentare den Code erklären:
+  </script>
+
+  <script id="quartal-demo" type="module">
+    const demo_q = view(codeEditor("comments:quartal", {
+      value: 'const month = 8\n// Quartal als String\nlet quarter\nif (month < 4) {\n  // Januar bis März\n  quarter = "Q1"\n} else if (month < 7) {\n  // April bis Juni\n  quarter = "Q2"\n} else if (month < 10) {\n  // Juli bis September\n  quarter = "Q3"\n} else if (month < 13) {\n  // Oktober bis Dezember\n  quarter = "Q4"\n} else {\n  // Monate über 12 machen keinen Sinn...\n  console.log("Das ist kein Monat...")\n}\n// Gib das Quartal aus, wird undefined ausgeben wenn der Monat auf > 12 gesetzt war\nconsole.log(quarter)',
+      minHeight: "440px"
+    }));
+  </script>
+
+  <script id="quartal-out" type="module">
+    display(consoleOutput(runWithConsole(demo_q)));
+  </script>
+
+  <script id="quartal-md2" type="text/markdown">
+    Dieser Code tut exakt das Gleiche, wenn man alle Zeilen, die mit `//` beginnen,
+    entfernt — aber er ist deutlich besser lesbar und erklärt.
+
+    ## Kommentare in Beispielen
+
+    Wir werden ab jetzt Kommentare in Beispielen benutzen, um Dinge zu erklären.
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du hast in diesem Kapitel gelernt:
+
+    - Kommentare beginnen mit `//`
+    - Sie werden vom Computer **ignoriert**
+    - Sie helfen Menschen, den Code zu verstehen
+    - Man kann auch ganze Code-Zeilen **auskommentieren**, um sie zu deaktivieren
+
+    Als Nächstes: **[Conditionals →](./5_conditionals)**
+
+    > 📌 [Zurück zur Übersicht](./)
+  </script>
+</notebook>
