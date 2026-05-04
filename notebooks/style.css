@@ -96,6 +96,43 @@
   }
 }
 
+/* === Run button below code editors ========================================
+ * Sits flush under the editor like a footer; turns orange when the editor has
+ * unsaved changes (i.e. liveText != published value).
+ */
+.run-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-top: none;
+  border-bottom-left-radius: 0.4em;
+  border-bottom-right-radius: 0.4em;
+  background: var(--theme-background-alt);
+  padding: 4px 6px;
+}
+
+.run-button {
+  font: 500 13px/1 var(--sans-serif);
+  padding: 0.4em 0.8em;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.3em;
+  background: var(--theme-background);
+  color: var(--theme-foreground);
+  cursor: pointer;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+.run-button:hover {
+  background: color-mix(in srgb, var(--theme-foreground) 8%, var(--theme-background));
+}
+.run-button.dirty {
+  border-color: color-mix(in srgb, #d97706 60%, var(--theme-background));
+  color: color-mix(in srgb, #d97706 100%, var(--theme-foreground));
+}
+.run-button.dirty::before {
+  content: "● ";
+  color: #d97706;
+}
+
 /* === Theme toggle button ================================================== */
 .theme-toggle {
   position: fixed;

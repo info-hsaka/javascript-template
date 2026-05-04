@@ -51,12 +51,12 @@
 
     ## Fortschritt teilen
 
-    Wenn du fertig bist, kannst du deinen kompletten Fortschritt als **einen Link**
-    teilen. Schick uns den Link, dann sehen wir deine Lösungen.
+    Wenn du fertig bist, kannst du deine kompletten Lösungen als Datei exportieren
+    und uns schicken — dann sehen wir deine Antworten.
   </script>
 
   <script id="share-controls" type="module">
-    import { buildShareUrl, downloadAsFile, importFromFile, importFromUrl } from "./lib/progress.js";
+    import { downloadAsFile, importFromFile, exportAll } from "./lib/progress.js";
 
     function makeButton(label, onClick) {
       const btn = html`<button style="
@@ -80,30 +80,13 @@
       if (node) status.appendChild(node);
     }
 
-    const shareBtn = makeButton("📋 Lösungen als Link kopieren", async () => {
-      const result = buildShareUrl();
-      if (result.kind === "empty") {
+    const downloadBtn = makeButton("💾 Lösungen herunterladen", () => {
+      if (Object.keys(exportAll()).length === 0) {
         setStatus(html`<div style="color:var(--theme-foreground-muted)">Du hast noch keine Lösungen — bearbeite erst eine Übung.</div>`);
         return;
       }
-      if (result.kind === "too_long") {
-        setStatus(html`<div style="color:#7a5a00">⚠ Zu viel Fortschritt für einen Link (${result.length} Zeichen). Lade ihn als Datei herunter und schick uns die.</div>`);
-        downloadAsFile();
-        return;
-      }
-      try {
-        await navigator.clipboard.writeText(result.url);
-        setStatus(html`<div style="color:#1b6b1b">✅ Link kopiert! Schick ihn uns per Mail oder Discord. (${result.length} Zeichen)</div>`);
-      } catch {
-        setStatus(html`<div>Kopieren hat nicht geklappt. Hier ist der Link zum manuellen Kopieren:<br>
-          <textarea style="width:100%;height:6em;font-family:var(--monospace);font-size:11px;margin-top:.4em" readonly>${result.url}</textarea>
-        </div>`);
-      }
-    });
-
-    const downloadBtn = makeButton("💾 Als Datei speichern", () => {
       downloadAsFile();
-      setStatus(html`<div style="color:#1b6b1b">✅ <code>fortschritt.json</code> wurde heruntergeladen.</div>`);
+      setStatus(html`<div class="feedback feedback-ok" style="display:inline-block">✅ <code>fortschritt.json</code> heruntergeladen — schick uns die Datei per Mail oder Discord.</div>`);
     });
 
     const fileInput = html`<input type="file" accept=".json,application/json" style="display:none">`;
@@ -112,36 +95,16 @@
       if (!file) return;
       try {
         const data = await importFromFile(file);
-        setStatus(html`<div style="color:#1b6b1b">✅ ${Object.keys(data).length} Einträge importiert. Lade eine Übungs-Seite, um deine Lösungen zu sehen.</div>`);
+        setStatus(html`<div class="feedback feedback-ok" style="display:inline-block">✅ ${Object.keys(data).length} Einträge importiert. Lade eine Übungs-Seite, um deine Lösungen zu sehen.</div>`);
       } catch (err) {
-        setStatus(html`<div style="color:#a32a1a">❌ Datei konnte nicht gelesen werden: ${err.message}</div>`);
+        setStatus(html`<div class="feedback feedback-err" style="display:inline-block">❌ Datei konnte nicht gelesen werden: ${err.message}</div>`);
       }
     });
 
-    const importFileBtn = makeButton("📂 Datei importieren", () => fileInput.click());
-
-    const urlInput = html`<input type="text" placeholder="Link mit Lösungen einfügen (https://...#p=...)" style="
-      width: 100%;
-      max-width: 600px;
-      padding: .55em .8em;
-      border: 1px solid var(--theme-foreground-faintest);
-      border-radius: .4em;
-      font: 14px/1 var(--sans-serif);
-      margin-top: .8em;
-    ">`;
-    urlInput.addEventListener("change", () => {
-      const data = importFromUrl(urlInput.value);
-      if (!data) {
-        setStatus(html`<div style="color:#a32a1a">❌ Der Link sieht nicht richtig aus.</div>`);
-        return;
-      }
-      setStatus(html`<div style="color:#1b6b1b">✅ ${Object.keys(data).length} Einträge importiert.</div>`);
-      urlInput.value = "";
-    });
+    const importFileBtn = makeButton("📂 Lösungen importieren", () => fileInput.click());
 
     display(html`<div style="margin:.5em 0">
-      <div style="margin-bottom:.5em">${shareBtn}${downloadBtn}${importFileBtn}${fileInput}</div>
-      ${urlInput}
+      <div style="margin-bottom:.5em">${downloadBtn}${importFileBtn}${fileInput}</div>
       ${status}
     </div>`);
   </script>

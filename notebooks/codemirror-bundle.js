@@ -6,3 +6,5 @@ export { basicSetup, EditorView } from "codemirror";
 export { javascript } from "@codemirror/lang-javascript";
 export { keymap } from "@codemirror/view";
 export { indentWithTab } from "@codemirror/commands";
+export { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+export { tags } from "@lezer/highlight";

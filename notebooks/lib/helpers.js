@@ -8,7 +8,33 @@
 // Pure logic helpers (`runWithConsole`, `runWithTimeout`, etc.) are re-exported
 // as-is from their respective modules.
 
-import { basicSetup, EditorView, javascript, keymap, indentWithTab } from "../codemirror-bundle.js";
+import {
+  basicSetup,
+  EditorView,
+  javascript,
+  keymap,
+  indentWithTab,
+  HighlightStyle,
+  syntaxHighlighting,
+  tags as t
+} from "../codemirror-bundle.js";
+
+// Syntax highlight style that mirrors Notebook Kit's prose code blocks. By
+// pointing at the `--syntax-*` CSS variables Notebook Kit defines, the editor
+// adopts the same colors as the markdown-rendered code in the same notebook
+// — and tracks light/dark theme changes automatically.
+const proseMatchHighlight = HighlightStyle.define([
+  { tag: t.keyword, color: "var(--syntax-keyword)" },
+  { tag: [t.atom, t.bool, t.special(t.variableName)], color: "var(--syntax-atom)" },
+  { tag: [t.literal, t.number, t.unit], color: "var(--syntax-literal)" },
+  { tag: [t.string, t.special(t.string), t.regexp, t.escape], color: "var(--syntax-string)" },
+  { tag: [t.comment, t.lineComment, t.blockComment, t.docComment], color: "var(--syntax-comment)", fontStyle: "italic" },
+  { tag: t.invalid, color: "var(--syntax-invalid)" },
+  { tag: [t.definition(t.variableName), t.definition(t.propertyName), t.function(t.variableName), t.labelName, t.className], color: "var(--syntax-definition)" },
+  { tag: [t.variableName, t.propertyName], color: "var(--syntax-variable)" },
+  { tag: [t.meta, t.processingInstruction], color: "var(--syntax-meta)" },
+  { tag: [t.operator, t.operatorKeyword, t.punctuation, t.bracket, t.separator], color: "var(--theme-foreground)" }
+]);
 
 // --- Re-exports of pure logic helpers ----------------------------------------
 export {
@@ -46,14 +72,32 @@ export function createUI({ html }) {
     const stored = localStorage.getItem(storageKey);
     const initial = stored ?? value;
 
-    const editorEl = html`<div style="border:1px solid var(--theme-foreground-faintest);border-radius:.4em;overflow:hidden;font-size:14px;min-height:${minHeight}"></div>`;
+    // Two pieces of state:
+    //   liveText      — what's currently in the editor (saved to localStorage on every keystroke)
+    //   wrapper.value — what reactive cells see (only updated when "Run" is clicked / Cmd-Enter)
+    let liveText = initial;
+
+    function publish() {
+      const text = liveText;
+      wrapper.value = text;
+      runBtn.classList.remove("dirty");
+      wrapper.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    const editorEl = html`<div style="border:1px solid var(--theme-foreground-faintest);border-top-left-radius:.4em;border-top-right-radius:.4em;border-bottom:none;overflow:hidden;font-size:14px;min-height:${minHeight}"></div>`;
 
     const view = new EditorView({
       doc: initial,
       extensions: [
         basicSetup,
         javascript(),
-        keymap.of([indentWithTab]),
+        // Apply our highlight style after basicSetup so it overrides the
+        // default colors with our `--syntax-*` variables.
+        syntaxHighlighting(proseMatchHighlight),
+        keymap.of([
+          indentWithTab,
+          { key: "Mod-Enter", run: () => { publish(); return true; } }
+        ]),
         EditorView.theme({
           "&": { fontSize: "14px" },
           ".cm-content": { fontFamily: "var(--monospace)", padding: "8px 0" },
@@ -62,19 +106,27 @@ export function createUI({ html }) {
         }),
         EditorView.updateListener.of((u) => {
           if (u.docChanged) {
-            const text = view.state.doc.toString();
-            wrapper.value = text;
-            localStorage.setItem(storageKey, text);
-            wrapper.dispatchEvent(new Event("input", { bubbles: true }));
+            liveText = view.state.doc.toString();
+            localStorage.setItem(storageKey, liveText);
+            // Mark the run button as "dirty" so the user knows their changes
+            // haven't been applied yet.
+            if (liveText !== wrapper.value) runBtn.classList.add("dirty");
+            else runBtn.classList.remove("dirty");
           }
         })
       ],
       parent: editorEl
     });
 
+    const runBtn = html`<button class="run-button" type="button" title="Code ausführen (⌘/Ctrl+Enter)">▶ Ausführen</button>`;
+    runBtn.addEventListener("click", () => publish());
+
+    const toolbar = html`<div class="run-toolbar">${runBtn}</div>`;
+
     const wrapper = html`<div style="margin:.5em 0">
       <div style="font: 500 13px/1.4 var(--sans-serif); color: var(--theme-foreground-muted); margin-bottom: 4px">${label}</div>
       ${editorEl}
+      ${toolbar}
     </div>`;
     wrapper.value = initial;
     return wrapper;
