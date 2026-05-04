@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "notebooks:preview": "notebooks preview --root notebooks",
-        "notebooks:build": "notebooks build --root notebooks --out ../dist -- notebooks/index.html notebooks/1_variables.html notebooks/2_types.html notebooks/3_operands.html notebooks/4_comments.html notebooks/5_conditionals.html notebooks/6_loops.html notebooks/7_scopes.html notebooks/8_functions.html notebooks/9_arrays.html notebooks/10_builtins.html notebooks/11_objects.html"
+        "notebooks:build": "notebooks build --root notebooks --out ../dist -- notebooks/index.html notebooks/1_variables.html notebooks/2_types.html notebooks/3_operands.html notebooks/4_comments.html notebooks/5_conditionals.html notebooks/6_loops.html notebooks/7_scopes.html notebooks/8_functions.html notebooks/9_arrays.html notebooks/10_builtins.html notebooks/11_objects.html",
+        "notebooks:build:pages": "notebooks build --root notebooks --out ../dist --base /javascript-template/ -- notebooks/index.html notebooks/1_variables.html notebooks/2_types.html notebooks/3_operands.html notebooks/4_comments.html notebooks/5_conditionals.html notebooks/6_loops.html notebooks/7_scopes.html notebooks/8_functions.html notebooks/9_arrays.html notebooks/10_builtins.html notebooks/11_objects.html"
     },
     "devDependencies": {
         "@codemirror/commands": "^6.10.3",
