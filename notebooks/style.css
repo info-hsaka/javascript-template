@@ -240,6 +240,20 @@
   background: var(--theme-background);
 }
 
+/* === Prose width ==========================================================
+ * Notebook Kit's defaults cap <p> at 640px and <ul>/<blockquote> at 600px,
+ * which narrows prose relative to our full-width code editors and creates an
+ * uneven left edge between text and code. Let prose take the body's full
+ * max-width so everything aligns.
+ */
+.observablehq p,
+.observablehq ul,
+.observablehq ol,
+.observablehq blockquote,
+.observablehq .katex-display {
+  max-width: none;
+}
+
 /* === Inline-code chips ===================================================== */
 .observablehq code {
   background: rgba(125, 125, 125, 0.10);
