@@ -69,6 +69,7 @@ const STORAGE_PREFIX = "jskurs:";
 export function createUI({ html }) {
   function codeEditor(key, { value = "", label = "Dein Code:", minHeight = "auto" } = {}) {
     const storageKey = STORAGE_PREFIX + key;
+    const pristine = value;             // original starter, used by reset()
     const stored = localStorage.getItem(storageKey);
     const initial = stored ?? value;
 
@@ -82,6 +83,19 @@ export function createUI({ html }) {
       wrapper.value = text;
       runBtn.classList.remove("dirty");
       wrapper.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+
+    function reset() {
+      if (liveText !== pristine && !confirm("Deine Änderungen verwerfen und den Code auf den Anfangszustand zurücksetzen?")) {
+        return;
+      }
+      liveText = pristine;
+      localStorage.removeItem(storageKey);
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: pristine },
+        userEvent: "input.reset"
+      });
+      publish();
     }
 
     const editorEl = html`<div style="border:1px solid var(--theme-foreground-faintest);border-top-left-radius:.4em;border-top-right-radius:.4em;border-bottom:none;overflow:hidden;font-size:14px;min-height:${minHeight}"></div>`;
@@ -121,10 +135,13 @@ export function createUI({ html }) {
     const runBtn = html`<button class="run-button" type="button" title="Code ausführen (⌘/Ctrl+Enter)">▶ Ausführen</button>`;
     runBtn.addEventListener("click", () => publish());
 
-    const toolbar = html`<div class="run-toolbar">${runBtn}</div>`;
+    const resetBtn = html`<button class="reset-button" type="button" title="Auf den Anfangszustand zurücksetzen">↺ Zurücksetzen</button>`;
+    resetBtn.addEventListener("click", () => reset());
 
-    const wrapper = html`<div style="margin:.5em 0">
-      <div style="font: 500 13px/1.4 var(--sans-serif); color: var(--theme-foreground-muted); margin-bottom: 4px">${label}</div>
+    const toolbar = html`<div class="run-toolbar">${resetBtn}${runBtn}</div>`;
+
+    const wrapper = html`<div class="code-editor">
+      <div class="code-editor-label">${label}</div>
       ${editorEl}
       ${toolbar}
     </div>`;
@@ -143,15 +160,14 @@ export function createUI({ html }) {
   }
 
   function consoleOutput({ logs, error, timedOut }) {
-    const box = html`<div style="font-family:var(--monospace);font-size:13px;background:var(--theme-background-alt);border:1px solid var(--theme-foreground-faintest);border-radius:.4em;padding:.5em .75em;margin:.4em 0 1em;line-height:1.5"></div>`;
-    const label = html`<div style="font: 500 10px/1 var(--sans-serif);color:var(--theme-foreground-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.3em">Konsole</div>`;
-    box.appendChild(label);
+    const box = html`<div class="console-output"></div>`;
+    box.appendChild(html`<div class="console-label">Konsole</div>`);
     if ((logs?.length ?? 0) === 0 && !error && !timedOut) {
-      box.appendChild(html`<div style="color:var(--theme-foreground-muted);font-style:italic">(keine Ausgabe)</div>`);
+      box.appendChild(html`<div class="console-empty">(keine Ausgabe)</div>`);
     }
-    for (const l of logs ?? []) box.appendChild(html`<div style="white-space:pre-wrap">${l}</div>`);
-    if (error) box.appendChild(html`<div style="color:var(--err-text, #a32a1a);white-space:pre-wrap;margin-top:.2em">⚠ ${error}</div>`);
-    if (timedOut) box.appendChild(html`<div style="color:var(--hint-text, #7a5a00);margin-top:.3em">⏱ Dein Code lief länger als 1 Sekunde — vermutlich eine Endlosschleife.</div>`);
+    for (const l of logs ?? []) box.appendChild(html`<div class="console-line">${l}</div>`);
+    if (error) box.appendChild(html`<div class="console-error">⚠ ${error}</div>`);
+    if (timedOut) box.appendChild(html`<div class="console-timeout">⏱ Dein Code lief länger als 1 Sekunde — vermutlich eine Endlosschleife.</div>`);
     return box;
   }
 
@@ -161,15 +177,15 @@ export function createUI({ html }) {
     const passed = results.filter(r => r.passed).length;
     const total = results.length;
     const allOk = passed === total;
-    const head = html`<div style="font-weight:600;margin-bottom:.4em">${allOk ? `🎉 Alle ${total} Tests bestanden!` : `${passed} von ${total} Tests bestanden`}</div>`;
+    const head = html`<div class="test-report-head">${allOk ? `🎉 Alle ${total} Tests bestanden!` : `${passed} von ${total} Tests bestanden`}</div>`;
     const wrap = html`<div class="feedback ${allOk ? 'feedback-ok' : 'feedback-err'}"></div>`;
     wrap.appendChild(head);
     for (const r of results) {
       const args = r.args.map(fmtArg).join(", ");
       let row;
-      if (r.passed) row = html`<div style="font-family:var(--monospace);font-size:12px">✅ <code>${fnName}(${args})</code> → <code>${fmtArg(r.actual)}</code></div>`;
-      else if (r.error) row = html`<div style="font-family:var(--monospace);font-size:12px">❌ <code>${fnName}(${args})</code> → Fehler: ${r.error}</div>`;
-      else row = html`<div style="font-family:var(--monospace);font-size:12px">❌ <code>${fnName}(${args})</code> → erwartet <code>${fmtArg(r.expected)}</code>, bekommen <code>${fmtArg(r.actual)}</code></div>`;
+      if (r.passed) row = html`<div class="test-report-row">✅ <code>${fnName}(${args})</code> → <code>${fmtArg(r.actual)}</code></div>`;
+      else if (r.error) row = html`<div class="test-report-row">❌ <code>${fnName}(${args})</code> → Fehler: ${r.error}</div>`;
+      else row = html`<div class="test-report-row">❌ <code>${fnName}(${args})</code> → erwartet <code>${fmtArg(r.expected)}</code>, bekommen <code>${fmtArg(r.actual)}</code></div>`;
       wrap.appendChild(row);
     }
     return wrap;

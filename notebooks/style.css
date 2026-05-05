@@ -96,6 +96,71 @@
   }
 }
 
+/* === Code editor wrapper (label + CodeMirror + toolbar) ==================== */
+.code-editor {
+  margin: 0.5em 0;
+}
+.code-editor-label {
+  font: 500 13px/1.4 var(--sans-serif), sans-serif;
+  color: var(--theme-foreground-muted);
+  margin-bottom: 4px;
+}
+
+/* === Console output box ===================================================
+ * Mimics a terminal: monospace, soft background, with a small uppercase label.
+ * Error and timeout lines pick up the feedback-err / feedback-hint accents
+ * defined further down so they stay consistent across light/dark themes.
+ */
+.console-output {
+  font-family: var(--monospace), monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--theme-background-alt);
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.4em;
+  padding: 0.5em 0.75em;
+  margin: 0.4em 0 1em;
+}
+.console-label {
+  font: 500 10px/1 var(--sans-serif), sans-serif;
+  color: var(--theme-foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3em;
+}
+.console-empty {
+  color: var(--theme-foreground-muted);
+  font-style: italic;
+}
+.console-line {
+  white-space: pre-wrap;
+}
+.console-error {
+  white-space: pre-wrap;
+  margin-top: 0.2em;
+  color: color-mix(in srgb, #a32a1a 100%, var(--theme-foreground));
+}
+.console-timeout {
+  margin-top: 0.3em;
+  color: color-mix(in srgb, #7a5a00 100%, var(--theme-foreground));
+}
+:root[data-theme="dark"] .console-error    { color: #f08071; }
+:root[data-theme="dark"] .console-timeout  { color: #e0c060; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .console-error    { color: #f08071; }
+  :root:not([data-theme="light"]) .console-timeout  { color: #e0c060; }
+}
+
+/* === Test report (function-call output) ==================================== */
+.test-report-head {
+  font-weight: 600;
+  margin-bottom: 0.4em;
+}
+.test-report-row {
+  font-family: var(--monospace), monospace;
+  font-size: 12px;
+}
+
 /* === Run button below code editors ========================================
  * Sits flush under the editor like a footer; turns orange when the editor has
  * unsaved changes (i.e. liveText != published value).
@@ -103,6 +168,7 @@
 .run-toolbar {
   display: flex;
   justify-content: flex-end;
+  gap: 4px;
   border: 1px solid var(--theme-foreground-faintest);
   border-top: none;
   border-bottom-left-radius: 0.4em;
@@ -131,6 +197,21 @@
 .run-button.dirty::before {
   content: "● ";
   color: #d97706;
+}
+
+.reset-button {
+  font: 500 13px/1 var(--sans-serif);
+  padding: 0.4em 0.8em;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.3em;
+  background: transparent;
+  color: var(--theme-foreground-muted);
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.reset-button:hover {
+  background: color-mix(in srgb, var(--theme-foreground) 8%, var(--theme-background));
+  color: var(--theme-foreground);
 }
 
 /* === Theme toggle button ================================================== */
