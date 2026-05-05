@@ -27,8 +27,7 @@
 
   <script id="motivation-demo" type="module">
     const demo_motiv = view(codeEditor("functions:motivation", {
-      value: 'const animal = "Katze"\n\nif (animal == "Katze") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else if (animal == "Hund") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else if (animal == "Wolf") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else {\n  console.log("Kein Raubtier")\n}',
-      minHeight: "320px"
+      value: 'const animal = "Katze"\n\nif (animal == "Katze") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else if (animal == "Hund") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else if (animal == "Wolf") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else {\n  console.log("Kein Raubtier")\n}'
     }));
   </script>
 
@@ -55,8 +54,7 @@
 
   <script id="motivation-fixed" type="module">
     const demo_motiv_fixed = view(codeEditor("functions:motivation_fixed", {
-      value: 'function warn() {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n}\n\nconst animal = "Katze"\n\nif (animal == "Katze") {\n  warn()\n} else if (animal == "Hund") {\n  warn()\n} else if (animal == "Wolf") {\n  warn()\n} else {\n  console.log("Kein Raubtier")\n}',
-      minHeight: "320px"
+      value: 'function warn() {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n}\n\nconst animal = "Katze"\n\nif (animal == "Katze") {\n  warn()\n} else if (animal == "Hund") {\n  warn()\n} else if (animal == "Wolf") {\n  warn()\n} else {\n  console.log("Kein Raubtier")\n}'
     }));
   </script>
 
@@ -78,8 +76,7 @@
 
   <script id="syntax-demo" type="module">
     const demo_syn = view(codeEditor("functions:syntax", {
-      value: 'function sayHello() {\n  console.log("Hallo")\n  console.log("Ich bin in einer Funktion.")\n}\n\nsayHello()\nsayHello()\nsayHello()',
-      minHeight: "200px"
+      value: 'function sayHello() {\n  console.log("Hallo")\n  console.log("Ich bin in einer Funktion.")\n}\n\nsayHello()\nsayHello()\nsayHello()'
     }));
   </script>
 
@@ -102,8 +99,7 @@
 
   <script id="params-demo" type="module">
     const demo_params = view(codeEditor("functions:params", {
-      value: 'function sayIfAdult(age) {\n  if (age >= 18) {\n    console.log("Mit " + age + " bist du volljährig.")\n  } else {\n    console.log("Mit " + age + " bist du minderjährig.")\n  }\n}\n\nsayIfAdult(12)\nsayIfAdult(27)\nsayIfAdult(48)\nsayIfAdult(8)\nsayIfAdult(18)',
-      minHeight: "260px"
+      value: 'function sayIfAdult(age) {\n  if (age >= 18) {\n    console.log("Mit " + age + " bist du volljährig.")\n  } else {\n    console.log("Mit " + age + " bist du minderjährig.")\n  }\n}\n\nsayIfAdult(12)\nsayIfAdult(27)\nsayIfAdult(48)\nsayIfAdult(8)\nsayIfAdult(18)'
     }));
   </script>
 
@@ -117,8 +113,7 @@
 
   <script id="multiparams-demo" type="module">
     const demo_multi = view(codeEditor("functions:multi", {
-      value: 'function saySum(x, y) {\n  console.log("Die Summe von " + x + " und " + y + " ist " + (x + y) + ".")\n}\n\nsaySum(2, 3)\nsaySum(100, 50)',
-      minHeight: "150px"
+      value: 'function saySum(x, y) {\n  console.log("Die Summe von " + x + " und " + y + " ist " + (x + y) + ".")\n}\n\nsaySum(2, 3)\nsaySum(100, 50)'
     }));
   </script>
 
@@ -145,8 +140,7 @@
 
   <script id="return-demo" type="module">
     const demo_return = view(codeEditor("functions:return", {
-      value: 'function isTeenager(age) {\n  return age >= 13 && age <= 19\n}\n\nconsole.log(isTeenager(15))\nconsole.log(isTeenager(8))\nconsole.log(isTeenager(20))\n\n// Du kannst den return-Wert direkt weiterverwenden:\nif (isTeenager(17)) {\n  console.log("17 ist ein Teenager-Alter.")\n}',
-      minHeight: "260px"
+      value: 'function isTeenager(age) {\n  return age >= 13 && age <= 19\n}\n\nconsole.log(isTeenager(15))\nconsole.log(isTeenager(8))\nconsole.log(isTeenager(20))\n\n// Du kannst den return-Wert direkt weiterverwenden:\nif (isTeenager(17)) {\n  console.log("17 ist ein Teenager-Alter.")\n}'
     }));
   </script>
 
@@ -160,8 +154,7 @@
 
   <script id="absolute-demo" type="module">
     const demo_abs = view(codeEditor("functions:absolute", {
-      value: 'function absolute(number) {\n  if (number < 0) {\n    return -number\n  }\n  return number\n}\n\nconsole.log(absolute(5))\nconsole.log(absolute(-7))\nconsole.log(absolute(0))',
-      minHeight: "200px"
+      value: 'function absolute(number) {\n  if (number < 0) {\n    return -number\n  }\n  return number\n}\n\nconsole.log(absolute(5))\nconsole.log(absolute(-7))\nconsole.log(absolute(0))'
     }));
   </script>
 
@@ -243,8 +236,7 @@
 
   <script id="uebung-input" type="module">
     const uebung_code = view(codeEditor("functions:final", {
-      value: "",
-      minHeight: "300px"
+      value: ""
     }));
   </script>
 
@@ -279,6 +271,6 @@
     Damit hast du **Kapitel 2** abgeschlossen! 🎉
     Als Nächstes: **[Arrays →](./9_arrays)**
 
-    > 📌 [Zurück zur Übersicht](./)
+    ← [Zurück zur Übersicht](./)
   </script>
 </notebook>

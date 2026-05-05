@@ -67,7 +67,7 @@ const STORAGE_PREFIX = "jskurs:";
  *   const { codeEditor, ok, err, hint, consoleOutput, testReport } = createUI({ html });
  */
 export function createUI({ html }) {
-  function codeEditor(key, { value = "", label = "Dein Code:", minHeight = "auto" } = {}) {
+  function codeEditor(key, { value = "", label = "Dein Code:" } = {}) {
     const storageKey = STORAGE_PREFIX + key;
     const pristine = value;             // original starter, used by reset()
     const stored = localStorage.getItem(storageKey);
@@ -98,7 +98,7 @@ export function createUI({ html }) {
       publish();
     }
 
-    const editorEl = html`<div style="border:1px solid var(--theme-foreground-faintest);border-top-left-radius:.4em;border-top-right-radius:.4em;border-bottom:none;overflow:hidden;font-size:14px;min-height:${minHeight}"></div>`;
+    const editorEl = html`<div style="border:1px solid var(--theme-foreground-faintest);border-top-left-radius:.4em;border-top-right-radius:.4em;border-bottom:none;overflow:hidden;font-size:14px"></div>`;
 
     const view = new EditorView({
       doc: initial,
@@ -249,3 +249,43 @@ export function installHashImportBanner({ html, display }) {
 // Direct named-import (in addition to the re-export above) so we can call it
 // from `installHashImportBanner` without a circular path.
 import { installHashImport as doInstallHashImport } from "./progress.js";
+
+// === Hint blockquote classifier =============================================
+// Markdown blockquotes don't carry a class, so we tag them at runtime based on
+// their leading emoji (💡 → tip, 📌 → info, ⚠️ → warn, 🧐 → trivia). The CSS
+// in style.css then applies a subtle background and accent border per type.
+const HINT_CLASS = "hint";
+const HINT_KINDS = ["hint-tip", "hint-info", "hint-warn", "hint-trivia"];
+
+function classifyHintBlockquote(bq) {
+  // Strip any prior hint-* classes (handles re-classification idempotently).
+  for (const cls of [HINT_CLASS, ...HINT_KINDS]) bq.classList.remove(cls);
+  const text = (bq.textContent || "").trim();
+  let kind = null;
+  if (text.startsWith("💡") || text.startsWith("🧠")) kind = "hint-tip";
+  else if (text.startsWith("📌")) kind = "hint-info";
+  else if (text.startsWith("⚠")) kind = "hint-warn";
+  else if (text.startsWith("🧐") || text.startsWith("🤔")) kind = "hint-trivia";
+  if (kind) bq.classList.add(HINT_CLASS, kind);
+}
+
+function classifyAllHints() {
+  document.querySelectorAll(".observablehq blockquote").forEach(classifyHintBlockquote);
+}
+
+// Auto-run on module load. Cells render asynchronously, so we also watch for
+// new blockquotes added later via MutationObserver.
+if (typeof document !== "undefined") {
+  const start = () => {
+    classifyAllHints();
+    if (typeof MutationObserver !== "undefined") {
+      const obs = new MutationObserver(classifyAllHints);
+      obs.observe(document.body, { childList: true, subtree: true });
+    }
+  };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+}

@@ -33,8 +33,7 @@
 
   <script id="basics-demo" type="module">
     const demo_basics = view(codeEditor("arrays:basics", {
-      value: 'const fruits = ["Apfel", "Orange", "Banane"]\nconst ages = [22, 90, 18, 7, 45]\nconst heroes = ["Hulk", "Thor"]\n\nconsole.log(fruits)\nconsole.log(ages)\nconsole.log(heroes)',
-      minHeight: "200px"
+      value: 'const fruits = ["Apfel", "Orange", "Banane"]\nconst ages = [22, 90, 18, 7, 45]\nconst heroes = ["Hulk", "Thor"]\n\nconsole.log(fruits)\nconsole.log(ages)\nconsole.log(heroes)'
     }));
   </script>
 
@@ -56,8 +55,7 @@
 
   <script id="index-demo" type="module">
     const demo_index = view(codeEditor("arrays:index", {
-      value: 'const colors = ["Blau", "Rot", "Orange", "Grün"]\n\nconsole.log(colors[0]) // Blau\nconsole.log(colors[2]) // Orange\nconsole.log(colors[3]) // Grün\n\n// Was passiert bei einem Index, den es nicht gibt?\nconsole.log(colors[10]) // undefined',
-      minHeight: "240px"
+      value: 'const colors = ["Blau", "Rot", "Orange", "Grün"]\n\nconsole.log(colors[0]) // Blau\nconsole.log(colors[2]) // Orange\nconsole.log(colors[3]) // Grün\n\n// Was passiert bei einem Index, den es nicht gibt?\nconsole.log(colors[10]) // undefined'
     }));
   </script>
 
@@ -74,8 +72,7 @@
 
   <script id="assign-demo" type="module">
     const demo_assign = view(codeEditor("arrays:assign", {
-      value: 'const drinks = ["Wasser", "Saft", "Cola"]\nconsole.log(drinks)\n\ndrinks[1] = "Limonade"\nconsole.log(drinks)',
-      minHeight: "180px"
+      value: 'const drinks = ["Wasser", "Saft", "Cola"]\nconsole.log(drinks)\n\ndrinks[1] = "Limonade"\nconsole.log(drinks)'
     }));
   </script>
 
@@ -97,8 +94,7 @@
 
   <script id="builtins-demo" type="module">
     const demo_builtins = view(codeEditor("arrays:builtins", {
-      value: 'const numbers = [10, 20, 30, 40, 50]\n\nconsole.log(numbers.length)        // 5\nconsole.log(numbers.includes(30))  // true\nconsole.log(numbers.includes(99))  // false\nconsole.log(numbers.indexOf(40))   // 3\nconsole.log(numbers.slice(1, 4))   // [20, 30, 40]',
-      minHeight: "240px"
+      value: 'const numbers = [10, 20, 30, 40, 50]\n\nconsole.log(numbers.length)        // 5\nconsole.log(numbers.includes(30))  // true\nconsole.log(numbers.includes(99))  // false\nconsole.log(numbers.indexOf(40))   // 3\nconsole.log(numbers.slice(1, 4))   // [20, 30, 40]'
     }));
   </script>
 
@@ -117,8 +113,7 @@
 
   <script id="modify-demo" type="module">
     const demo_modify = view(codeEditor("arrays:modify", {
-      value: 'const todos = ["Wäsche", "Einkaufen"]\n\ntodos.push("Aufräumen")\nconsole.log(todos) // ["Wäsche", "Einkaufen", "Aufräumen"]\n\ntodos.unshift("Aufstehen")\nconsole.log(todos) // ["Aufstehen", "Wäsche", "Einkaufen", "Aufräumen"]\n\nconst entfernt = todos.pop()\nconsole.log(entfernt) // "Aufräumen"\nconsole.log(todos)    // ["Aufstehen", "Wäsche", "Einkaufen"]',
-      minHeight: "300px"
+      value: 'const todos = ["Wäsche", "Einkaufen"]\n\ntodos.push("Aufräumen")\nconsole.log(todos) // ["Wäsche", "Einkaufen", "Aufräumen"]\n\ntodos.unshift("Aufstehen")\nconsole.log(todos) // ["Aufstehen", "Wäsche", "Einkaufen", "Aufräumen"]\n\nconst entfernt = todos.pop()\nconsole.log(entfernt) // "Aufräumen"\nconsole.log(todos)    // ["Aufstehen", "Wäsche", "Einkaufen"]'
     }));
   </script>
 
@@ -135,8 +130,7 @@
 
   <script id="nested-demo" type="module">
     const demo_nested = view(codeEditor("arrays:nested", {
-      value: 'const ticTacToe = [\n  ["X", "O", "X"],\n  ["O", "X", "O"],\n  ["O", "X", "X"]\n]\n\nconsole.log(ticTacToe[0])    // erste Zeile\nconsole.log(ticTacToe[1][1]) // Mitte: "X"\n// (ticTacToe[1])[1] — erst die zweite Zeile holen, dann das mittlere Element',
-      minHeight: "240px"
+      value: 'const ticTacToe = [\n  ["X", "O", "X"],\n  ["O", "X", "O"],\n  ["O", "X", "X"]\n]\n\nconsole.log(ticTacToe[0])    // erste Zeile\nconsole.log(ticTacToe[1][1]) // Mitte: "X"\n// (ticTacToe[1])[1] — erst die zweite Zeile holen, dann das mittlere Element'
     }));
   </script>
 
@@ -158,8 +152,7 @@
 
   <script id="forof-demo" type="module">
     const demo_forof = view(codeEditor("arrays:forof", {
-      value: 'const devices = ["Laptop", "Tablet", "Handy"]\n\nfor (const device of devices) {\n  console.log("Ich besitze ein " + device + ".")\n}',
-      minHeight: "180px"
+      value: 'const devices = ["Laptop", "Tablet", "Handy"]\n\nfor (const device of devices) {\n  console.log("Ich besitze ein " + device + ".")\n}'
     }));
   </script>
 
@@ -196,8 +189,7 @@
 
   <script id="uebung-input" type="module">
     const uebung_code = view(codeEditor("arrays:final", {
-      value: "",
-      minHeight: "240px"
+      value: ""
     }));
   </script>
 
@@ -234,6 +226,6 @@
 
     Als Nächstes: **[String-Builtins →](./10_builtins)**
 
-    > 📌 [Zurück zur Übersicht](./)
+    ← [Zurück zur Übersicht](./)
   </script>
 </notebook>

@@ -37,8 +37,7 @@
 
   <script id="lokal-demo" type="module">
     const demo_lokal = view(codeEditor("scopes:lokal", {
-      value: 'const a = 10\n\nif (a > 8) {\n  const b = a + 5 // b lebt nur in diesem Block\n  console.log(b)\n}\n\n// Hier außerhalb gibt es kein b mehr.\n// Wenn du die nächste Zeile aktivierst, gibt es einen Fehler:\n// console.log(b)',
-      minHeight: "240px"
+      value: 'const a = 10\n\nif (a > 8) {\n  const b = a + 5 // b lebt nur in diesem Block\n  console.log(b)\n}\n\n// Hier außerhalb gibt es kein b mehr.\n// Wenn du die nächste Zeile aktivierst, gibt es einen Fehler:\n// console.log(b)'
     }));
   </script>
 
@@ -75,8 +74,7 @@
 
   <script id="komplex-demo" type="module">
     const demo_komplex = view(codeEditor("scopes:komplex", {
-      value: 'const target = 30\nlet n = 2\n\nwhile (n < target) {\n  // Scope der äußeren Schleife\n  let isPrim = true\n  let maybeTeiler = 2\n\n  while (maybeTeiler < n) {\n    // Scope der inneren Schleife\n    if (n % maybeTeiler == 0) {\n      isPrim = false\n      break\n    }\n    maybeTeiler = maybeTeiler + 1\n  }\n\n  if (isPrim) {\n    console.log(n)\n  }\n  n = n + 1\n}',
-      minHeight: "440px"
+      value: 'const target = 30\nlet n = 2\n\nwhile (n < target) {\n  // Scope der äußeren Schleife\n  let isPrim = true\n  let maybeTeiler = 2\n\n  while (maybeTeiler < n) {\n    // Scope der inneren Schleife\n    if (n % maybeTeiler == 0) {\n      isPrim = false\n      break\n    }\n    maybeTeiler = maybeTeiler + 1\n  }\n\n  if (isPrim) {\n    console.log(n)\n  }\n  n = n + 1\n}'
     }));
   </script>
 
@@ -108,6 +106,6 @@
 
     Als Nächstes: **[Functions →](./8_functions)**
 
-    > 📌 [Zurück zur Übersicht](./)
+    ← [Zurück zur Übersicht](./)
   </script>
 </notebook>

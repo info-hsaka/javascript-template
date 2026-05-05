@@ -120,6 +120,8 @@
   border-radius: 0.4em;
   padding: 0.5em 0.75em;
   margin: 0.4em 0 1em;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 .console-label {
   font: 500 10px/1 var(--sans-serif), sans-serif;
@@ -298,6 +300,36 @@
 :root[data-theme="dark"] .feedback-err   { --accent: #f08071; }
 :root[data-theme="dark"] .feedback-hint  { --accent: #e0c060; }
 :root[data-theme="dark"] .feedback-info  { --accent: #88a8e8; }
+
+/* === Hint blockquotes (💡 / 📌 / ⚠️ / 🧐) ==================================
+ * Markdown blockquotes get tagged with a `hint hint-<kind>` class at runtime
+ * (see classifyHintBlockquote in lib/helpers.js). Each kind picks up a subtle
+ * tinted background plus a colored left accent.
+ */
+.observablehq blockquote.hint {
+  border-left-width: 4px;
+  border-left-style: solid;
+  padding: 0.6em 0.9em;
+  margin: 0.8em 0;
+  border-radius: 0 4px 4px 0;
+  background: color-mix(in srgb, var(--hint-accent, var(--theme-foreground)) 8%, var(--theme-background));
+  border-left-color: var(--hint-accent, var(--theme-foreground-fainter));
+}
+.observablehq blockquote.hint-tip    { --hint-accent: #2d9d2d; }
+.observablehq blockquote.hint-info   { --hint-accent: #2d6ec9; }
+.observablehq blockquote.hint-warn   { --hint-accent: #d97706; }
+.observablehq blockquote.hint-trivia { --hint-accent: #888888; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-tip    { --hint-accent: #6ec96e; }
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-info   { --hint-accent: #88a8e8; }
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-warn   { --hint-accent: #e0b060; }
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-trivia { --hint-accent: #aaaaaa; }
+}
+:root[data-theme="dark"] .observablehq blockquote.hint-tip    { --hint-accent: #6ec96e; }
+:root[data-theme="dark"] .observablehq blockquote.hint-info   { --hint-accent: #88a8e8; }
+:root[data-theme="dark"] .observablehq blockquote.hint-warn   { --hint-accent: #e0b060; }
+:root[data-theme="dark"] .observablehq blockquote.hint-trivia { --hint-accent: #aaaaaa; }
 
 /* === <details> / <summary> reveals ========================================= */
 .observablehq details {
