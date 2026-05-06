@@ -41,6 +41,7 @@ export {
   runWithConsole,
   runWithTimeout,
   runTestCases,
+  runTestCasesWithTimeout,
   runAndExtract,
   formatValue,
   deepCompare

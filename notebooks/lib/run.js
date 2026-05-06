@@ -44,6 +44,7 @@ export function runWithTimeout(code, { timeoutMs = 1000 } = {}) {
   return new Promise((resolve) => {
     const worker = new Worker(new URL("./sandbox-worker.js", import.meta.url), { type: "module" });
     const logs = [];
+    let resultValue = undefined;
     let settled = false;
 
     const finish = (payload) => {
@@ -63,10 +64,12 @@ export function runWithTimeout(code, { timeoutMs = 1000 } = {}) {
       if (msg.type === "log") {
         logs.push(msg.line);
         if (logs.length > 5000) finish({ logs, error: "Zu viele Ausgaben — vielleicht eine Endlosschleife?", timedOut: false });
+      } else if (msg.type === "result") {
+        resultValue = msg.value;
       } else if (msg.type === "done") {
-        finish({ logs, error: null, timedOut: false });
+        finish({ logs, error: null, timedOut: false, result: resultValue });
       } else if (msg.type === "error") {
-        finish({ logs, error: msg.message, timedOut: false });
+        finish({ logs, error: msg.message, line: msg.line ?? null, column: msg.column ?? null, timedOut: false, result: resultValue });
       }
     };
     worker.onerror = (e) => {
@@ -75,6 +78,28 @@ export function runWithTimeout(code, { timeoutMs = 1000 } = {}) {
 
     worker.postMessage({ code });
   });
+}
+
+// Worker-backed test runner with per-case timeout protection.
+export async function runTestCasesWithTimeout({ code, fnName, cases, timeoutMs = 1000 }) {
+  const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+  const results = [];
+  for (const [args, expected] of cases) {
+    // Build a small program that defines the student's code and calls the function
+    // with the provided args. The worker will capture console output as usual
+    // and we instruct it to post a `result` message with the return value.
+    const callCode = `${cleaned}\nconst __fn = typeof ${fnName} !== \"undefined\" ? ${fnName} : undefined;\ntry{ const __res = __fn(...${JSON.stringify(args)}); self.postMessage({type:'result', value: __res}); self.postMessage({type:'done'}); } catch(e) { self.postMessage({type:'error', message: e.message, stack: e.stack}); }`;
+    const res = await runWithTimeout(callCode, { timeoutMs });
+    if (res.timedOut) {
+      results.push({ args, expected, actual: undefined, passed: false, error: 'Endlosschleife (Timeout)' });
+    } else if (res.error) {
+      results.push({ args, expected, actual: undefined, passed: false, error: res.error });
+    } else {
+      const actual = res.result;
+      results.push({ args, expected, actual, passed: deepCompare(expected, actual) });
+    }
+  }
+  return { error: null, results };
 }
 
 // Loads a student-defined function from the code string and calls it against
