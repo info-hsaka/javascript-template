@@ -70,6 +70,36 @@
   }
 }
 
+/* The autocomplete tooltip has a hardcoded white background. Theme it. */
+:root[data-theme="dark"] .cm-tooltip,
+:root[data-theme="dark"] .cm-tooltip.cm-tooltip-autocomplete > ul {
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
+  border-color: var(--theme-foreground-faintest);
+}
+:root[data-theme="dark"] .cm-tooltip-autocomplete > ul > li {
+  color: var(--theme-foreground);
+}
+:root[data-theme="dark"] .cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--theme-foreground-focus);
+  color: var(--theme-background);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-tooltip,
+  :root:not([data-theme="light"]) .cm-tooltip.cm-tooltip-autocomplete > ul {
+    background: var(--theme-background-alt);
+    color: var(--theme-foreground);
+    border-color: var(--theme-foreground-faintest);
+  }
+  :root:not([data-theme="light"]) .cm-tooltip-autocomplete > ul > li {
+    color: var(--theme-foreground);
+  }
+  :root:not([data-theme="light"]) .cm-tooltip-autocomplete > ul > li[aria-selected] {
+    background: var(--theme-foreground-focus);
+    color: var(--theme-background);
+  }
+}
+
 /* The default cursor is black — invisible on dark backgrounds. */
 :root[data-theme="dark"] .cm-content {
   caret-color: var(--theme-foreground);
