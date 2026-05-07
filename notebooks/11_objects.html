@@ -1,0 +1,226 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 3.3 — Objects</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runTestCases } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput, testReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Objects 🗂️
+
+    Der letzte composite Datentyp, den wir uns anschauen, sind **Objekte / Objects**.
+
+    Bisher konnten wir in Variablen oder in Arrays immer nur einzelne Strings, Numbers
+    oder Booleans benutzen. Manchmal möchte man aber **mehrere solcher Werte als ein
+    Paket** behandeln. Stell dir vor, du willst Daten über eine Person speichern:
+    ihr Alter, ihren Namen und ihre Größe in cm. Bisher müsstest du das so tun:
+
+    ```js
+    const age = 42
+    const name = "Lara Smith"
+    const height = 162
+    ```
+
+    Wenn man jetzt mehrere solcher Personen abspeichern und z.B. eine Funktion schreiben
+    will, die etwas mit so einer Person macht, wird's schnell unübersichtlich — viele
+    Variablen, viele Parameter, und man muss im Kopf behalten, was zusammengehört.
+  </script>
+
+  <script id="syntax-md" type="text/markdown">
+    ## Syntax
+
+    Für solche Fälle, in denen mehrere Werte zusammengehören und eigentlich "eine
+    Sache" sind, gibt es **Objekte**. Objekte erlauben es, beliebig viele Werte zu
+    einem einzigen Wert zusammenzufassen.
+
+    Ein Objekt besteht aus beliebig vielen sogenannten **Feldern** (engl. *Fields*
+    oder *Properties*). Ein Feld hat einen **Namen** und einen **Wert**, ein bisschen
+    wie eine Variable. Man schreibt ein Objekt zwischen geschweifte Klammern `{}` mit
+    den Feldern als `<name>: <wert>`-Paare, jeweils durch Kommas getrennt. Auf einzelne
+    Felder greifst du mit der **Punkt-Notation** zu: `objekt.feld`.
+  </script>
+
+  <script id="syntax-demo" type="module">
+    const demo_syntax = view(codeEditor("objects:syntax", {
+      value: 'const person = {\n  name: "Lara Smith",\n  age: 42,\n  height: 162,\n}\n\nconsole.log(person.name)\nconsole.log(person.age)\nconsole.log(person.height)'
+    }));
+  </script>
+
+  <script id="syntax-out" type="module">
+    display(consoleOutput(runWithConsole(demo_syntax)));
+  </script>
+
+  <script id="syntax-md2" type="text/markdown">
+    > 📌 **Geschwungene Klammern**: Bisher haben `{}` immer Codeblöcke markiert, die
+    > ausgeführt werden und einen lokalen Scope haben. Die geschweiften Klammern um
+    > Objekte tun das **nicht** — sie beschreiben, ähnlich wie die eckigen Klammern
+    > `[]` um Arrays, nur einen **Wert**.
+  </script>
+
+  <script id="mutation-md" type="text/markdown">
+    ## Mutation — Felder ändern und hinzufügen
+
+    Felder lassen sich mit `=` **überschreiben** oder **neu hinzufügen** — auch wenn
+    das Object mit `const` deklariert wurde. (Das `const` schützt nur die Variable
+    davor, ein **anderes** Object zu sein, nicht die Inhalte.)
+  </script>
+
+  <script id="mutation-demo" type="module">
+    const demo_mutation = view(codeEditor("objects:mutation", {
+      value: 'const pet = {\n  name: "Fluffy",\n  age: 3\n}\n\npet.age = 4              // Feld ändern\npet.color = "schwarz"    // neues Feld hinzufügen\n\nconsole.log(pet)'
+    }));
+  </script>
+
+  <script id="mutation-out" type="module">
+    display(consoleOutput(runWithConsole(demo_mutation)));
+  </script>
+
+  <script id="bracket-md" type="text/markdown">
+    ### Eckige-Klammern-Notation
+
+    Statt `objekt.feld` kannst du auch `objekt["feld"]` schreiben. Das ist hilfreich,
+    wenn der Feldname **dynamisch** in einer Variable steckt.
+  </script>
+
+  <script id="bracket-demo" type="module">
+    const demo_bracket = view(codeEditor("objects:bracket", {
+      value: 'const person = { name: "Lara", age: 42 }\n\nconst whichField = "name"\nconsole.log(person[whichField]) // "Lara" — wie person.name\n\nperson["age"] = 43 // wie person.age = 43\nconsole.log(person)'
+    }));
+  </script>
+
+  <script id="bracket-out" type="module">
+    display(consoleOutput(runWithConsole(demo_bracket)));
+  </script>
+
+  <script id="composition-md" type="text/markdown">
+    ## Composition — Objects in Objects
+
+    Felder können **alle Arten von Werten** enthalten — auch andere Objects oder
+    Arrays. Damit kannst du beliebig komplexe Datenstrukturen bauen.
+  </script>
+
+  <script id="composition-demo" type="module">
+    const demo_comp = view(codeEditor("objects:composition", {
+      value: 'const course = {\n  name: "JavaScript-Kurs",\n  teachers: [\n    { name: "Anna", subject: "JS-Basics" },\n    { name: "Bob", subject: "Algorithmen" }\n  ],\n  timespan: {\n    start: "2026-07-01",\n    end: "2026-07-14"\n  }\n}\n\nconsole.log(course.name)\nconsole.log(course.teachers[0].name)\nconsole.log(course.timespan.start)'
+    }));
+  </script>
+
+  <script id="composition-out" type="module">
+    display(consoleOutput(runWithConsole(demo_comp)));
+  </script>
+
+  <script id="composition-md2" type="text/markdown">
+    Damit kannst du z.B. ganze Datenbanken im Speicher modellieren — ein Array aus
+    Person-Objekten, jedes mit verschachtelten Adress- oder Bestellungs-Objekten.
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯 — `analyzeGrades`
+
+    Schreib eine **exportierte** Funktion `analyzeGrades(report)`, die einen Array aus
+    Objekten entgegennimmt, die Schulfächer mit Noten auf einem Zeugnis repräsentieren,
+    und ein Objekt mit einer Zusammenfassung des Zeugnisses zurückgibt.
+
+    Jedes Objekt im Eingabe-Array hat folgendes Format:
+
+    ```js
+    {
+      // String, der das Fach angibt
+      subject: "Deutsch",
+      // Zahl, die die Note angibt (2.3 = 2-, 1.7 = 2+, 2.0 = 2)
+      grade: 2.3,
+    }
+    ```
+
+    Gib ein Objekt im folgenden Format zurück:
+
+    ```js
+    {
+      // Durchschnittsnote aller Fächer
+      averageGrade: 2.43,
+      // Bestes Fach (das ganze Objekt — niedrigste Note ist die beste)
+      bestSubject: {
+        subject: "Deutsch",
+        grade: 1.7,
+      },
+    }
+    ```
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Iteriere mit `for of` durch den Array.
+    - Sammele die Summe der Noten und merk dir dabei das Objekt mit der bisher
+      niedrigsten Note.
+    - Am Ende `summe / report.length` für den Durchschnitt.
+    - Gib ein neues Objekt zurück: `return { averageGrade: ..., bestSubject: ... }`.
+
+    </details>
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("objects:final", {
+      value: ""
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungResult = runTestCases({
+      code: uebung_code,
+      fnName: "analyzeGrades",
+      cases: [
+        [
+          [[{ subject: "Mathe", grade: 1.0 }, { subject: "Bio", grade: 3.0 }]],
+          { averageGrade: 2.0, bestSubject: { subject: "Mathe", grade: 1.0 } }
+        ],
+        [
+          [[{ subject: "Deutsch", grade: 2.3 }, { subject: "Englisch", grade: 1.7 }, { subject: "Mathe", grade: 3.3 }]],
+          { averageGrade: (2.3 + 1.7 + 3.3) / 3, bestSubject: { subject: "Englisch", grade: 1.7 } }
+        ],
+        [
+          [[{ subject: "Sport", grade: 2.0 }]],
+          { averageGrade: 2.0, bestSubject: { subject: "Sport", grade: 2.0 } }
+        ],
+        [
+          [[{ subject: "Geo", grade: 3.0 }, { subject: "Kunst", grade: 1.0 }, { subject: "Latein", grade: 3.0 }, { subject: "Musik", grade: 5.0 }]],
+          { averageGrade: 3.0, bestSubject: { subject: "Kunst", grade: 1.0 } }
+        ]
+      ]
+    });
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(testReport(uebungResult, "analyzeGrades"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀🎉
+
+    Damit hast du **alle drei Kapitel** des Kurses durch! Du beherrschst:
+
+    - **Objects** als zusammengesetzte Datenstruktur mit benannten Feldern
+    - **Mutation** und **dynamische Felder**
+    - **Composition** — verschachtelte Objects und Arrays
+
+    Und insgesamt aus dem Kurs:
+
+    - Variablen, Datentypen, Operatoren
+    - Kommentare, Conditionals, Loops, Scopes, Functions
+    - Arrays, String-Builtins, Objects
+
+    Du bist bereit für die HSAKA! 🌞
+
+    ← [Zurück zur Übersicht](./) — vergiss nicht, dort deinen Fortschritt als Link zu teilen.
+  </script>
+</notebook>

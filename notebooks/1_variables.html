@@ -1,0 +1,292 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 1.1 — Variablen</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runAndExtract } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Variablen 📦
+
+    Beim Programmieren sind Variablen eins der wichtigsten Kernelemente.
+
+    Eine Variable kann man sich vorstellen wie eine **Box mit einem Namen drauf**,
+    in die man etwas tun kann. Jede Box hat einen eigenen Namen, damit man sie
+    auseinanderhalten kann und versteht, was darin ist. Variablen sind nützlich,
+    um alle möglichen Dinge abzulegen und sie später wiederzuverwenden.
+
+    > 💡 Die Code-Felder unten kannst du direkt im Browser bearbeiten. Sobald du etwas
+    > änderst, wird der Code ausgeführt und du siehst sofort die Ausgabe darunter.
+  </script>
+
+  <script id="declaration-md" type="text/markdown">
+    ## Variable Declaration
+
+    Als Erstes schauen wir uns an, wie man eine neue Variable erstellt (man nennt das
+    auch "deklarieren" / *declare*). Eine neue Variable anzulegen ist — um in unserem
+    Sinnbild von oben zu bleiben — wie einen neuen Umzugskarton zusammenzubauen, mit
+    Edding einen Namen auf die Außenseite zu schreiben und etwas hineinzutun.
+
+    In JavaScript legt man eine Variable mit `let` an, gefolgt vom Namen der Variable,
+    einem `=` und dem Inhalt der Variable:
+
+    Probier es selbst — ändere den Text in den Anführungszeichen:
+  </script>
+
+  <script id="declaration-demo" type="module">
+    const demo_decl = view(codeEditor("variables:demo_decl", {
+      value: 'let message = "Hallo"\nconsole.log(message)'
+    }));
+  </script>
+
+  <script id="declaration-demo-out" type="module">
+    display(consoleOutput(runWithConsole(demo_decl)));
+  </script>
+
+  <script id="declaration-md2" type="text/markdown">
+    Diese Zeile deklariert eine neue Variable mit dem Namen `message` und befüllt sie
+    mit `"Hallo"`.
+
+    `"Hallo"` ist ein sogenannter **String**. Ein String ist einfach eine beliebige
+    Anzahl an Zeichen. `"Asdf 1234"` ist genau so ein String wie `"A"` oder `",.-1231"`.
+
+    Dem Computer ist egal, was in diesen Strings steht — sie sind für ihn einfach
+    irgendein Wert, der aus Zeichen besteht. Die Anführungszeichen `""` markieren
+    sozusagen, dass in ihnen keine Anweisungen, sondern ein Wert steht.
+
+    > 📌 **Variablennamen** sind üblicherweise auf **Englisch**, **kleingeschrieben**
+    > und verwenden `dieseKomischeSchreibweise` (genannt **camelCase**), falls sie
+    > mehrere Worte lang sind — also `myAge` statt `my_age` oder `MyAge`.
+
+    > ⚠️ **Variablennamen sind einzigartig.** Das heißt, dass du denselben Namen nicht
+    > zweimal mit `let` erstellen kannst — am Ende hättest du sonst zwei Boxen mit
+    > derselben Aufschrift, und der Computer wüsste im Zweifel nicht, welche du meinst.
+  </script>
+
+  <script id="assignments-md" type="text/markdown">
+    ## Assignments
+
+    Wir können auch einer Variable, die wir bereits deklariert haben, einen **neuen
+    Wert** geben — sozusagen die Box leeren und etwas Neues hineintun.
+
+    Dafür schreiben wir ihren Namen, gefolgt von einem `=` und dem neuen Wert — also
+    genau wie bei der Deklaration, nur **ohne** das `let`:
+  </script>
+
+  <script id="assignments-demo" type="module">
+    const demo_assign = view(codeEditor("variables:demo_assign", {
+      value: 'let message = "Hallo"\nconsole.log(message)\n\nmessage = "Guten Morgen"\nconsole.log(message)'
+    }));
+  </script>
+
+  <script id="assignments-demo-out" type="module">
+    display(consoleOutput(runWithConsole(demo_assign)));
+  </script>
+
+  <script id="access-md" type="text/markdown">
+    ## Access
+
+    Jetzt wissen wir, wie wir Variablen deklarieren und ihren Wert ändern. Aber wofür
+    machen wir das eigentlich?
+
+    Wir legen Werte in Variablen ab, um sie später wiederzuverwenden. Um den Wert einer
+    Variable irgendwo zu benutzen, schreiben wir einfach ihren Namen an die Stelle, wo
+    ihr Wert stehen soll.
+
+    Um das auszuprobieren, führen wir aber erstmal eine neue Anweisung ein: `console.log(...)`.
+    Sie erwartet einen Wert zwischen den `()` und gibt diesen dann auf der **Konsole**
+    aus — das ist die kleine Box unter jedem Code-Feld.
+
+    Beachte den Unterschied: Strings stehen in Anführungszeichen, Variablen nicht.
+    Den Inhalt einer Variable zu lesen nennt man auch *accessen*.
+  </script>
+
+  <script id="access-demo" type="module">
+    const demo_access = view(codeEditor("variables:demo_access", {
+      value: 'console.log("Ich schreibe Javascript")\n\nlet foo = "Hello World"\nconsole.log(foo)'
+    }));
+  </script>
+
+  <script id="access-demo-out" type="module">
+    display(consoleOutput(runWithConsole(demo_access)));
+  </script>
+
+  <script id="combine-md" type="text/markdown">
+    ### Assignment + Access
+
+    Nun da wir wissen, wie wir einer Variable einen Wert zuweisen und wie wir auf
+    Werte von Variablen zugreifen, können wir einer Variable auch den Wert einer
+    **anderen** Variable zuweisen:
+  </script>
+
+  <script id="combine-demo" type="module">
+    const demo_combine = view(codeEditor("variables:demo_combine", {
+      value: 'let animal = "Cat"\nlet foo = animal\nconsole.log(foo)'
+    }));
+  </script>
+
+  <script id="combine-demo-out" type="module">
+    display(consoleOutput(runWithConsole(demo_combine)));
+  </script>
+
+  <script id="combine-md2" type="text/markdown">
+    Was passiert, wenn du `animal` änderst, **nachdem** du `foo` zugewiesen hast?
+    Probier es im Code-Feld oben aus — fügst du nach `let foo = animal` noch
+    `animal = "Dog"` ein, was loggt `console.log(foo)` dann?
+  </script>
+
+  <script id="mini-md" type="text/markdown">
+    ### 🧠 Kleine Aufgabe zwischendurch
+
+    Erstelle eine Variable `lieblingstier` mit deinem Lieblingstier als String und
+    logge sie auf die Konsole.
+  </script>
+
+  <script id="mini-input" type="module">
+    const mini_code = view(codeEditor("variables:mini", {
+      value: '// dein Code hier'
+    }));
+  </script>
+
+  <script id="mini-out" type="module">
+    const miniRun = runWithConsole(mini_code);
+    display(consoleOutput(miniRun));
+  </script>
+
+  <script id="mini-feedback" type="module">
+    {
+      const src = mini_code.trim();
+      const declares = /\b(let|const)\s+lieblingstier\s*=/.test(src);
+      const logs = /console\s*\.\s*log\s*\(\s*lieblingstier\s*\)/.test(src);
+      const stringValue = /=\s*["'`][^"'`]+["'`]/.test(src);
+
+      if (!src || src === "// dein Code hier")
+        display(hint(html`Schreib deinen Code in das Feld oben.`));
+      else if (miniRun.error)
+        display(err(html`Fehler: ${miniRun.error}`));
+      else if (!declares)
+        display(err(html`Du brauchst eine Variable namens <code>lieblingstier</code> (mit <code>let</code> oder <code>const</code>).`));
+      else if (!stringValue)
+        display(err(html`Der Wert sollte ein String sein, also in Anführungszeichen stehen.`));
+      else if (!logs)
+        display(err(html`Vergiss nicht, <code>lieblingstier</code> mit <code>console.log(lieblingstier)</code> auszugeben.`));
+      else
+        display(ok(html`Super! Dein Lieblingstier ist auf der Konsole gelandet.`));
+    }
+  </script>
+
+  <script id="const-md" type="text/markdown">
+    ## Konstanten
+
+    Eine weitere Option zur Deklaration von Variablen ist `const` statt `let`:
+
+    ```js
+    const message = "Hallo"
+    ```
+
+    `const` erstellt eine sogenannte **konstante** Variable. Im Unterschied zu `let`
+    ist der Wert einer `const`-Variable **nicht mehr änderbar**. Man nennt eine solche
+    Variable auch eine **Konstante** (*constant*).
+
+    Der Versuch, den Inhalt einer `const`-Variable zu ändern, führt zu einem Fehler.
+    Probier's aus: tipp etwas ins Code-Feld unten und schau dir die Fehlermeldung an,
+    die JavaScript zurückgibt:
+  </script>
+
+  <script id="const-demo" type="module">
+    const demo_const = view(codeEditor("variables:demo_const", {
+      value: 'const pi = 3.141\nconsole.log(pi)\n\npi = 4 // <-- das geht nicht!'
+    }));
+  </script>
+
+  <script id="const-demo-out" type="module">
+    display(consoleOutput(runWithConsole(demo_const)));
+  </script>
+
+  <script id="const-md2" type="text/markdown">
+    Die Faustregel: Verwende `const`, wenn sich der Wert nie ändern soll. Sonst `let`.
+    Das macht deinen Code einfacher zu verstehen und schützt dich vor Fehlern.
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯
+
+    Zeit für deine erste Übung. Setze das folgende Programm in JavaScript um. Schreib
+    dabei eine eigene Zeile für jeden Schritt und versuch nicht, das Programm kürzer
+    zu machen — es sollten genau **drei Zeilen** sein:
+
+    1. Erstelle eine konstante Variable `name`, die deinen Namen enthält.
+    2. Erstelle eine leere Variable `awesomePerson` und befülle sie mit dem Wert der
+       `name`-Variable.
+    3. Gib den Inhalt von `awesomePerson` in der Konsole aus.
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("variables:final", {
+      value: ""
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungRun = runWithConsole(uebung_code);
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(consoleOutput(uebungRun));
+  </script>
+
+  <script id="uebung-feedback" type="module">
+    {
+      const src = uebung_code;
+      const hasConstName = /\bconst\s+name\s*=\s*["'`][^"'`]+["'`]/.test(src);
+      const hasLetAwesome = /\blet\s+awesomePerson\b/.test(src);
+      const assignsAwesome = /\bawesomePerson\s*=\s*name\b/.test(src);
+      const logsAwesome = /console\s*\.\s*log\s*\(\s*awesomePerson\s*\)/.test(src);
+
+      if (!src.trim())
+        display(hint(html`Fang an, die drei Schritte oben umzusetzen.`));
+      else if (uebungRun.error)
+        display(err(html`Fehler: ${uebungRun.error}`));
+      else if (!hasConstName)
+        display(err(html`Schritt 1 fehlt: <code>const name = "..."</code> mit deinem Namen.`));
+      else if (!hasLetAwesome)
+        display(err(html`Schritt 2 fehlt: deklariere <code>awesomePerson</code> mit <code>let</code>.`));
+      else if (!assignsAwesome)
+        display(err(html`Schritt 2 fehlt: befülle <code>awesomePerson</code> mit dem Wert von <code>name</code> (<code>awesomePerson = name</code> oder direkt in der <code>let</code>-Zeile).`));
+      else if (!logsAwesome)
+        display(err(html`Schritt 3 fehlt: gib <code>awesomePerson</code> mit <code>console.log(awesomePerson)</code> aus.`));
+      else if (uebungRun.logs.length === 0)
+        display(err(html`Dein <code>console.log</code> hat nichts ausgegeben — schau, ob du den Code wirklich aufrufst.`));
+      else
+        display(ok(html`🎉 Übung gelöst! Hallo, ${uebungRun.logs[uebungRun.logs.length - 1]}.`));
+    }
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du hast in diesem Kapitel gelernt:
+
+    - **`let`** — Variable deklarieren, deren Wert sich später ändern kann
+    - **`const`** — Konstante deklarieren, deren Wert sich nicht mehr ändern darf
+    - **Zuweisung** — eine Variable bekommt einen Wert (einmalig oder erneut)
+    - **`console.log(...)`** — Werte auf der Konsole ausgeben
+
+    Als Nächstes: **[Datentypen →](./2_types)**
+
+    > 📌 Dein Fortschritt wird automatisch im Browser gespeichert. Auf der
+    > [Übersichtsseite](./) kannst du einen Link erzeugen, um deine Lösungen mit anderen zu teilen.
+  </script>
+</notebook>

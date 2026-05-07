@@ -1,0 +1,199 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 1.2 — Datentypen</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runAndExtract } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Datentypen 🔤
+
+    Wir haben im letzten Kapitel häufig das Wort **"Wert"** für den Inhalt einer
+    Variable verwendet. Aber was kann so ein Wert eigentlich sein?
+
+    Es gibt in JavaScript verschiedene Arten von Werten — man nennt diese Arten auch
+    **Datentypen**. Innerhalb dieser gibt es die Unterscheidung zwischen
+    **primitiven** Datentypen und **composite** Typen (zusammengesetzten Typen, wie
+    Arrays und Objekten — die kommen später). Wir betrachten zunächst die wichtigsten
+    primitiven Typen.
+  </script>
+
+  <script id="strings-md" type="text/markdown">
+    ## Strings
+
+    Mit Strings haben wir bereits im letzten Kapitel gearbeitet.
+
+    Strings sind eine Folge von Zeichen, wie z.B. ein Name oder ein Text. Strings
+    werden ausgedrückt, indem ihre Zeichen mit doppelten Anführungszeichen `"`
+    umschlossen werden:
+  </script>
+
+  <script id="strings-demo" type="module">
+    const demo_str = view(codeEditor("types:demo_str", {
+      value: 'const name = "Haki"\nconst greeting = "Hello dear Human"\n\nconsole.log(name)\nconsole.log(greeting)'
+    }));
+  </script>
+
+  <script id="strings-out" type="module">
+    display(consoleOutput(runWithConsole(demo_str)));
+  </script>
+
+  <script id="numbers-md" type="text/markdown">
+    ## Numbers
+
+    Ein weiterer möglicher Datentyp sind **Zahlen**. Diese werden in JavaScript als
+    normale Zahlenfolge ausgedrückt. Für Dezimalzahlen wird der **Punkt** (statt wie
+    im Deutschen das Komma) als Trenner verwendet:
+  </script>
+
+  <script id="numbers-demo" type="module">
+    const demo_num = view(codeEditor("types:demo_num", {
+      value: 'const pi = 3.141\nlet currentYear = 2026\n\nconsole.log(pi)\nconsole.log(currentYear)'
+    }));
+  </script>
+
+  <script id="numbers-out" type="module">
+    display(consoleOutput(runWithConsole(demo_num)));
+  </script>
+
+  <script id="numbers-md2" type="text/markdown">
+    Mit Zahlen kannst du auch direkt rechnen — wie das geht, sehen wir im nächsten Kapitel.
+  </script>
+
+  <script id="booleans-md" type="text/markdown">
+    ## Booleans
+
+    Wahrheitswerte sind etwas komisch, wenn man noch nie programmiert hat. Man nennt
+    Werte von diesem Typ `boolean`s, und es gibt nur genau **zwei** Werte:
+
+    - `true` (wahr / "Ja")
+    - `false` (falsch / "Nein")
+
+    Ein `boolean`-Wert gibt also an, ob irgendetwas stimmt oder nicht. Das klingt
+    erstmal nicht besonders nützlich, ist aber beim Programmieren häufig essentiell —
+    wir werden im nächsten Kapitel sehen, warum.
+  </script>
+
+  <script id="booleans-demo" type="module">
+    const demo_bool = view(codeEditor("types:demo_bool", {
+      value: 'const dogsAreFluffy = true\nconst pigsCanFly = false\n\nconsole.log(dogsAreFluffy)\nconsole.log(pigsCanFly)'
+    }));
+  </script>
+
+  <script id="booleans-out" type="module">
+    display(consoleOutput(runWithConsole(demo_bool)));
+  </script>
+
+  <script id="empty-md" type="text/markdown">
+    ## Leerwerte
+
+    JavaScript hat zwei spezielle Werte, die angeben, dass etwas **leer** ist bzw.
+    gar keinen Wert hat: `null` und `undefined`. Die Unterschiede zwischen diesen
+    beiden Werten sind für unseren Kontext erstmal egal — falls du `null` oder
+    `undefined` siehst, bedeutet das einfach, dass der Wert leer ist.
+
+    Probier den folgenden Code aus. Wir legen die Variable `meaningOfExistence` zwar
+    an, weisen ihr aber keinen Wert zu — wenn wir sie ausgeben, erhalten wir
+    `undefined`:
+  </script>
+
+  <script id="empty-demo" type="module">
+    const demo_empty = view(codeEditor("types:demo_empty", {
+      value: 'let meaningOfExistence\nconsole.log(meaningOfExistence)\n\nlet bestFood = null\nconsole.log(bestFood)'
+    }));
+  </script>
+
+  <script id="empty-out" type="module">
+    display(consoleOutput(runWithConsole(demo_empty)));
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯
+
+    Schreib folgendes Programm. Setze dabei jeden der unteren Schritte in einer
+    eigenen Zeile um:
+
+    1. Leg eine Variable `age` an, die dein Alter in **ganzen Jahren** enthält.
+    2. Gib den Inhalt der `age`-Variable in der Konsole aus.
+    3. Leg eine Variable `hasPet` an, die enthält, ob du ein Haustier hast oder nicht.
+    4. Gib den Inhalt der `hasPet`-Variable in der Konsole aus.
+    5. Leg eine Variable `sibling` an.
+    6. **Falls** du Geschwister hast, befülle die Variable `sibling` mit dem Namen
+       eines deiner Geschwister.
+    7. Gib den Inhalt der `sibling`-Variable in der Konsole aus.
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("types:final", {
+      value: ""
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungRun = runWithConsole(uebung_code);
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(consoleOutput(uebungRun));
+  </script>
+
+  <script id="uebung-feedback" type="module">
+    {
+      const src = uebung_code;
+      const declaresAge = /\b(let|const)\s+age\s*=\s*\d+/.test(src);
+      const declaresHasPet = /\b(let|const)\s+hasPet\s*=\s*(true|false)\b/.test(src);
+      const declaresSibling = /\b(let|const)\s+sibling\b/.test(src);
+      const logsAge = /console\s*\.\s*log\s*\(\s*age\s*\)/.test(src);
+      const logsHasPet = /console\s*\.\s*log\s*\(\s*hasPet\s*\)/.test(src);
+      const logsSibling = /console\s*\.\s*log\s*\(\s*sibling\s*\)/.test(src);
+
+      if (!src.trim())
+        display(hint(html`Fang an, die sieben Schritte umzusetzen.`));
+      else if (uebungRun.error)
+        display(err(html`Fehler: ${uebungRun.error}`));
+      else if (!declaresAge)
+        display(err(html`Schritt 1 fehlt: <code>age</code> als Zahl deklarieren (z.B. <code>let age = 17</code>).`));
+      else if (!logsAge)
+        display(err(html`Schritt 2 fehlt: <code>console.log(age)</code>.`));
+      else if (!declaresHasPet)
+        display(err(html`Schritt 3 fehlt: <code>hasPet</code> als Boolean (<code>true</code> oder <code>false</code>).`));
+      else if (!logsHasPet)
+        display(err(html`Schritt 4 fehlt: <code>console.log(hasPet)</code>.`));
+      else if (!declaresSibling)
+        display(err(html`Schritt 5 fehlt: <code>sibling</code> deklarieren.`));
+      else if (!logsSibling)
+        display(err(html`Schritt 7 fehlt: <code>console.log(sibling)</code>.`));
+      else if (uebungRun.logs.length < 3)
+        display(err(html`Es sollten mindestens 3 Zeilen auf der Konsole erscheinen — eine pro <code>console.log</code>.`));
+      else
+        display(ok(html`🎉 Übung gelöst! Drei verschiedene Datentypen unter Kontrolle.`));
+    }
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du kennst jetzt die wichtigsten primitiven Datentypen:
+
+    - **String** — Text in Anführungszeichen
+    - **Number** — Zahlen, mit Punkt als Dezimaltrenner
+    - **Boolean** — `true` oder `false`
+    - **`undefined`** und **`null`** — leere Werte
+
+    Als Nächstes: **[Operatoren →](./3_operands)**
+
+    ← [Zurück zur Übersicht](./)
+  </script>
+</notebook>

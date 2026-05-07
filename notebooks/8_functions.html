@@ -1,0 +1,276 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 2.5 — Functions</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runTestCases } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput, testReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Functions 🛠️
+
+    Nach Scopes lernen wir nun das wahrscheinlich **wichtigste Konstrukt** in der
+    Programmierung kennen: **Functions** (Funktionen). Funktionen sind der Mechanismus,
+    der es überhaupt erlaubt, große Softwareprojekte zu schreiben und dabei die
+    Übersicht zu behalten.
+
+    Eine Funktion ist ein Stück Code mit einem Namen, das **wiederverwendet** werden
+    kann. Stell dir folgenden Code vor:
+  </script>
+
+  <script id="motivation-demo" type="module">
+    const demo_motiv = view(codeEditor("functions:motivation", {
+      value: 'const animal = "Katze"\n\nif (animal == "Katze") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else if (animal == "Hund") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else if (animal == "Wolf") {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n} else {\n  console.log("Kein Raubtier")\n}'
+    }));
+  </script>
+
+  <script id="motivation-out" type="module">
+    display(consoleOutput(runWithConsole(demo_motiv)));
+  </script>
+
+  <script id="motivation-md" type="text/markdown">
+    Der Code
+
+    ```js
+    console.log("Achtung!")
+    console.log("Raubtier entdeckt")
+    ```
+
+    wird hierbei **mehrmals wiederholt**. Wenn wir ändern wollen, was bei einem
+    Raubtier ausgegeben wird, müssen wir alle drei Stellen von Hand anfassen. Das wird
+    schlimmer, je mehr Tiere wir einbauen.
+
+    Hier hilft eine Funktion. Eine Funktion gibt einem Stück Code zwischen zwei `{}`
+    einen **Namen** und ermöglicht es, statt den Code zu wiederholen, einfach den
+    Namen zu benutzen. Man nennt das auch *die Funktion aufrufen* (zu **callen**):
+  </script>
+
+  <script id="motivation-fixed" type="module">
+    const demo_motiv_fixed = view(codeEditor("functions:motivation_fixed", {
+      value: 'function warn() {\n  console.log("Achtung!")\n  console.log("Raubtier entdeckt")\n}\n\nconst animal = "Katze"\n\nif (animal == "Katze") {\n  warn()\n} else if (animal == "Hund") {\n  warn()\n} else if (animal == "Wolf") {\n  warn()\n} else {\n  console.log("Kein Raubtier")\n}'
+    }));
+  </script>
+
+  <script id="motivation-fixed-out" type="module">
+    display(consoleOutput(runWithConsole(demo_motiv_fixed)));
+  </script>
+
+  <script id="motivation-md2" type="text/markdown">
+    Dieses Programm tut **genau dasselbe** wie oben — aber wir wiederholen uns weniger.
+  </script>
+
+  <script id="syntax-md" type="text/markdown">
+    ## Syntax
+
+    Eine Funktion deklarierst du mit dem Schlüsselwort `function`, gefolgt von einem
+    Namen, runden Klammern `()` und einem Block `{}`. **Aufrufen** tust du sie
+    mit `name()`.
+  </script>
+
+  <script id="syntax-demo" type="module">
+    const demo_syn = view(codeEditor("functions:syntax", {
+      value: 'function sayHello() {\n  console.log("Hallo")\n  console.log("Ich bin in einer Funktion.")\n}\n\nsayHello()\nsayHello()\nsayHello()'
+    }));
+  </script>
+
+  <script id="syntax-out" type="module">
+    display(consoleOutput(runWithConsole(demo_syn)));
+  </script>
+
+  <script id="syntax-md2" type="text/markdown">
+    Mit nur 4 Zeilen Funktion und 3 Zeilen Aufruf bekommst du 6 Zeilen Output.
+    Stell dir vor, der Inhalt von `sayHello` wäre 30 Zeilen lang — die Ersparnis
+    wird schnell groß.
+  </script>
+
+  <script id="params-md" type="text/markdown">
+    ## Parameter
+
+    Funktionen werden noch viel mächtiger, wenn sie **Parameter** entgegennehmen können.
+    Das sind Werte, die der Aufrufer der Funktion übergibt:
+  </script>
+
+  <script id="params-demo" type="module">
+    const demo_params = view(codeEditor("functions:params", {
+      value: 'function sayIfAdult(age) {\n  if (age >= 18) {\n    console.log("Mit " + age + " bist du volljährig.")\n  } else {\n    console.log("Mit " + age + " bist du minderjährig.")\n  }\n}\n\nsayIfAdult(12)\nsayIfAdult(27)\nsayIfAdult(48)\nsayIfAdult(8)\nsayIfAdult(18)'
+    }));
+  </script>
+
+  <script id="params-out" type="module">
+    display(consoleOutput(runWithConsole(demo_params)));
+  </script>
+
+  <script id="params-md2" type="text/markdown">
+    Mehrere Parameter trennst du mit Kommas:
+  </script>
+
+  <script id="multiparams-demo" type="module">
+    const demo_multi = view(codeEditor("functions:multi", {
+      value: 'function saySum(x, y) {\n  console.log("Die Summe von " + x + " und " + y + " ist " + (x + y) + ".")\n}\n\nsaySum(2, 3)\nsaySum(100, 50)'
+    }));
+  </script>
+
+  <script id="multiparams-out" type="module">
+    display(consoleOutput(runWithConsole(demo_multi)));
+  </script>
+
+  <script id="scope-md" type="text/markdown">
+    ### Function Scope
+
+    Wie bei `if` und `while` öffnet auch der Funktionskörper einen **eigenen Scope**.
+    Parameter sind also wie **lokale Variablen**, die nur innerhalb der Funktion
+    existieren.
+  </script>
+
+  <script id="return-md" type="text/markdown">
+    ## `return`
+
+    Bisher haben unsere Funktionen nur `console.log` benutzt. Viel mächtiger ist es,
+    wenn Funktionen einen **Wert zurückgeben** — mit dem Schlüsselwort `return`.
+
+    Der Funktionsaufruf wird dann selbst zu einem Wert, mit dem du weiterrechnen kannst:
+  </script>
+
+  <script id="return-demo" type="module">
+    const demo_return = view(codeEditor("functions:return", {
+      value: 'function isTeenager(age) {\n  return age >= 13 && age <= 19\n}\n\nconsole.log(isTeenager(15))\nconsole.log(isTeenager(8))\nconsole.log(isTeenager(20))\n\n// Du kannst den return-Wert direkt weiterverwenden:\nif (isTeenager(17)) {\n  console.log("17 ist ein Teenager-Alter.")\n}'
+    }));
+  </script>
+
+  <script id="return-out" type="module">
+    display(consoleOutput(runWithConsole(demo_return)));
+  </script>
+
+  <script id="return-md2" type="text/markdown">
+    Noch ein Beispiel — eine Funktion, die den Absolutwert einer Zahl berechnet:
+  </script>
+
+  <script id="absolute-demo" type="module">
+    const demo_abs = view(codeEditor("functions:absolute", {
+      value: 'function absolute(number) {\n  if (number < 0) {\n    return -number\n  }\n  return number\n}\n\nconsole.log(absolute(5))\nconsole.log(absolute(-7))\nconsole.log(absolute(0))'
+    }));
+  </script>
+
+  <script id="absolute-out" type="module">
+    display(consoleOutput(runWithConsole(demo_abs)));
+  </script>
+
+  <script id="black-md" type="text/markdown">
+    ## Funktionen als Black Box
+
+    Sobald eine Funktion einmal geschrieben ist, kannst du sie benutzen, **ohne zu
+    wissen, wie sie intern funktioniert**. Du musst nur wissen: was kommt rein, was
+    kommt raus.
+
+    Das ist wie bei einem Taschenrechner — du tippst `5 + 3` und siehst `8`. Du musst
+    nicht wissen, welche elektronischen Schaltungen drin werkeln.
+
+    Diese Idee ist mächtig: **andere Leute** können Funktionen für dich schreiben,
+    und du benutzt sie als Black Box.
+  </script>
+
+  <script id="export-md" type="text/markdown">
+    ## `import` und `export` (kurzer Ausblick)
+
+    In echten JavaScript-Projekten verteilt man Code auf mehrere **Dateien**. Damit
+    eine Funktion in einer anderen Datei nutzbar ist, schreibt man `export` davor:
+
+    ```js
+    // foo.js
+    export function sayHello() {
+      console.log("Hallo")
+    }
+    ```
+
+    In einer anderen Datei importiert man sie:
+
+    ```js
+    // bar.js
+    import { sayHello } from "./foo.js"
+    sayHello()
+    ```
+
+    > 💡 In diesem Notebook brauchst du `import`/`export` nicht — der ganze Code lebt
+    > in derselben Sandbox. **Aber:** in der Übung unten kannst du `export function ...`
+    > schreiben, um dich an den Stil zu gewöhnen. Die Tests funktionieren genauso.
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯 — `getMagicNumber`
+
+    Schreib eine Funktion `getMagicNumber(startYear, age)`, die folgendes macht:
+
+    1. Finde das nächste Jahr **ab `startYear`** (inklusive), in dem **sowohl** die
+       **Fußball-EM** stattfindet (alle 4 Jahre, beginnend 2020) **als auch** die
+       **Europawahl** (alle 5 Jahre, beginnend 2019). Tipp: 2024 war beides.
+    2. Berechne, wie alt die Person in diesem Magic-Year sein wird (`age` plus die
+       Differenz der Jahre).
+    3. Starte eine **Collatz-Folge** mit diesem Alter (gerade → /2, ungerade → 3*n+1).
+    4. **Returne** die **dritte Zahl** der Folge (also Index 2, wenn man bei 0 zählt —
+       die ersten drei Zahlen sind: das Alter, dann zwei Schritte weiter).
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Schritt 1: Du brauchst eine Schleife, die ab `startYear` hochzählt und prüft,
+      ob das aktuelle Jahr beide Bedingungen erfüllt: `(year - 2020) % 4 == 0` und
+      `(year - 2019) % 5 == 0`.
+    - Schritt 3: Drei Zahlen reichen — du musst nicht die ganze Collatz-Folge bis 1
+      durchlaufen.
+
+    </details>
+
+    > Beispiele für korrekte Ergebnisse:
+    > - `getMagicNumber(2024, 30)` → `46` (in 2024 ist die Person 30, Collatz: 30 → 15 → 46)
+    > - `getMagicNumber(2018, 18)` → `6` (in 2024 ist die Person 24, Collatz: 24 → 12 → 6)
+    > - `getMagicNumber(2035, 5)` → `22` (in 2044 ist die Person 14, Collatz: 14 → 7 → 22)
+  </script>
+
+  <script id="uebung-input" type="module">
+    const uebung_code = view(codeEditor("functions:final", {
+      value: ""
+    }));
+  </script>
+
+  <script id="uebung-eval" type="module">
+    const uebungResult = runTestCases({
+      code: uebung_code,
+      fnName: "getMagicNumber",
+      cases: [
+        [[2024, 30], 46],
+        [[2018, 18], 6],
+        [[2035, 5], 22]
+      ]
+    });
+  </script>
+
+  <script id="uebung-out" type="module">
+    display(testReport(uebungResult, "getMagicNumber"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt:
+
+    - Funktionen mit **`function name() {}`** deklarieren
+    - **Parameter** und **`return`**-Werte
+    - Funktionen als **Black Boxes** verwenden
+    - Den Stil von **`export`**/**`import`** für Mehrdateien-Projekte
+
+    Damit hast du **Kapitel 2** abgeschlossen! 🎉
+    Als Nächstes: **[Arrays →](./9_arrays)**
+
+    ← [Zurück zur Übersicht](./)
+  </script>
+</notebook>

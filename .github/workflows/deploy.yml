@@ -1,0 +1,56 @@
+name: Deploy notebooks to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the
+# in-progress run and latest queued. Don't cancel an in-progress run though.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+
+      # Build at root path. If you're hosting under a GitHub Pages subpath
+      # (e.g. info-hsaka.github.io/javascript-template), swap this for
+      # `npm run notebooks:build:pages`.
+      - run: npm run notebooks:build
+
+      # Tells GitHub Pages which custom domain serves this site. Leave empty
+      # / delete this step if you're staying on the github.io subpath.
+      - name: Write CNAME
+        run: echo "js.oc.is" > dist/CNAME
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

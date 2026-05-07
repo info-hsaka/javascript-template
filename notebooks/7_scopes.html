@@ -1,0 +1,111 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 2.4 — Scopes</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithTimeout } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, consoleOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Scopes 🪟
+
+    In der Programmierung gibt es an sich nicht besonders viele verschiedene Konstrukte
+    — mit Variablen, Conditionals, Operatoren und Loops hast du bereits einen Großteil
+    kennengelernt. Trotzdem lassen sich mit so wenigen Konstrukten **beliebig komplexe
+    Probleme** lösen. Es gibt mehrere Mechanismen, die das ermöglichen. Einer davon
+    sind **Scopes**.
+  </script>
+
+  <script id="lokal-md" type="text/markdown">
+    ## Lokale Variablen
+
+    Immer wenn du in JavaScript eine geschweifte Klammer `{` aufmachst, öffnest du
+    gleichzeitig einen **neuen Scope**. Die nächste schließende geschweifte Klammer
+    `}` schließt diesen Scope wieder.
+
+    Ein Scope ist ein Bereich des Codes, in dem neu angelegte Variablen "leben".
+    Variablen, die **innerhalb** eines Scopes angelegt werden, werden am Ende des
+    Scopes wieder **verworfen**:
+  </script>
+
+  <script id="lokal-demo" type="module">
+    const demo_lokal = view(codeEditor("scopes:lokal", {
+      value: 'const a = 10\n\nif (a > 8) {\n  const b = a + 5 // b lebt nur in diesem Block\n  console.log(b)\n}\n\n// Hier außerhalb gibt es kein b mehr.\n// Wenn du die nächste Zeile aktivierst, gibt es einen Fehler:\n// console.log(b)'
+    }));
+  </script>
+
+  <script id="lokal-out" type="module">
+    display(consoleOutput(await runWithTimeout(demo_lokal)));
+  </script>
+
+  <script id="lokal-md2" type="text/markdown">
+    Probier es aus: entferne das `//` vor `console.log(b)` und schau dir die
+    Fehlermeldung an. Der Fehler heißt sowas wie `b is not defined` — klar, weil `b`
+    außerhalb seines Scopes nicht existiert.
+
+    Dasselbe gilt auch innerhalb von `else`- oder `while`-Blöcken — eben immer
+    innerhalb von `{}`. Das bedeutet, dass wir innerhalb von `{}` eigene kleine
+    Variablen für **Zwischenergebnisse** und lokale Lösungswege anlegen können — und
+    klar markieren, dass sie nur lokal relevant sind und außerhalb davon nicht
+    beachtet werden müssen (und auch nicht können).
+  </script>
+
+  <script id="komplex-md" type="text/markdown">
+    ## Es wird komplexer
+
+    Inwiefern erlauben Scopes es uns, komplexere Probleme mit simplen Konstrukten zu
+    lösen? Mit einem Verständnis von Scopes können wir verschiedene Konstrukte (wie
+    `while` und `if`) **ineinander verschachteln** und die dafür benötigten Variablen
+    in möglichst "engen" (also möglichst kurz lebenden) Scopes anlegen, um die
+    Übersicht zu behalten.
+
+    Als Beispiel: ein Programm, das alle Primzahlen unter `30` findet, mit zwei
+    verschachtelten `while`-Schleifen. Eine **Primzahl** ist eine Zahl, die nur durch
+    `1` und durch sich selbst teilbar ist — wir prüfen also für jede Zahl, ob es
+    einen Teiler kleiner als sie selbst gibt.
+  </script>
+
+  <script id="komplex-demo" type="module">
+    const demo_komplex = view(codeEditor("scopes:komplex", {
+      value: 'const target = 30\nlet n = 2\n\nwhile (n < target) {\n  // Scope der äußeren Schleife\n  let isPrim = true\n  let maybeTeiler = 2\n\n  while (maybeTeiler < n) {\n    // Scope der inneren Schleife\n    if (n % maybeTeiler == 0) {\n      isPrim = false\n      break\n    }\n    maybeTeiler = maybeTeiler + 1\n  }\n\n  if (isPrim) {\n    console.log(n)\n  }\n  n = n + 1\n}'
+    }));
+  </script>
+
+  <script id="komplex-out" type="module">
+    display(consoleOutput(await runWithTimeout(demo_komplex)));
+  </script>
+
+  <script id="komplex-md2" type="text/markdown">
+    > ⚠️ Falls du noch nie verschachtelte Schleifen gesehen hast: nimm dir Zeit, lies
+    > die Kommentare, ändere Werte und beobachte, was passiert. Versuch im Kopf
+    > durchzuspielen, was bei `n = 4` und `maybeTeiler = 2` passiert.
+
+    Wichtig: `isPrim` und `maybeTeiler` werden bei **jedem** Durchlauf der äußeren
+    Schleife **neu** angelegt. Sobald die innere Schleife durch ist, kann der Code
+    auf sie zugreifen, weil sie im **gleichen** (äußeren) Scope leben.
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du verstehst jetzt:
+
+    - **Geschweifte Klammern öffnen einen neuen Scope.**
+    - **Lokale Variablen** existieren nur in ihrem Scope.
+    - Scopes können **verschachtelt** sein — der innere Scope sieht den äußeren,
+      aber nicht umgekehrt.
+
+    Als Nächstes: **[Functions →](./8_functions)**
+
+    ← [Zurück zur Übersicht](./)
+  </script>
+</notebook>

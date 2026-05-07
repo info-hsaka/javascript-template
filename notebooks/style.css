@@ -1,0 +1,380 @@
+/* === Dark mode ============================================================
+ * Notebook Kit derives almost everything from --theme-foreground,
+ * --theme-background-a, and the syntax-* color variables. Overriding those
+ * here flips the entire site (text, prose, code blocks, links) to dark mode.
+ *
+ * Two activation paths:
+ *   1. Auto: respects the OS preference via @media (prefers-color-scheme: dark)
+ *      unless the user has explicitly picked a theme (data-theme="light").
+ *   2. Manual: data-theme="dark" / "light" on <html> wins over the OS hint.
+ */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --theme-foreground: #e6e6e6;
+    --theme-background-a: #1b1e23;
+    --theme-foreground-focus: #7a9ce0;
+    color-scheme: dark;
+
+    --syntax-keyword: #ff9959;
+    --syntax-atom: #79b8ff;
+    --syntax-literal: #b392f0;
+    --syntax-string: #85e89d;
+    --syntax-definition: #79b8ff;
+    --syntax-meta: #f97583;
+  }
+}
+
+:root[data-theme="dark"] {
+  --theme-foreground: #e6e6e6;
+  --theme-background-a: #1b1e23;
+  --theme-foreground-focus: #7a9ce0;
+  color-scheme: dark;
+
+  --syntax-keyword: #ff9959;
+  --syntax-atom: #79b8ff;
+  --syntax-literal: #b392f0;
+  --syntax-string: #85e89d;
+  --syntax-definition: #79b8ff;
+  --syntax-meta: #f97583;
+}
+
+/* CodeMirror needs explicit background/foreground in dark mode (its defaults
+ * assume white). We use the theme variables so it tracks any future theme
+ * change automatically. */
+:root[data-theme="dark"] .cm-editor {
+  background: var(--theme-background);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-editor {
+    background: var(--theme-background);
+  }
+}
+
+/* CodeMirror's default active-line highlight is calibrated for light mode and
+ * shows up as an obnoxiously bright gray stripe on dark. Tone it down to a
+ * faint white wash. Same idea for the gutter. */
+:root[data-theme="dark"] .cm-activeLine,
+:root[data-theme="dark"] .cm-activeLineGutter {
+  background: rgba(255, 255, 255, 0.04);
+}
+:root[data-theme="dark"] .cm-activeLineGutter {
+  background: rgba(255, 255, 255, 0.06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-activeLine {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  :root:not([data-theme="light"]) .cm-activeLineGutter {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+/* The autocomplete tooltip has a hardcoded white background. Theme it. */
+:root[data-theme="dark"] .cm-tooltip,
+:root[data-theme="dark"] .cm-tooltip.cm-tooltip-autocomplete > ul {
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
+  border-color: var(--theme-foreground-faintest);
+}
+:root[data-theme="dark"] .cm-tooltip-autocomplete > ul > li {
+  color: var(--theme-foreground);
+}
+:root[data-theme="dark"] .cm-tooltip-autocomplete > ul > li[aria-selected] {
+  background: var(--theme-foreground-focus);
+  color: var(--theme-background);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-tooltip,
+  :root:not([data-theme="light"]) .cm-tooltip.cm-tooltip-autocomplete > ul {
+    background: var(--theme-background-alt);
+    color: var(--theme-foreground);
+    border-color: var(--theme-foreground-faintest);
+  }
+  :root:not([data-theme="light"]) .cm-tooltip-autocomplete > ul > li {
+    color: var(--theme-foreground);
+  }
+  :root:not([data-theme="light"]) .cm-tooltip-autocomplete > ul > li[aria-selected] {
+    background: var(--theme-foreground-focus);
+    color: var(--theme-background);
+  }
+}
+
+/* The default cursor is black — invisible on dark backgrounds. */
+:root[data-theme="dark"] .cm-content {
+  caret-color: var(--theme-foreground);
+}
+:root[data-theme="dark"] .cm-cursor,
+:root[data-theme="dark"] .cm-dropCursor {
+  border-left-color: var(--theme-foreground);
+}
+:root[data-theme="dark"] .cm-selectionBackground,
+:root[data-theme="dark"] .cm-content ::selection {
+  background: rgba(122, 156, 224, 0.35) !important;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cm-content {
+    caret-color: var(--theme-foreground);
+  }
+  :root:not([data-theme="light"]) .cm-cursor,
+  :root:not([data-theme="light"]) .cm-dropCursor {
+    border-left-color: var(--theme-foreground);
+  }
+  :root:not([data-theme="light"]) .cm-selectionBackground,
+  :root:not([data-theme="light"]) .cm-content ::selection {
+    background: rgba(122, 156, 224, 0.35) !important;
+  }
+}
+
+/* === Code editor wrapper (label + CodeMirror + toolbar) ==================== */
+.code-editor {
+  margin: 0.5em 0;
+}
+.code-editor-label {
+  font: 500 13px/1.4 var(--sans-serif), sans-serif;
+  color: var(--theme-foreground-muted);
+  margin-bottom: 4px;
+}
+
+/* === Console output box ===================================================
+ * Mimics a terminal: monospace, soft background, with a small uppercase label.
+ * Error and timeout lines pick up the feedback-err / feedback-hint accents
+ * defined further down so they stay consistent across light/dark themes.
+ */
+.console-output {
+  font-family: var(--monospace), monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--theme-background-alt);
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.4em;
+  padding: 0.5em 0.75em;
+  margin: 0.4em 0 1em;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.console-label {
+  font: 500 10px/1 var(--sans-serif), sans-serif;
+  color: var(--theme-foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3em;
+}
+.console-empty {
+  color: var(--theme-foreground-muted);
+  font-style: italic;
+}
+.console-line {
+  white-space: pre-wrap;
+}
+.console-error {
+  white-space: pre-wrap;
+  margin-top: 0.2em;
+  color: color-mix(in srgb, #a32a1a 100%, var(--theme-foreground));
+}
+.console-timeout {
+  margin-top: 0.3em;
+  color: color-mix(in srgb, #7a5a00 100%, var(--theme-foreground));
+}
+:root[data-theme="dark"] .console-error    { color: #f08071; }
+:root[data-theme="dark"] .console-timeout  { color: #e0c060; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .console-error    { color: #f08071; }
+  :root:not([data-theme="light"]) .console-timeout  { color: #e0c060; }
+}
+
+/* === Test report (function-call output) ==================================== */
+.test-report-head {
+  font-weight: 600;
+  margin-bottom: 0.4em;
+}
+.test-report-row {
+  font-family: var(--monospace), monospace;
+  font-size: 12px;
+}
+
+/* === Run button below code editors ========================================
+ * Sits flush under the editor like a footer; turns orange when the editor has
+ * unsaved changes (i.e. liveText != published value).
+ */
+.run-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-top: none;
+  border-bottom-left-radius: 0.4em;
+  border-bottom-right-radius: 0.4em;
+  background: var(--theme-background-alt);
+  padding: 4px 6px;
+}
+
+.run-button {
+  font: 500 13px/1 var(--sans-serif);
+  padding: 0.4em 0.8em;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.3em;
+  background: var(--theme-background);
+  color: var(--theme-foreground);
+  cursor: pointer;
+  transition: background 0.1s ease, border-color 0.1s ease;
+}
+.run-button:hover {
+  background: color-mix(in srgb, var(--theme-foreground) 8%, var(--theme-background));
+}
+.run-button.dirty {
+  border-color: color-mix(in srgb, #d97706 60%, var(--theme-background));
+  color: color-mix(in srgb, #d97706 100%, var(--theme-foreground));
+}
+.run-button.dirty::before {
+  content: "● ";
+  color: #d97706;
+}
+
+.reset-button {
+  font: 500 13px/1 var(--sans-serif);
+  padding: 0.4em 0.8em;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.3em;
+  background: transparent;
+  color: var(--theme-foreground-muted);
+  cursor: pointer;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.reset-button:hover {
+  background: color-mix(in srgb, var(--theme-foreground) 8%, var(--theme-background));
+  color: var(--theme-foreground);
+}
+
+/* === Theme toggle button ================================================== */
+.theme-toggle {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 1000;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--theme-foreground-faintest);
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.theme-toggle:hover {
+  transform: scale(1.06);
+  background: var(--theme-background);
+}
+
+/* === Prose width ==========================================================
+ * Notebook Kit's defaults cap <p> at 640px and <ul>/<blockquote> at 600px,
+ * which narrows prose relative to our full-width code editors and creates an
+ * uneven left edge between text and code. Let prose take the body's full
+ * max-width so everything aligns.
+ */
+.observablehq p,
+.observablehq ul,
+.observablehq ol,
+.observablehq blockquote,
+.observablehq .katex-display {
+  max-width: none;
+}
+
+/* === Inline-code chips ===================================================== */
+.observablehq code {
+  background: rgba(125, 125, 125, 0.10);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Code blocks inside <pre> already have their own styling — undo the chip there. */
+.observablehq pre code {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 1em;
+}
+
+/* === Feedback boxes (ok/err/hint/banner) ====================================
+ * Tinted by `--accent`, blended into the theme background so they adapt to
+ * dark mode without re-styling. Override `--accent` in dark mode for a lighter
+ * shade that reads on dark backgrounds.
+ */
+.feedback {
+  padding: 0.6em 0.9em;
+  border-radius: 0.4em;
+  margin: 0.4em 0;
+  background: color-mix(in srgb, var(--accent, var(--theme-foreground)) 10%, var(--theme-background));
+  color: var(--accent, var(--theme-foreground));
+  border: 1px solid color-mix(in srgb, var(--accent, var(--theme-foreground)) 30%, var(--theme-background));
+}
+.feedback-ok    { --accent: #1b6b1b; }
+.feedback-err   { --accent: #a32a1a; }
+.feedback-hint  { --accent: #7a5a00; }
+.feedback-info  { --accent: #1a3a8a; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .feedback-ok    { --accent: #6ec96e; }
+  :root:not([data-theme="light"]) .feedback-err   { --accent: #f08071; }
+  :root:not([data-theme="light"]) .feedback-hint  { --accent: #e0c060; }
+  :root:not([data-theme="light"]) .feedback-info  { --accent: #88a8e8; }
+}
+:root[data-theme="dark"] .feedback-ok    { --accent: #6ec96e; }
+:root[data-theme="dark"] .feedback-err   { --accent: #f08071; }
+:root[data-theme="dark"] .feedback-hint  { --accent: #e0c060; }
+:root[data-theme="dark"] .feedback-info  { --accent: #88a8e8; }
+
+/* === Hint blockquotes (💡 / 📌 / ⚠️ / 🧐) ==================================
+ * Markdown blockquotes get tagged with a `hint hint-<kind>` class at runtime
+ * (see classifyHintBlockquote in lib/helpers.js). Each kind picks up a subtle
+ * tinted background plus a colored left accent.
+ */
+.observablehq blockquote.hint {
+  border-left-width: 4px;
+  border-left-style: solid;
+  padding: 0.6em 0.9em;
+  margin: 0.8em 0;
+  border-radius: 0 4px 4px 0;
+  background: color-mix(in srgb, var(--hint-accent, var(--theme-foreground)) 8%, var(--theme-background));
+  border-left-color: var(--hint-accent, var(--theme-foreground-fainter));
+}
+.observablehq blockquote.hint-tip    { --hint-accent: #2d9d2d; }
+.observablehq blockquote.hint-info   { --hint-accent: #2d6ec9; }
+.observablehq blockquote.hint-warn   { --hint-accent: #d97706; }
+.observablehq blockquote.hint-trivia { --hint-accent: #888888; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-tip    { --hint-accent: #6ec96e; }
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-info   { --hint-accent: #88a8e8; }
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-warn   { --hint-accent: #e0b060; }
+  :root:not([data-theme="light"]) .observablehq blockquote.hint-trivia { --hint-accent: #aaaaaa; }
+}
+:root[data-theme="dark"] .observablehq blockquote.hint-tip    { --hint-accent: #6ec96e; }
+:root[data-theme="dark"] .observablehq blockquote.hint-info   { --hint-accent: #88a8e8; }
+:root[data-theme="dark"] .observablehq blockquote.hint-warn   { --hint-accent: #e0b060; }
+:root[data-theme="dark"] .observablehq blockquote.hint-trivia { --hint-accent: #aaaaaa; }
+
+/* === <details> / <summary> reveals ========================================= */
+.observablehq details {
+  margin: 0.5em 0;
+  padding: 0.4em 0.7em;
+  background: rgba(125, 125, 125, 0.05);
+  border-radius: 4px;
+  border: 1px solid var(--theme-foreground-faintest);
+}
+.observablehq details > summary {
+  cursor: pointer;
+  font: 500 14px/1.4 var(--sans-serif);
+  color: var(--theme-foreground-muted);
+  user-select: none;
+}
+.observablehq details[open] > summary {
+  margin-bottom: 0.4em;
+}

@@ -1,0 +1,246 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Kapitel 3.2 — String-Builtins</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle, runWithConsole, runTestCases, runTestCasesWithTimeout } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint, consoleOutput, testReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Advanced Strings & Builtins 🔤
+
+    Strings haben — wie Arrays — viele **builtin Funktionen und Properties**, die
+    häufige Aufgaben erleichtern. Außerdem gibt es eine **schickere Schreibweise**
+    für Strings, die dynamisch aus Daten zusammengebaut werden: **Template Strings**.
+  </script>
+
+  <script id="template-md" type="text/markdown">
+    ## Template Strings
+
+    Bisher haben wir Strings immer nur fest aufgeschrieben und ausgegeben. Häufig will
+    man aber Strings **dynamisch aus Daten** zusammenbauen — z.B. um in der Konsole
+    statt mehrerer Zeilen einen ganzen Satz auszugeben.
+
+    Mit dem `+`-Operator geht das, wird aber schnell unleserlich:
+
+    ```js
+    const greeting = "Hallo " + name + ", du bist " + age + " Jahre alt."
+    ```
+
+    Eleganter: **Template Strings**. Sie werden wie normale Strings geschrieben, mit
+    zwei Änderungen:
+
+    - Statt `"..."` werden sie mit Backticks `` `...` `` geschrieben
+    - Mitten im String können andere Werte eingesetzt werden, indem man sie mit
+      `$\{...}` umschließt
+  </script>
+
+  <script id="template-demo" type="module">
+    const demo_template = view(codeEditor("builtins:template", {
+      value: 'const name = "Sara"\nconst age = 17\n\n// Mit Plus:\nconsole.log("Hallo " + name + ", du bist " + age + " Jahre alt.")\n\n// Mit Template String:\nconsole.log(`Hallo ${name}, du bist ${age} Jahre alt.`)\n\n// Du kannst auch Ausdrücke einbauen:\nconsole.log(`Nächstes Jahr wirst du ${age + 1}.`)'
+    }));
+  </script>
+
+  <script id="template-out" type="module">
+    display(consoleOutput(runWithConsole(demo_template)));
+  </script>
+
+  <script id="escape-md" type="text/markdown">
+    ## Special Characters & Escaping
+
+    Es gibt ein paar besondere Zeichen, die du in deine Strings einbauen kannst —
+    jeweils mit einem vorangestellten **Backslash `\`**:
+
+    - `\n` für einen Zeilenumbruch
+    - `\"` für ein `"` (in einem mit `"..."` umschlossenen String)
+    - `\\` für einen echten Backslash `\`
+  </script>
+
+  <script id="escape-demo" type="module">
+    const demo_escape = view(codeEditor("builtins:escape", {
+      value: 'console.log("Zeile 1\\nZeile 2")\nconsole.log("Sie sagte: \\"Hi\\".")\nconsole.log("Pfad: C:\\\\Users\\\\Anna")'
+    }));
+  </script>
+
+  <script id="escape-out" type="module">
+    display(consoleOutput(runWithConsole(demo_escape)));
+  </script>
+
+  <script id="builtin-intro-md" type="text/markdown">
+    ## Builtin String Methods
+
+    In JavaScript gibt es eine ganze Menge sogenannter **builtin Methods**. Eine
+    Method ist eine spezielle Art von Funktion, die "auf einem Wert liegt" und auf
+    diesen zugreift. Das klingt sehr abstrakt, heißt aber nur: man kann auf manchen
+    Werten mit einem `.` getrennt auf bestimmte nützliche Dinge zugreifen.
+
+    Zusätzlich zu Methods gibt es auch **builtin Properties**. Diese funktionieren
+    genauso, sind aber keine Funktionen, sondern direkt feste Werte.
+
+    ### `.length`
+
+    Strings haben — wie Arrays — eine `.length`-Property, die die Anzahl der Zeichen
+    als Zahl enthält:
+  </script>
+
+  <script id="length-demo" type="module">
+    const demo_length = view(codeEditor("builtins:length", {
+      value: 'console.log("Hallo".length)        // 5\nconsole.log("".length)             // 0\nconsole.log("Mit Leerzeichen".length) // 15'
+    }));
+  </script>
+
+  <script id="length-out" type="module">
+    display(consoleOutput(runWithConsole(demo_length)));
+  </script>
+
+  <script id="search-md" type="text/markdown">
+    ## Suchen in Strings
+
+    - **`.startsWith(s)`** — `true`, wenn der String mit `s` anfängt
+    - **`.endsWith(s)`** — `true`, wenn er mit `s` aufhört
+    - **`.includes(s)`** — `true`, wenn `s` irgendwo enthalten ist
+    - **`.indexOf(s)`** — Position von `s`, oder `-1` wenn nicht enthalten
+  </script>
+
+  <script id="search-demo" type="module">
+    const demo_search = view(codeEditor("builtins:search", {
+      value: 'const greeting = "Hallo Welt"\n\nconsole.log(greeting.startsWith("Hallo")) // true\nconsole.log(greeting.endsWith("Mond"))    // false\nconsole.log(greeting.includes("Welt"))    // true\nconsole.log(greeting.indexOf("Welt"))     // 6\nconsole.log(greeting.indexOf("Mars"))     // -1'
+    }));
+  </script>
+
+  <script id="search-out" type="module">
+    display(consoleOutput(runWithConsole(demo_search)));
+  </script>
+
+  <script id="substring-md" type="text/markdown">
+    ## `.substring(start, end)` — Ausschnitt
+
+    `.substring` schneidet einen Teil aus einem String aus — von Index `start`
+    (inklusive) bis Index `end` (exklusive). Wie bei Arrays mit `.slice`.
+  </script>
+
+  <script id="substring-demo" type="module">
+    const demo_sub = view(codeEditor("builtins:substring", {
+      value: 'const text = "JavaScript"\n\nconsole.log(text.substring(0, 4))  // "Java"\nconsole.log(text.substring(4))     // "Script" — ohne Ende-Index\nconsole.log(text.substring(4, 6))  // "Sc"'
+    }));
+  </script>
+
+  <script id="substring-out" type="module">
+    display(consoleOutput(runWithConsole(demo_sub)));
+  </script>
+
+  <script id="uebung1-md" type="text/markdown">
+    ---
+
+    ## Übung 1 🎯 — Anrede kürzen
+
+    Schreib eine Funktion `removeSalutation(name)` und exportiere sie. Sie soll aus
+    einem vollen Namen die Anrede wegkürzen und das Ergebnis returnen. Das heißt:
+    wenn der String mit `"Hr. "` oder `"Fr. "` anfängt, soll diese Anrede weggekürzt
+    werden, sodass nur der Name selbst übrig bleibt. Falls nicht, soll der String
+    unberührt zurückgegeben werden.
+
+    > Deine Funktion sollte sich so verhalten:
+    > - `"Fr. Black Widow"` wird zu `"Black Widow"`
+    > - `"Hr. Hulk"` wird zu `"Hulk"`
+    > - `"Thor"` wird zu `"Thor"`
+  </script>
+
+  <script id="uebung1-input" type="module">
+    const uebung1_code = view(codeEditor("builtins:final1", {
+      value: ""
+    }));
+  </script>
+
+  <script id="uebung1-eval" type="module">
+    const uebung1Result = runTestCases({
+      code: uebung1_code,
+      fnName: "removeSalutation",
+      cases: [
+        [["Fr. Black Widow"], "Black Widow"],
+        [["Hr. Hulk"], "Hulk"],
+        [["Thor"], "Thor"],
+        [["Fr. Mariane Liemann"], "Mariane Liemann"]
+      ]
+    });
+  </script>
+
+  <script id="uebung1-out" type="module">
+    display(testReport(uebung1Result, "removeSalutation"));
+  </script>
+
+  <script id="uebung2-md" type="text/markdown">
+    ---
+
+    ## Übung 2 🎯 — Entfernen von beliebigem String
+
+    Schreib eine **exportierte** Funktion `removeString(subject, needle)`, die zwei
+    Strings erwartet. Sie soll im ersten String alle Vorkommnisse des zweiten Strings
+    entfernen und den resultierenden String zurückgeben. **Benutze dabei nur die
+    Builtins, die in diesem Kapitel beschrieben wurden** — keine Regex.
+
+    > Deine Funktion sollte sich folgendermaßen verhalten:
+    > - `("FooBarFoo", "Foo")` wird zu `"Bar"`
+    > - `("Man darf auf der Akademie nicht Geschi sagen", "Geschi")` wird zu `"Man darf auf der Akademie nicht  sagen"` (beachte: zwei Leerzeichen, da "Geschi" raus ist)
+    > - `("Info ist der beste Kurs", "Mathe")` wird zu `"Info ist der beste Kurs"`
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Mit `.indexOf` findest du die Position des nächsten Vorkommens.
+    - Mit `.substring` schneidest du den Teil davor und den Teil danach raus und
+      klebst sie zusammen.
+    - Eine `while`-Schleife wiederholt das, bis nichts mehr gefunden wird (`.indexOf`
+      gibt dann `-1` zurück).
+
+    </details>
+  </script>
+
+  <script id="uebung2-input" type="module">
+    const uebung2_code = view(codeEditor("builtins:final2", {
+      value: ""
+    }));
+  </script>
+
+  <script id="uebung2-eval" type="module">
+    const uebung2Result = runTestCasesWithTimeout({
+      code: uebung2_code,
+      fnName: "removeString",
+      cases: [
+        [["FooBarFoo", "Foo"], "Bar"],
+        [["Man darf auf der Akademie nicht Geschi sagen", "Geschi"], "Man darf auf der Akademie nicht  sagen"],
+        [["Info ist der beste Kurs", "Mathe"], "Info ist der beste Kurs"],
+        [["XYZXYZ", "Z"], "XYXY"],
+        [["ABCDE", "CD"], "ABE"]
+      ]
+    });
+  </script>
+
+  <script id="uebung2-out" type="module">
+    display(testReport(uebung2Result, "removeString"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt:
+
+    - **Template Strings** mit `` ` `` und `$\{...}`
+    - **Sonderzeichen** mit `\n`, `\"`, `\\`
+    - **`.length`** für die String-Länge
+    - **`.startsWith`**, **`.endsWith`**, **`.includes`**, **`.indexOf`** für die Suche
+    - **`.substring(start, end)`** für Ausschnitte
+
+    Als Nächstes: **[Objects →](./11_objects)**
+
+    ← [Zurück zur Übersicht](./)
+  </script>
+</notebook>
