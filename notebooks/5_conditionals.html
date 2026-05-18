@@ -42,7 +42,7 @@
   </script>
 
   <script id="if-out" type="module">
-    display(consoleOutput(runWithConsole(demo_if)));
+    display(consoleOutput(await runWithConsole(demo_if)));
   </script>
 
   <script id="if-md2" type="text/markdown">
@@ -80,7 +80,7 @@
   </script>
 
   <script id="bool-out" type="module">
-    display(consoleOutput(runWithConsole(demo_bool)));
+    display(consoleOutput(await runWithConsole(demo_bool)));
   </script>
 
   <script id="not-md" type="text/markdown">
@@ -100,7 +100,7 @@
   </script>
 
   <script id="not-out" type="module">
-    display(consoleOutput(runWithConsole(demo_not)));
+    display(consoleOutput(await runWithConsole(demo_not)));
   </script>
 
   <script id="else-md" type="text/markdown">
@@ -118,7 +118,7 @@
   </script>
 
   <script id="else-out" type="module">
-    display(consoleOutput(runWithConsole(demo_else)));
+    display(consoleOutput(await runWithConsole(demo_else)));
   </script>
 
   <script id="else-md2" type="text/markdown">
@@ -153,7 +153,7 @@
   </script>
 
   <script id="elseif-out" type="module">
-    display(consoleOutput(runWithConsole(demo_elseif)));
+    display(consoleOutput(await runWithConsole(demo_elseif)));
   </script>
 
   <script id="elseif-md2" type="text/markdown">
@@ -219,7 +219,7 @@
   </script>
 
   <script id="uebung-eval" type="module">
-    const uebungRun = runWithConsole(uebung_code);
+    const uebungRun = await runWithConsole(uebung_code);
   </script>
 
   <script id="uebung-out" type="module">

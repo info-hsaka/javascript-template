@@ -1,21 +1,9 @@
 // Sandbox helpers that don't depend on the Notebook Kit runtime.
 // (Helpers that need `html`/`Inputs` live in `helpers.js` behind a factory.)
 
-export function runWithConsole(code, deps = {}) {
-  const logs = [];
-  const fakeConsole = {
-    log: (...args) => logs.push(args.map(formatValue).join(" ")),
-    error: (...args) => logs.push("⚠ " + args.map(formatValue).join(" ")),
-    warn: (...args) => logs.push("⚠ " + args.map(formatValue).join(" "))
-  };
-  const argNames = ["console", ...Object.keys(deps)];
-  const argValues = [fakeConsole, ...Object.values(deps)];
-  try {
-    new Function(...argNames, code)(...argValues);
-    return { logs, error: null, timedOut: false };
-  } catch (e) {
-    return { logs, error: e.message, timedOut: false };
-  }
+export async function runWithConsole(code) {
+  const res = await runWithTimeout(code);
+  return { logs: res.logs, error: res.timedOut ? "Endlosschleife (Timeout)" : res.error, timedOut: res.timedOut };
 }
 
 export function runAndExtract(code, varName, deps = {}) {

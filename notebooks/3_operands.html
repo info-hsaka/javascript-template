@@ -37,7 +37,7 @@
   </script>
 
   <script id="arith-out1" type="module">
-    display(consoleOutput(runWithConsole(demo_arith1)));
+    display(consoleOutput(await runWithConsole(demo_arith1)));
   </script>
 
   <script id="arith-md2" type="text/markdown">
@@ -54,7 +54,7 @@
   </script>
 
   <script id="arith-out2" type="module">
-    display(consoleOutput(runWithConsole(demo_arith2)));
+    display(consoleOutput(await runWithConsole(demo_arith2)));
   </script>
 
   <script id="arith-md3" type="text/markdown">
@@ -81,7 +81,7 @@
   </script>
 
   <script id="arith-out3" type="module">
-    display(consoleOutput(runWithConsole(demo_arith3)));
+    display(consoleOutput(await runWithConsole(demo_arith3)));
   </script>
 
   <script id="arith-md4" type="text/markdown">
@@ -97,7 +97,7 @@
   </script>
 
   <script id="arith-out4" type="module">
-    display(consoleOutput(runWithConsole(demo_arith4)));
+    display(consoleOutput(await runWithConsole(demo_arith4)));
   </script>
 
   <script id="vergleich-md" type="text/markdown">
@@ -122,7 +122,7 @@
   </script>
 
   <script id="vergleich-out" type="module">
-    display(consoleOutput(runWithConsole(demo_vergleich)));
+    display(consoleOutput(await runWithConsole(demo_vergleich)));
   </script>
 
   <script id="vergleich-md2" type="text/markdown">
@@ -163,7 +163,7 @@
   </script>
 
   <script id="schalt-out" type="module">
-    const schaltRun = runWithConsole(schalt_code);
+    const schaltRun = await runWithConsole(schalt_code);
     display(consoleOutput(schaltRun));
   </script>
 
@@ -223,7 +223,7 @@
   </script>
 
   <script id="uebung-eval" type="module">
-    const uebungRun = runWithConsole(uebung_code);
+    const uebungRun = await runWithConsole(uebung_code);
   </script>
 
   <script id="uebung-out" type="module">

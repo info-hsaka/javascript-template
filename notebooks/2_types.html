@@ -43,7 +43,7 @@
   </script>
 
   <script id="strings-out" type="module">
-    display(consoleOutput(runWithConsole(demo_str)));
+    display(consoleOutput(await runWithConsole(demo_str)));
   </script>
 
   <script id="numbers-md" type="text/markdown">
@@ -61,7 +61,7 @@
   </script>
 
   <script id="numbers-out" type="module">
-    display(consoleOutput(runWithConsole(demo_num)));
+    display(consoleOutput(await runWithConsole(demo_num)));
   </script>
 
   <script id="numbers-md2" type="text/markdown">
@@ -89,7 +89,7 @@
   </script>
 
   <script id="booleans-out" type="module">
-    display(consoleOutput(runWithConsole(demo_bool)));
+    display(consoleOutput(await runWithConsole(demo_bool)));
   </script>
 
   <script id="empty-md" type="text/markdown">
@@ -112,7 +112,7 @@
   </script>
 
   <script id="empty-out" type="module">
-    display(consoleOutput(runWithConsole(demo_empty)));
+    display(consoleOutput(await runWithConsole(demo_empty)));
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -140,7 +140,7 @@
   </script>
 
   <script id="uebung-eval" type="module">
-    const uebungRun = runWithConsole(uebung_code);
+    const uebungRun = await runWithConsole(uebung_code);
   </script>
 
   <script id="uebung-out" type="module">

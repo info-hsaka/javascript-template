@@ -48,7 +48,7 @@
   </script>
 
   <script id="declaration-demo-out" type="module">
-    display(consoleOutput(runWithConsole(demo_decl)));
+    display(consoleOutput(await runWithConsole(demo_decl)));
   </script>
 
   <script id="declaration-md2" type="text/markdown">
@@ -88,7 +88,7 @@
   </script>
 
   <script id="assignments-demo-out" type="module">
-    display(consoleOutput(runWithConsole(demo_assign)));
+    display(consoleOutput(await runWithConsole(demo_assign)));
   </script>
 
   <script id="access-md" type="text/markdown">
@@ -116,7 +116,7 @@
   </script>
 
   <script id="access-demo-out" type="module">
-    display(consoleOutput(runWithConsole(demo_access)));
+    display(consoleOutput(await runWithConsole(demo_access)));
   </script>
 
   <script id="combine-md" type="text/markdown">
@@ -134,7 +134,7 @@
   </script>
 
   <script id="combine-demo-out" type="module">
-    display(consoleOutput(runWithConsole(demo_combine)));
+    display(consoleOutput(await runWithConsole(demo_combine)));
   </script>
 
   <script id="combine-md2" type="text/markdown">
@@ -157,7 +157,7 @@
   </script>
 
   <script id="mini-out" type="module">
-    const miniRun = runWithConsole(mini_code);
+    const miniRun = await runWithConsole(mini_code);
     display(consoleOutput(miniRun));
   </script>
 
@@ -208,7 +208,7 @@
   </script>
 
   <script id="const-demo-out" type="module">
-    display(consoleOutput(runWithConsole(demo_const)));
+    display(consoleOutput(await runWithConsole(demo_const)));
   </script>
 
   <script id="const-md2" type="text/markdown">
@@ -238,7 +238,7 @@
   </script>
 
   <script id="uebung-eval" type="module">
-    const uebungRun = runWithConsole(uebung_code);
+    const uebungRun = await runWithConsole(uebung_code);
   </script>
 
   <script id="uebung-out" type="module">
