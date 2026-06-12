@@ -24,19 +24,24 @@
     const feedbackSlot = html`<div></div>`;
 
     const DRAW_CASES = [
-      [[["0", "1", "0", "1", "0", "1", "0", "1", "0"]], true],
-      [[[null, "1", "0", "1", "0", "1", "0", "1", "0"]], false],
-      [[["0", "1", "0", "1", "0", "1", "0", "1", null]], false],
-      [[[null, null, null, null, null, null, null, null, null]], false],
-      [[["1", "1", "1", "0", "0", "0", "1", "0", "1"]], true]
+      [[["0", "1", "0", "1", "0", "1", "0", "1", "0"]], true],   // voll
+      [[[null, "1", "0", "1", "0", "1", "0", "1", "0"]], false], // erstes Feld leer
+      [[["0", "1", "0", "1", null, "1", "0", "1", "0"]], false], // Feld in der Mitte leer
+      [[["0", "1", "0", "1", "0", "1", "0", "1", null]], false], // letztes Feld leer
+      [[[null, null, null, null, null, null, null, null, null]], false], // leer
+      [[["1", "1", "1", "0", "0", "0", "1", "0", "1"]], true]    // voll
     ];
     const VICTORY_CASES = [
-      [[["0", "0", "0", null, "1", "1", null, null, null]], "0"],
-      [[["1", "0", null, "1", "0", null, "1", null, null]], "1"],
-      [[["0", "1", null, "1", "0", null, null, null, "0"]], "0"],
-      [[["0", "0", "1", null, "1", null, "1", null, null]], "1"],
-      [[["0", "1", "0", "1", "0", "1", "1", "0", "1"]], null],
-      [[[null, null, null, null, null, null, null, null, null]], null]
+      [[["0", "0", "0", null, "1", "1", null, null, null]], "0"],  // obere Zeile
+      [[["1", "1", null, "0", "0", "0", null, null, "1"]], "0"],   // mittlere Zeile
+      [[[null, null, null, "0", "0", null, "1", "1", "1"]], "1"],  // untere Zeile (+ leere Zeile davor)
+      [[["1", "0", null, "1", "0", null, "1", null, null]], "1"],  // linke Spalte
+      [[["1", "0", null, null, "0", "1", "1", "0", null]], "0"],   // mittlere Spalte
+      [[["0", null, "1", "0", null, "1", null, null, "1"]], "1"],  // rechte Spalte
+      [[["0", "1", null, "1", "0", null, null, null, "0"]], "0"],  // Diagonale
+      [[["0", "0", "1", null, "1", null, "1", null, null]], "1"],  // Gegendiagonale
+      [[["0", "1", "0", "1", "0", "1", "1", "0", "1"]], null],     // voll, kein Gewinner
+      [[[null, null, null, null, null, null, null, null, null]], null] // leer
     ];
 
     function capstone(code) {
