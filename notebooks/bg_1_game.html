@@ -82,6 +82,11 @@
     Die `setup`-Funktion legt den **Anfangswert** des Spielzustands `G` fest.
     boardgame.io ruft sie zu Beginn eines Spiels für dich auf.
 
+    > 📌 **Info** — Der Spielzustand `G` ist ein einfaches JavaScript-Objekt, das den
+    > Zustand des Spiels repräsentiert (so wie wir es während der Präsenzveranstaltung
+    > besprochen haben). Wenn du irgendwann eine Frage zu boardgame.io oder einem
+    > Konzept hast, frag gerne nach und schau dich in der restlichen Dokumentation um.
+
     Für Tic-Tac-Toe besteht `G` aus einem Array `cells` mit **9 Feldern**. Am Anfang
     ist jedes Feld leer — das stellen wir mit `null` dar. `setup` soll also ein Objekt
     der Form `{ cells: [...] }` zurückgeben, in dem `cells` **neun** `null`-Werte
@@ -89,6 +94,7 @@
 
     > 📌 **Info** — Die Syntax `setup: function setup() { ... }` definiert eine
     > **Funktion in einem Objekt**. Sie ist dann als `TicTacToe.setup()` verfügbar.
+    > Aufrufen musst du sie nicht selbst — boardgame.io macht das für uns.
 
     👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `setup` (rechts) aus.
   </script>
@@ -96,15 +102,17 @@
   <script id="moves-md" type="text/markdown">
     ## Spielzüge — der `clickCell`-Move
 
-    Ein **Move** (Spielzug) ist eine Funktion, die beschreibt, was ein Spieler tun
-    kann. Bei Tic-Tac-Toe: auf ein Feld klicken und dort seine Markierung setzen. Alle
-    Moves stehen im `moves`-Objekt.
+    Ein **Move** (Spielzug) ist eine Funktion, die eine Eingabe entgegennimmt (z. B.
+    die Zelle, auf die geklickt wurde) und `G` auf den gewünschten neuen Zustand
+    aktualisiert. Moves repräsentieren das, was ein Spieler im Spiel **tun** kann. Bei
+    Tic-Tac-Toe: auf eine Zelle klicken und dort seine Markierung setzen. Das
+    `moves`-Objekt ist eine Sammlung aller möglichen Spielzüge mit ihren Namen.
 
     Move-Funktionen bekommen als **erstes Argument** ein Objekt (wir nennen es `move`)
     mit nützlichen Feldern — vor allem `move.G` (der Spielzustand) und `move.playerID`
-    (die ID des ziehenden Spielers, `"0"` oder `"1"`). Das **zweite Argument** ist alles
-    Weitere, das wir brauchen — bei `clickCell` der `cellIndex`, also **welches** Feld
-    geklickt wurde.
+    (die ID, kurz für *Identifikator*, des ziehenden Spielers — bei uns `"0"` oder
+    `"1"`). Das **zweite Argument** ist alles Weitere, das wir brauchen — bei
+    `clickCell` der `cellIndex`, also **welches** Feld geklickt wurde.
 
     Um den Zustand zu ändern, schreiben wir die `playerID` an die passende Stelle im
     `cells`-Array:
@@ -114,8 +122,14 @@
     ```
 
     > 💡 Du kannst zum Ausprobieren auch erstmal nur etwas ausgeben, z. B.
-    > `console.log("Klick auf Feld " + cellIndex)`. Die Ausgabe erscheint unter dem
-    > Spielfeld. Für die Übung brauchst du dann aber die Zeile oben, die `G` verändert.
+    > `console.log("Spieler " + move.playerID + " klickt Feld " + cellIndex)`. Die
+    > Ausgabe erscheint unter dem Spielfeld. Für die Übung brauchst du dann aber die
+    > Zeile oben, die `G` verändert.
+
+    > 📌 **Info** — Die `setup`-Funktion bekommt übrigens auch ein Objekt als erstes
+    > Argument (mit `ctx`), genau wie ein Move. Das ist nützlich, wenn man den
+    > Anfangszustand z. B. an die **Anzahl der Spieler** anpassen will — für Tic-Tac-Toe
+    > brauchen wir das aber nicht.
 
     👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `clickCell` aus.
   </script>
@@ -125,7 +139,7 @@
 
     Im echten Projekt (auf `localhost:3000`) liefert boardgame.io neben dem Spielfeld
     ein **Debug Panel**, mit dem man Moves von Hand auslöst. Das kleine Debug Panel
-    über dem Spielfeld (in der Spiel-Karte) macht genau das nach: Feld-Nummer eintippen,
+    über dem Spielfeld (in der Spiel-Sektion) macht genau das nach: Feld-Nummer eintippen,
     `clickCell(…)` klicken, und mit `endTurn` den Zug an den nächsten Spieler übergeben.
   </script>
 
@@ -135,7 +149,7 @@
     ## Übung 🎯
 
     Wenn du beide `TODO Kapitel 1` ausgefüllt hast, prüft die Auswertung (in der
-    Spiel-Karte, unter dem Spielfeld) automatisch:
+    Spiel-Sektion, unter dem Spielfeld) automatisch:
 
     1. `setup` gibt `{ cells: [...] }` mit **9-mal `null`** zurück.
     2. `clickCell` trägt die `playerID` an der Stelle `cellIndex` ein.

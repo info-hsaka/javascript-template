@@ -72,7 +72,11 @@ const ENDIF_STUB = `
 const AI_STUB = `
   ai: {
     enumerate: function enumerate(G) {
-      // TODO Kapitel 4: einen clickCell-Zug fuer jede leere Zelle zurueckgeben.
+      // Diese Funktion gibt jedes Mal nur die Zelle oben links als einzigen
+      // moeglichen Spielzug zurueck.
+      // TODO Kapitel 4: Aendere sie so, dass sie ALLE moeglichen Zuege zurueckgibt,
+      // also einen clickCell-Zug fuer jede leere Zelle in G.cells.
+      return [{ move: 'clickCell', args: [0] }];
     },
   },`;
 

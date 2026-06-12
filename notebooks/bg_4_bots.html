@@ -103,8 +103,14 @@
 
     > 📌 **So spielt der Bot** — boardgame.io durchsucht mit einem Verfahren namens
     > [MCTS](https://nicolodavis.com/blog/tic-tac-toe/) den Spielbaum und wählt **gute**
-    > Züge. Aber er kann nur Züge wählen, die `enumerate` zurückgibt! Gibt deine
-    > Funktion nur ein Feld zurück, kann der Bot auch nur dieses eine Feld spielen.
+    > Züge. Standardmäßig macht er 1000 Iterationen pro Zug; das lässt sich anpassen,
+    > um die Spielstärke zu ändern. Aber er kann nur Züge wählen, die `enumerate`
+    > zurückgibt! Gibt deine Funktion nur ein Feld zurück, kann der Bot auch nur dieses
+    > eine Feld spielen.
+
+    Im Moment macht `enumerate` genau das: Es gibt immer nur die Zelle oben links (`0`)
+    zurück. Drück **▶ Ausführen** und klick im Bot-Bereich auf **play** — der Bot spielt
+    nur Feld `0` und kommt dann nicht weiter. Das beheben wir jetzt.
 
     👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 4` in `enumerate` aus.
   </script>
@@ -112,7 +118,7 @@
   <script id="play-md" type="text/markdown">
     ### `play` und `simulate`
 
-    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld (in der Spiel-Karte)
+    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld (in der Spiel-Sektion)
     zwei Bot-Knöpfe — wie der KI-Bereich im echten Debug Panel:
 
     - **🤖 play** — der Bot berechnet **einen** Zug und führt ihn aus.
@@ -127,7 +133,7 @@
 
     ## Übung 🎯
 
-    Die Auswertung (in der Spiel-Karte) prüft, ob `enumerate` für **jede leere Zelle**
+    Die Auswertung (in der Spiel-Sektion) prüft, ob `enumerate` für **jede leere Zelle**
     genau einen `clickCell`-Zug zurückgibt.
   </script>
 
