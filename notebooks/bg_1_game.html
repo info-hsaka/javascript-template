@@ -12,7 +12,7 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
-    const { gameBoard, mountPanel } = createGameUI({ html });
+    const { gameBoard, mountEditor, mountGameSection } = createGameUI({ html });
     const starter = prepareGameFile(1);
   </script>
 
@@ -47,10 +47,13 @@
       }));
       feedbackSlot.replaceChildren(check(code));
     }
-    editor.addEventListener("input", rerun);
+    mountEditor({ editor });
+    const section = mountGameSection({
+      nodes: [boardSlot, feedbackSlot],
+      onRun: () => { const b = editor.querySelector(".run-button"); if (b) b.click(); }
+    });
+    editor.addEventListener("input", () => { rerun(); section.expand(); });
     rerun();
-
-    mountPanel({ children: [editor, boardSlot, feedbackSlot] });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -61,12 +64,13 @@
     fangen also klein an und füllen nach und nach mehr aus.
 
     > 📌 **Eine Datei für das ganze Tutorial.** **Rechts** siehst du deine Datei
-    > `TicTacToe.js` mit dem Spielfeld darunter — sie bleibt sichtbar, während du hier
-    > links die Anleitung liest. Im Moment enthält sie nur `setup` und `moves` als
-    > leeres Gerüst; in **jedem Kapitel kommt ein neuer Teil dazu**, den du selbst
-    > ausfüllst. Deine Änderungen bleiben gespeichert und wandern mit dir von Kapitel
-    > zu Kapitel. Klick im Editor auf **▶ Ausführen** (oder ⌘/Strg+Enter), damit dein
-    > Code läuft und sich das Spielfeld aktualisiert.
+    > `TicTacToe.js` — den Code-Editor. Das **Spielfeld und der Spielzustand** stecken
+    > in der **Spiel-Sektion oben** am Bildschirmrand. Sie ist anfangs eingeklappt;
+    > klick auf **▶ Ausführen** (im Editor oder in der Sektion), dann läuft dein Code
+    > und die Spiel-Sektion klappt auf. Im Moment enthält deine Datei nur `setup` und
+    > `moves` als leeres Gerüst; in **jedem Kapitel kommt ein neuer Teil dazu**, den du
+    > selbst ausfüllst. Deine Änderungen bleiben gespeichert und wandern mit dir von
+    > Kapitel zu Kapitel.
 
     > 💡 Du kannst den Editor mit **✕ ausblenden** wegklappen (und über den Reiter am
     > rechten Rand wieder einblenden), falls du mehr Platz zum Lesen brauchst.
@@ -121,7 +125,7 @@
 
     Im echten Projekt (auf `localhost:3000`) liefert boardgame.io neben dem Spielfeld
     ein **Debug Panel**, mit dem man Moves von Hand auslöst. Das kleine Debug Panel
-    über dem Spielfeld (rechts) macht genau das nach: Feld-Nummer eintippen,
+    über dem Spielfeld (in der Spiel-Karte) macht genau das nach: Feld-Nummer eintippen,
     `clickCell(…)` klicken, und mit `endTurn` den Zug an den nächsten Spieler übergeben.
   </script>
 
@@ -130,8 +134,8 @@
 
     ## Übung 🎯
 
-    Wenn du beide `TODO Kapitel 1` ausgefüllt hast, prüft die Auswertung (unter dem
-    Spielfeld rechts) automatisch:
+    Wenn du beide `TODO Kapitel 1` ausgefüllt hast, prüft die Auswertung (in der
+    Spiel-Karte, unter dem Spielfeld) automatisch:
 
     1. `setup` gibt `{ cells: [...] }` mit **9-mal `null`** zurück.
     2. `clickCell` trägt die `playerID` an der Stelle `cellIndex` ein.

@@ -12,7 +12,7 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint, testReport } = createUI({ html });
-    const { gameBoard, mountPanel, sectionLabel } = createGameUI({ html });
+    const { gameBoard, mountEditor, mountGameSection, sectionLabel } = createGameUI({ html });
     const starter = prepareGameFile(3);
   </script>
 
@@ -77,16 +77,18 @@
       }));
       feedbackSlot.replaceChildren(capstone(code));
     }
-    editor.addEventListener("input", rerun);
+    mountEditor({ editor });
+    const section = mountGameSection({
+      nodes: [
+        sectionLabel("Test: isDraw"), isDrawSlot,
+        sectionLabel("Test: isVictory"), isVictorySlot,
+        sectionLabel("Dein Spiel"), boardSlot,
+        sectionLabel("Übung"), feedbackSlot
+      ],
+      onRun: () => { const b = editor.querySelector(".run-button"); if (b) b.click(); }
+    });
+    editor.addEventListener("input", () => { rerun(); section.expand(); });
     rerun();
-
-    mountPanel({ children: [
-      editor,
-      sectionLabel("Test: isDraw"), isDrawSlot,
-      sectionLabel("Test: isVictory"), isVictorySlot,
-      sectionLabel("Dein Spiel"), boardSlot,
-      sectionLabel("Übung"), feedbackSlot
-    ] });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -101,7 +103,7 @@
     1. `isDraw(cells)` — ist das Spiel unentschieden (alle Felder voll)?
     2. `isVictory(cells)` — hat jemand gewonnen, und wenn ja, wer?
 
-    Die zwei Test-Boxen im Editor-Panel prüfen `isDraw` und `isVictory` automatisch,
+    Die zwei Test-Boxen in der Spiel-Karte prüfen `isDraw` und `isVictory` automatisch,
     sobald du **▶ Ausführen** drückst.
   </script>
 
@@ -166,8 +168,8 @@
     > Bot funktioniert, sollte der Gewinner als `{ winner: ... }` zurückkommen.
 
     👉 **Deine Aufgabe:** Fülle die drei `TODO Kapitel 3` aus (erst `isDraw` und
-    `isVictory`, dann `endIf`). Danach ist dein Spielfeld rechts **vollständig
-    spielbar**.
+    `isVictory`, dann `endIf`). Danach ist dein Spielfeld (in der Spiel-Karte)
+    **vollständig spielbar**.
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -175,7 +177,7 @@
 
     ## Übung 🎯 — Das vollständige Spiel
 
-    Die Auswertung (unter „Übung“ im Editor-Panel) spielt zwei komplette Partien gegen
+    Die Auswertung (unter „Übung“ in der Spiel-Karte) spielt zwei komplette Partien gegen
     dein Spiel: eine mit Gewinner und eine, die unentschieden endet.
   </script>
 

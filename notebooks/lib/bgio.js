@@ -296,6 +296,10 @@ export function createGameUI({ html }) {
       return html`<div class="bg-debug"><span class="bg-debug-label">Bot:</span> ${playBtn} ${simBtn}</div>`;
     }
 
+    // Persist the state <details> open/closed across re-renders (the board is
+    // rebuilt on every move, which would otherwise reset it to closed).
+    let stateOpen = false;
+
     function render() {
       const st = client.getState();
       root.innerHTML = "";
@@ -317,12 +321,15 @@ export function createGameUI({ html }) {
       }
 
       if (showState) {
-        root.appendChild(html`<details class="bg-state"><summary>Spielzustand <code>G</code> &amp; <code>ctx</code></summary>
+        const details = html`<details class="bg-state"><summary>Spielzustand <code>G</code> &amp; <code>ctx</code></summary>
           <div class="console-output" style="margin-top:.4em">
             <div class="console-line">G = ${fmt(st && st.G)}</div>
             <div class="console-line">ctx.currentPlayer = ${fmt(st && st.ctx && st.ctx.currentPlayer)}</div>
             <div class="console-line">ctx.gameover = ${fmt(st && st.ctx && st.ctx.gameover)}</div>
-          </div></details>`);
+          </div></details>`;
+        details.open = stateOpen;
+        details.addEventListener("toggle", () => { stateOpen = details.open; });
+        root.appendChild(details);
       }
 
       if (opts.hint) root.appendChild(html`<div class="feedback feedback-hint">⏳ ${opts.hint}</div>`);
@@ -350,61 +357,95 @@ export function createGameUI({ html }) {
    * Mount the given DOM nodes (editor, board, checks, …) into a fixed panel
    * docked to the right of the viewport, so the page's instruction flow on the
    * left and the editor on the right are visible at the same time. The panel
-   * can be collapsed to a tab. Replaces any previously mounted panel.
+   * can be collapsed to a tab. Replaces any previously mounted editor panel.
    *
-   * `children` is an array of DOM nodes rendered top-to-bottom in the panel.
+   * The `editor` fills a full-height panel on the RIGHT (the code scrolls inside
+   * CodeMirror so the Run bar stays in view). It can be collapsed to a tab and
+   * resized by dragging its left edge; the width persists to localStorage. The
+   * game/state lives in the instructions column (see `gameCard`), so both panes
+   * are visible at once without a third column.
    */
-  function mountPanel({ title = "TicTacToe.js", children = [] } = {}) {
+  function mountEditor({ title = "TicTacToe.js", editor } = {}) {
     document.getElementById("bg-editor-panel")?.remove();
     document.getElementById("bg-editor-tab")?.remove();
 
     const root = document.documentElement;
+    // Marks this page as the boardgame app shell (fixed left/right panes, only
+    // the instructions scroll). Scopes the layout CSS so shared JS-course
+    // notebooks keep their normal page flow.
+    root.classList.add("bg-app");
     const WIDTH_KEY = "jskurs:bgio:panelWidth";
     const isWide = () => window.innerWidth > 900;
-    const clampW = (w) => Math.max(360, Math.min(w, Math.round(window.innerWidth * 0.85)));
+    const clampW = (w) => Math.max(360, Math.min(w, Math.round(window.innerWidth * 0.7)));
     const applyWidth = (w) => { if (isWide()) root.style.setProperty("--bg-panel-width", clampW(w) + "px"); };
+
+    if (editor) editor.classList.add("bg-editor-fill");
+    const editorRegion = html`<div class="bg-panel-editor"></div>`;
+    if (editor) editorRegion.appendChild(editor);
+    const collapseBtn = html`<button class="bg-panel-btn" title="Code ausblenden">✕ ausblenden</button>`;
+    const head = html`<div class="bg-panel-head"><span>📄 <code>${title}</code></span>${collapseBtn}</div>`;
+    const resizer = html`<div class="bg-panel-resizer" title="Breite ziehen"></div>`;
+    const panel = html`<div class="bg-panel" id="bg-editor-panel">${resizer}${head}${editorRegion}</div>`;
+    const tab = html`<button class="bg-panel-tab" id="bg-editor-tab" title="Code anzeigen">📄 Code</button>`;
 
     const show = () => { root.classList.add("bg-has-panel"); root.classList.remove("bg-panel-hidden"); panel.classList.remove("bg-collapsed"); };
     const hide = () => { root.classList.remove("bg-has-panel"); root.classList.add("bg-panel-hidden"); panel.classList.add("bg-collapsed"); };
-
-    const collapseBtn = html`<button class="bg-panel-btn" title="Editor ausblenden">✕ ausblenden</button>`;
-    const head = html`<div class="bg-panel-head"><span>📄 <code>${title}</code></span>${collapseBtn}</div>`;
-    const body = html`<div class="bg-panel-body"></div>`;
-    for (const c of children) if (c) body.appendChild(c);
-    // Drag handle on the left edge to resize the panel (updates --bg-panel-width).
-    const resizer = html`<div class="bg-panel-resizer" title="Breite ziehen"></div>`;
-    const panel = html`<div class="bg-panel" id="bg-editor-panel">${resizer}${head}${body}</div>`;
-    const tab = html`<button class="bg-panel-tab" id="bg-editor-tab" title="Editor anzeigen">📄 Editor &amp; Spiel</button>`;
-
     collapseBtn.addEventListener("click", hide);
     tab.addEventListener("click", show);
 
-    // Restore a previously chosen width.
-    const saved = Number(localStorage.getItem(WIDTH_KEY));
-    if (saved) applyWidth(saved);
+    const savedW = Number(localStorage.getItem(WIDTH_KEY));
+    if (savedW) applyWidth(savedW);
 
     let dragging = false;
-    const widthFor = (clientX) => clampW(window.innerWidth - clientX);
+    const widthFor = (e) => clampW(window.innerWidth - e.clientX);
     resizer.addEventListener("pointerdown", (e) => {
       dragging = true;
       resizer.setPointerCapture(e.pointerId);
       document.body.style.userSelect = "none";
       e.preventDefault();
     });
-    resizer.addEventListener("pointermove", (e) => { if (dragging) applyWidth(widthFor(e.clientX)); });
+    resizer.addEventListener("pointermove", (e) => { if (dragging) applyWidth(widthFor(e)); });
     const stop = (e) => {
       if (!dragging) return;
       dragging = false;
       document.body.style.userSelect = "";
-      try { localStorage.setItem(WIDTH_KEY, String(widthFor(e.clientX))); } catch { /* ignore */ }
+      try { localStorage.setItem(WIDTH_KEY, String(widthFor(e))); } catch { /* ignore */ }
     };
     resizer.addEventListener("pointerup", stop);
     resizer.addEventListener("pointercancel", stop);
 
-    document.body.appendChild(panel);
-    document.body.appendChild(tab);
+    document.body.append(panel, tab);
     show();
   }
 
-  return { gameBoard, mountPanel, sectionLabel };
+  /**
+   * Mount the game/state as a fixed section pinned to the TOP of the
+   * instructions column (above the prose, which scrolls underneath). It starts
+   * COLLAPSED — only a slim bar with a title + an "Ausführen" button is shown —
+   * and expands to reveal the board/state/checks. `onRun` is invoked by the
+   * section's Ausführen button (typically to run the editor's code); the section
+   * also exposes `expand`/`collapse` so the page can auto-expand it on every run.
+   * Replaces any previously mounted section.
+   */
+  function mountGameSection({ nodes = [], onRun, title = "Spiel & Zustand" } = {}) {
+    document.getElementById("bg-game-section")?.remove();
+    document.documentElement.classList.add("bg-has-gamesection");
+
+    const runBtn = html`<button class="run-button" type="button" title="Code ausführen (⌘/Strg+Enter)">▶ Ausführen</button>`;
+    const toggle = html`<button class="bg-panel-btn" title="Ein-/ausklappen">▸ Spiel zeigen</button>`;
+    const head = html`<div class="bg-game-section-head">${runBtn}${toggle}<span class="bg-game-section-title">🎮 ${title}</span></div>`;
+    const body = html`<div class="bg-game-section-body"></div>`;
+    for (const n of nodes) if (n) body.appendChild(n);
+    const section = html`<div class="bg-game-section bg-collapsed" id="bg-game-section">${head}${body}</div>`;
+
+    const expand = () => { section.classList.remove("bg-collapsed"); toggle.textContent = "▾ Spiel ausblenden"; };
+    const collapse = () => { section.classList.add("bg-collapsed"); toggle.textContent = "▸ Spiel zeigen"; };
+    toggle.addEventListener("click", () => (section.classList.contains("bg-collapsed") ? expand() : collapse()));
+    runBtn.addEventListener("click", () => { if (onRun) onRun(); expand(); });
+
+    document.body.prepend(section);
+    return { expand, collapse, el: section };
+  }
+
+  return { gameBoard, mountEditor, mountGameSection, sectionLabel };
 }

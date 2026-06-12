@@ -12,7 +12,7 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
-    const { gameBoard, mountPanel } = createGameUI({ html });
+    const { gameBoard, mountEditor, mountGameSection } = createGameUI({ html });
     const starter = prepareGameFile(4);
   </script>
 
@@ -61,10 +61,13 @@
       }));
       feedbackSlot.replaceChildren(check(code));
     }
-    editor.addEventListener("input", rerun);
+    mountEditor({ editor });
+    const section = mountGameSection({
+      nodes: [boardSlot, feedbackSlot],
+      onRun: () => { const b = editor.querySelector(".run-button"); if (b) b.click(); }
+    });
+    editor.addEventListener("input", () => { rerun(); section.expand(); });
     rerun();
-
-    mountPanel({ children: [editor, boardSlot, feedbackSlot] });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -109,8 +112,8 @@
   <script id="play-md" type="text/markdown">
     ### `play` und `simulate`
 
-    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld (rechts) zwei
-    Bot-Knöpfe — wie der KI-Bereich im echten Debug Panel:
+    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld (in der Spiel-Karte)
+    zwei Bot-Knöpfe — wie der KI-Bereich im echten Debug Panel:
 
     - **🤖 play** — der Bot berechnet **einen** Zug und führt ihn aus.
     - **⏩ simulate** — der Bot spielt das **ganze Spiel** allein zu Ende.
@@ -124,8 +127,8 @@
 
     ## Übung 🎯
 
-    Die Auswertung (rechts) prüft, ob `enumerate` für **jede leere Zelle** genau einen
-    `clickCell`-Zug zurückgibt.
+    Die Auswertung (in der Spiel-Karte) prüft, ob `enumerate` für **jede leere Zelle**
+    genau einen `clickCell`-Zug zurückgibt.
   </script>
 
   <script id="outro" type="text/markdown">

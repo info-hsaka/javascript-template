@@ -12,7 +12,7 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
-    const { gameBoard, mountPanel } = createGameUI({ html });
+    const { gameBoard, mountEditor, mountGameSection } = createGameUI({ html });
     const starter = prepareGameFile(2);
   </script>
 
@@ -57,10 +57,13 @@
       }));
       feedbackSlot.replaceChildren(check(code));
     }
-    editor.addEventListener("input", rerun);
+    mountEditor({ editor });
+    const section = mountGameSection({
+      nodes: [boardSlot, feedbackSlot],
+      onRun: () => { const b = editor.querySelector(".run-button"); if (b) b.click(); }
+    });
+    editor.addEventListener("input", () => { rerun(); section.expand(); });
     rerun();
-
-    mountPanel({ children: [editor, boardSlot, feedbackSlot] });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -122,7 +125,7 @@
 
     ## Übung 🎯
 
-    Die Auswertung (rechts) prüft beide Verbesserungen:
+    Die Auswertung (in der Spiel-Karte) prüft beide Verbesserungen:
 
     1. Ein Klick auf ein **belegtes** Feld wird abgelehnt (`INVALID_MOVE`).
     2. Nach einem Zug ist **automatisch der nächste Spieler** dran (`turn`).
