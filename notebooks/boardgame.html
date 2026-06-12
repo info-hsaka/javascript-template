@@ -1,0 +1,88 @@
+<!doctype html>
+<notebook theme="air">
+  <title>boardgame.io-Tutorial — Tic-Tac-Toe</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+  </script>
+
+  <script id="welcome-md" type="text/markdown">
+    # boardgame.io-Tutorial 🎲
+
+    In diesem Tutorial baust du Schritt für Schritt ein **Tic-Tac-Toe-Spiel** mit
+    [boardgame.io](https://boardgame.io). Du lernst die grundlegenden Konzepte des
+    Frameworks kennen und wie man sie einsetzt. Am Ende hast du ein funktionierendes,
+    spielbares Spiel — inklusive Computer-Gegner.
+
+    Du brauchst **nichts zu installieren** — alle Übungen laufen direkt im Browser.
+    Dein Fortschritt wird automatisch gespeichert.
+
+    > 💡 Falls du das JavaScript-Grundlagen-Tutorial noch nicht durch hast, schau dir
+    > zuerst [den JavaScript-Kurs](./) an. Hier setzen wir Variablen, Funktionen,
+    > Arrays und Objekte als bekannt voraus.
+  </script>
+
+  <script id="online-md" type="text/markdown">
+    ## Kein Setup nötig 🚀
+
+    In der „klassischen“ Variante dieses Tutorials musstest du ein Template-Repository
+    klonen, mit `npm i` jede Menge Programme installieren und einen Entwicklungsserver
+    auf `http://localhost:3000` starten, um dein Spiel zu sehen.
+
+    **Das brauchst du hier nicht.** Der Trick: Die eigentliche Spiel-*Logik* von
+    boardgame.io — wie das Spiel aufgesetzt wird (`setup`), welche Züge es gibt
+    (`moves`), wann es vorbei ist (`endIf`) und wie ein Bot spielt (`ai`) — ist ganz
+    normales **JavaScript**. Dafür braucht es weder React noch einen Server.
+
+    Wir haben deshalb eine kleine boardgame.io-Engine direkt in dieses Notebook
+    eingebaut. Du schreibst genau denselben Code wie im echten Projekt, und statt
+    `localhost:3000` erscheint hier direkt ein **klickbares Spielfeld**, das deinen
+    Code ausführt.
+
+    > 📌 **Info** — Im echten Projekt verteilst du diesen Code auf mehrere Dateien
+    > (z. B. `src/TicTacToe.js`) und zeichnest das Spielfeld selbst mit React. Die
+    > **Spiellogik**, um die es in diesem Tutorial geht, ist exakt dieselbe.
+  </script>
+
+  <script id="toc-md" type="text/markdown">
+    ## Die Kapitel
+
+    1. [Ein Spiel definieren](./bg_1_game) 🧩 — `setup` und `moves`: der Spielzustand
+       `G` und wie Spieler ihn verändern
+    2. [Spielverbesserungen](./bg_2_improvements) 🛠️ — ungültige Züge verhindern
+       (`INVALID_MOVE`) und Züge verwalten (`turn`)
+    3. [Siegbedingung](./bg_3_victory) 🏆 — `isVictory`, `isDraw` und `endIf`: wann ist
+       das Spiel gewonnen oder unentschieden?
+    4. [Bots](./bg_4_bots) 🤖 — `ai.enumerate`: einen Computer-Gegner hinzufügen
+  </script>
+
+  <script id="concepts-md" type="text/markdown">
+    ## Worum geht's bei boardgame.io?
+
+    boardgame.io ist ein Framework, um **rundenbasierte Spiele** zu bauen. Die Idee:
+    Du beschreibst dein Spiel als ein einfaches JavaScript-Objekt, und das Framework
+    kümmert sich um den Rest — Spielerwechsel, Spielstände, Netzwerk-Multiplayer und
+    sogar einen Bot.
+
+    Die zwei wichtigsten Begriffe, die dich durch das ganze Tutorial begleiten:
+
+    > 📌 **`G`** — der **Spielzustand** (*game state*). Ein ganz normales
+    > JavaScript-Objekt, das alles enthält, was das Spiel gerade ausmacht. Bei
+    > Tic-Tac-Toe ist das die Belegung der 9 Felder.
+
+    > 📌 **Move** — ein **Spielzug**. Eine Funktion, die beschreibt, wie ein Spieler
+    > `G` verändert. Bei Tic-Tac-Toe: „setze meine Markierung in dieses Feld“.
+
+    Bereit? Dann los:
+
+    **[1. Ein Spiel definieren →](./bg_1_game)**
+
+    ← [Zurück zum JavaScript-Kurs](./)
+  </script>
+</notebook>

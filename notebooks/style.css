@@ -378,3 +378,76 @@
 .observablehq details[open] > summary {
   margin-bottom: 0.4em;
 }
+
+/* === boardgame.io interactive board =======================================
+ * The Tic-Tac-Toe board + debug/bot panels rendered by lib/bgio.js. Replaces
+ * the React board + Debug Panel you'd normally see on http://localhost:3000.
+ */
+.bg-game {
+  margin: 0.6em 0 1em;
+}
+.bg-status {
+  font: 500 15px/1.4 var(--sans-serif), sans-serif;
+  margin-bottom: 0.5em;
+}
+.bg-status-win  { color: #1b6b1b; font-weight: 600; }
+.bg-status-draw { color: #7a5a00; font-weight: 600; }
+:root[data-theme="dark"] .bg-status-win  { color: #6ec96e; }
+:root[data-theme="dark"] .bg-status-draw { color: #e0c060; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .bg-status-win  { color: #6ec96e; }
+  :root:not([data-theme="light"]) .bg-status-draw { color: #e0c060; }
+}
+
+.bg-board {
+  display: grid;
+  grid-template-columns: repeat(3, 64px);
+  grid-template-rows: repeat(3, 64px);
+  gap: 6px;
+  width: max-content;
+}
+.bg-cell {
+  width: 64px;
+  height: 64px;
+  font-size: 32px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.4em;
+  background: var(--theme-background-alt);
+  color: var(--theme-foreground);
+  cursor: pointer;
+  transition: background 0.1s ease, transform 0.05s ease;
+}
+.bg-cell:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--theme-foreground) 8%, var(--theme-background));
+}
+.bg-cell:active:not(:disabled) { transform: scale(0.95); }
+.bg-cell:disabled { cursor: default; opacity: 0.85; }
+
+.bg-debug {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0.7em 0 0.3em;
+  font-size: 13px;
+}
+.bg-debug-label {
+  font: 500 12px/1 var(--sans-serif), sans-serif;
+  color: var(--theme-foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.bg-idx {
+  font-family: var(--monospace), monospace;
+  padding: 0.3em 0.4em;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.3em;
+  background: var(--theme-background);
+  color: var(--theme-foreground);
+}
+.bg-notice:empty { display: none; }
+.bg-state { margin-top: 0.5em; }
