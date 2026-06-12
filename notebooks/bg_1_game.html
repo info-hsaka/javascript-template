@@ -12,8 +12,45 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
-    const { gameBoard } = createGameUI({ html });
+    const { gameBoard, mountPanel } = createGameUI({ html });
     const starter = prepareGameFile(1);
+  </script>
+
+  <script id="panel" type="module">
+    const editor = codeEditor("bgio:game", { value: starter, label: "Deine Datei: TicTacToe.js" });
+    const boardSlot = html`<div></div>`;
+    const feedbackSlot = html`<div></div>`;
+
+    function check(code) {
+      try {
+        const client = makeClient(loadGame(code));
+        const st = client.getState();
+        const cells = st && st.G && st.G.cells;
+        const setupOk = Array.isArray(cells) && cells.length === 9 && cells.every(c => c === null);
+        if (!setupOk)
+          return err(html`<code>setup</code> sollte <code>{ cells: [...] }</code> mit genau 9-mal <code>null</code> zurückgeben.`);
+        client.moves.clickCell(4);
+        if (client.getState().G.cells[4] !== "0")
+          return err(html`Nach <code>clickCell(4)</code> von Spieler 0 sollte <code>cells[4]</code> den Wert <code>"0"</code> haben — trag <code>move.playerID</code> an der Stelle <code>cellIndex</code> ein.`);
+        return ok(html`🎉 Geschafft! <code>setup</code> und <code>clickCell</code> funktionieren.`);
+      } catch (e) {
+        return err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
+      }
+    }
+
+    function rerun() {
+      const code = editor.value;
+      boardSlot.replaceChildren(gameBoard(code, {
+        showDebug: true,
+        showState: true,
+        hint: "Alle Markierungen sind ✕ (Spieler 0), bis du im Debug Panel auf endTurn klickst — automatisches Wechseln kommt in Kapitel 2."
+      }));
+      feedbackSlot.replaceChildren(check(code));
+    }
+    editor.addEventListener("input", rerun);
+    rerun();
+
+    mountPanel({ children: [editor, boardSlot, feedbackSlot] });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -23,12 +60,16 @@
     mitteilt, wie das Spiel funktioniert. Fast alles daran ist **optional** — wir
     fangen also klein an und füllen nach und nach mehr aus.
 
-    > 📌 **Eine Datei für das ganze Tutorial.** Unten siehst du deine Datei
-    > `TicTacToe.js`. Im Moment enthält sie nur `setup` und `moves` als leeres Gerüst —
-    > in **jedem Kapitel kommt ein neuer Teil dazu**, den du selbst ausfüllst. Deine
-    > Änderungen bleiben gespeichert und wandern mit dir von Kapitel zu Kapitel; am
-    > Ende hast du das ganze Spiel selbst geschrieben. Klick auf **▶ Ausführen** (oder
-    > ⌘/Strg+Enter), damit dein Code läuft und sich das Spielfeld aktualisiert.
+    > 📌 **Eine Datei für das ganze Tutorial.** **Rechts** siehst du deine Datei
+    > `TicTacToe.js` mit dem Spielfeld darunter — sie bleibt sichtbar, während du hier
+    > links die Anleitung liest. Im Moment enthält sie nur `setup` und `moves` als
+    > leeres Gerüst; in **jedem Kapitel kommt ein neuer Teil dazu**, den du selbst
+    > ausfüllst. Deine Änderungen bleiben gespeichert und wandern mit dir von Kapitel
+    > zu Kapitel. Klick im Editor auf **▶ Ausführen** (oder ⌘/Strg+Enter), damit dein
+    > Code läuft und sich das Spielfeld aktualisiert.
+
+    > 💡 Du kannst den Editor mit **✕ ausblenden** wegklappen (und über den Reiter am
+    > rechten Rand wieder einblenden), falls du mehr Platz zum Lesen brauchst.
   </script>
 
   <script id="setup-md" type="text/markdown">
@@ -45,7 +86,7 @@
     > 📌 **Info** — Die Syntax `setup: function setup() { ... }` definiert eine
     > **Funktion in einem Objekt**. Sie ist dann als `TicTacToe.setup()` verfügbar.
 
-    👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `setup` unten aus.
+    👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `setup` (rechts) aus.
   </script>
 
   <script id="moves-md" type="text/markdown">
@@ -75,28 +116,13 @@
     👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `clickCell` aus.
   </script>
 
-  <script id="game-editor" type="module">
-    const gameCode = view(codeEditor("bgio:game", {
-      value: starter,
-      label: "Deine Datei: TicTacToe.js"
-    }));
-  </script>
-
-  <script id="game-board" type="module">
-    display(gameBoard(gameCode, {
-      showDebug: true,
-      showState: true,
-      hint: "Sobald setup und clickCell stimmen, kannst du auf die Felder klicken. Alle Markierungen sind ✕ (Spieler 0), bis du im Debug Panel auf endTurn klickst — denn das automatische Wechseln bauen wir erst in Kapitel 2."
-    }));
-  </script>
-
   <script id="debug-md" type="text/markdown">
     ### Das Debug Panel
 
     Im echten Projekt (auf `localhost:3000`) liefert boardgame.io neben dem Spielfeld
     ein **Debug Panel**, mit dem man Moves von Hand auslöst. Das kleine Debug Panel
-    über dem Spielfeld macht genau das nach: Feld-Nummer eintippen, `clickCell(…)`
-    klicken, und mit `endTurn` den Zug an den nächsten Spieler übergeben.
+    über dem Spielfeld (rechts) macht genau das nach: Feld-Nummer eintippen,
+    `clickCell(…)` klicken, und mit `endTurn` den Zug an den nächsten Spieler übergeben.
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -104,36 +130,11 @@
 
     ## Übung 🎯
 
-    Wenn du beide `TODO Kapitel 1` ausgefüllt hast, prüft die Auswertung automatisch:
+    Wenn du beide `TODO Kapitel 1` ausgefüllt hast, prüft die Auswertung (unter dem
+    Spielfeld rechts) automatisch:
 
     1. `setup` gibt `{ cells: [...] }` mit **9-mal `null`** zurück.
     2. `clickCell` trägt die `playerID` an der Stelle `cellIndex` ein.
-  </script>
-
-  <script id="uebung-feedback" type="module">
-    {
-      let feedback;
-      try {
-        const client = makeClient(loadGame(gameCode));
-        const st = client.getState();
-        const cells = st && st.G && st.G.cells;
-        const setupOk = Array.isArray(cells) && cells.length === 9 && cells.every(c => c === null);
-
-        if (!setupOk) {
-          feedback = err(html`<code>setup</code> sollte <code>{ cells: [...] }</code> mit genau 9-mal <code>null</code> zurückgeben.`);
-        } else {
-          client.moves.clickCell(4);
-          const after = client.getState().G.cells;
-          if (after[4] !== "0")
-            feedback = err(html`Nach <code>clickCell(4)</code> von Spieler 0 sollte <code>cells[4]</code> den Wert <code>"0"</code> haben — trag <code>move.playerID</code> an der Stelle <code>cellIndex</code> ein.`);
-          else
-            feedback = ok(html`🎉 Geschafft! <code>setup</code> und <code>clickCell</code> funktionieren. Probier dein Spielfeld oben aus.`);
-        }
-      } catch (e) {
-        feedback = err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
-      }
-      display(feedback);
-    }
   </script>
 
   <script id="outro" type="text/markdown">

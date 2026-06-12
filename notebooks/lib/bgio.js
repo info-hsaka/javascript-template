@@ -341,5 +341,70 @@ export function createGameUI({ html }) {
     return root;
   }
 
-  return { gameBoard };
+  // Small helper to label a section inside the panel.
+  function sectionLabel(text) {
+    return html`<div class="bg-panel-section-label">${text}</div>`;
+  }
+
+  /**
+   * Mount the given DOM nodes (editor, board, checks, …) into a fixed panel
+   * docked to the right of the viewport, so the page's instruction flow on the
+   * left and the editor on the right are visible at the same time. The panel
+   * can be collapsed to a tab. Replaces any previously mounted panel.
+   *
+   * `children` is an array of DOM nodes rendered top-to-bottom in the panel.
+   */
+  function mountPanel({ title = "TicTacToe.js", children = [] } = {}) {
+    document.getElementById("bg-editor-panel")?.remove();
+    document.getElementById("bg-editor-tab")?.remove();
+
+    const root = document.documentElement;
+    const WIDTH_KEY = "jskurs:bgio:panelWidth";
+    const isWide = () => window.innerWidth > 900;
+    const clampW = (w) => Math.max(360, Math.min(w, Math.round(window.innerWidth * 0.85)));
+    const applyWidth = (w) => { if (isWide()) root.style.setProperty("--bg-panel-width", clampW(w) + "px"); };
+
+    const show = () => { root.classList.add("bg-has-panel"); root.classList.remove("bg-panel-hidden"); panel.classList.remove("bg-collapsed"); };
+    const hide = () => { root.classList.remove("bg-has-panel"); root.classList.add("bg-panel-hidden"); panel.classList.add("bg-collapsed"); };
+
+    const collapseBtn = html`<button class="bg-panel-btn" title="Editor ausblenden">✕ ausblenden</button>`;
+    const head = html`<div class="bg-panel-head"><span>📄 <code>${title}</code></span>${collapseBtn}</div>`;
+    const body = html`<div class="bg-panel-body"></div>`;
+    for (const c of children) if (c) body.appendChild(c);
+    // Drag handle on the left edge to resize the panel (updates --bg-panel-width).
+    const resizer = html`<div class="bg-panel-resizer" title="Breite ziehen"></div>`;
+    const panel = html`<div class="bg-panel" id="bg-editor-panel">${resizer}${head}${body}</div>`;
+    const tab = html`<button class="bg-panel-tab" id="bg-editor-tab" title="Editor anzeigen">📄 Editor &amp; Spiel</button>`;
+
+    collapseBtn.addEventListener("click", hide);
+    tab.addEventListener("click", show);
+
+    // Restore a previously chosen width.
+    const saved = Number(localStorage.getItem(WIDTH_KEY));
+    if (saved) applyWidth(saved);
+
+    let dragging = false;
+    const widthFor = (clientX) => clampW(window.innerWidth - clientX);
+    resizer.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      resizer.setPointerCapture(e.pointerId);
+      document.body.style.userSelect = "none";
+      e.preventDefault();
+    });
+    resizer.addEventListener("pointermove", (e) => { if (dragging) applyWidth(widthFor(e.clientX)); });
+    const stop = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.userSelect = "";
+      try { localStorage.setItem(WIDTH_KEY, String(widthFor(e.clientX))); } catch { /* ignore */ }
+    };
+    resizer.addEventListener("pointerup", stop);
+    resizer.addEventListener("pointercancel", stop);
+
+    document.body.appendChild(panel);
+    document.body.appendChild(tab);
+    show();
+  }
+
+  return { gameBoard, mountPanel, sectionLabel };
 }

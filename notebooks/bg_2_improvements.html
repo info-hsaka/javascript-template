@@ -12,15 +12,62 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
-    const { gameBoard } = createGameUI({ html });
+    const { gameBoard, mountPanel } = createGameUI({ html });
     const starter = prepareGameFile(2);
+  </script>
+
+  <script id="panel" type="module">
+    const editor = codeEditor("bgio:game", { value: starter, label: "Deine Datei: TicTacToe.js" });
+    const boardSlot = html`<div></div>`;
+    const feedbackSlot = html`<div></div>`;
+
+    function check(code) {
+      try {
+        const game = loadGame(code);
+
+        const c1 = makeClient(game);
+        if (!(c1.getState() && c1.getState().G && Array.isArray(c1.getState().G.cells)))
+          throw new Error("setup gibt noch kein { cells: [...] } zurück (siehe Kapitel 1).");
+        c1.moves.clickCell(0);
+        const owner = c1.getState().G.cells[0];
+        c1.moves.clickCell(0);
+        const rejectsOccupied = c1.getState().G.cells[0] === owner && owner !== null;
+
+        const c2 = makeClient(game);
+        const p0 = c2.getState().ctx.currentPlayer;
+        c2.moves.clickCell(4);
+        const switched = c2.getState().ctx.currentPlayer !== p0;
+
+        if (!rejectsOccupied)
+          return err(html`Ein Klick auf ein belegtes Feld sollte abgelehnt werden — gib <code>INVALID_MOVE</code> zurück, wenn <code>move.G.cells[cellIndex] !== null</code>.`);
+        if (!switched)
+          return err(html`Nach einem Zug sollte automatisch der nächste Spieler dran sein — füg <code>turn: { minMoves: 1, maxMoves: 1 }</code> hinzu.`);
+        return ok(html`🎉 Stark! Ungültige Züge werden abgelehnt und der Spieler wechselt automatisch.`);
+      } catch (e) {
+        return err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
+      }
+    }
+
+    function rerun() {
+      const code = editor.value;
+      boardSlot.replaceChildren(gameBoard(code, {
+        showDebug: true,
+        showState: true,
+        hint: "Versuch zweimal aufs selbe Feld zu klicken — der zweite Klick wird abgelehnt. Und nach jedem gültigen Klick wechselt der Spieler (✕ ↔ ◯)."
+      }));
+      feedbackSlot.replaceChildren(check(code));
+    }
+    editor.addEventListener("input", rerun);
+    rerun();
+
+    mountPanel({ children: [editor, boardSlot, feedbackSlot] });
   </script>
 
   <script id="intro" type="text/markdown">
     # 2. Spielverbesserungen 🛠️
 
-    Wir arbeiten in **derselben Datei** weiter wie in Kapitel 1. Unser Spiel hat noch
-    zwei Macken, die wir jetzt beheben:
+    Wir arbeiten in **derselben Datei** weiter wie in Kapitel 1 (rechts). Unser Spiel
+    hat noch zwei Macken, die wir jetzt beheben:
 
     1. Man kann in ein **bereits belegtes Feld** klicken und es überschreiben.
     2. Der Zug wird **nie automatisch** an den nächsten Spieler übergeben.
@@ -34,7 +81,7 @@
     dann komplett — `G` bleibt unverändert.
 
     `INVALID_MOVE` kommt aus boardgame.io und wird oben in der Datei importiert (die
-    `import`-Zeile steht in deiner Datei schon ganz oben):
+    `import`-Zeile ist beim Wechsel in dieses Kapitel automatisch dazugekommen):
 
     ```js
     import { INVALID_MOVE } from 'boardgame.io/core';
@@ -44,9 +91,8 @@
     Feld schon belegt ist (also nicht `null`). Wenn ja, geben wir `INVALID_MOVE` zurück
     und setzen **nichts**.
 
-    👉 **Deine Aufgabe:** Ergänze `clickCell` in deiner Datei — gib **vor** dem Setzen
-    der Markierung `INVALID_MOVE` zurück, wenn `move.G.cells[cellIndex]` nicht `null`
-    ist. (Die `import`-Zeile für `INVALID_MOVE` ist oben automatisch dazugekommen.)
+    👉 **Deine Aufgabe:** Ergänze `clickCell` — gib **vor** dem Setzen der Markierung
+    `INVALID_MOVE` zurück, wenn `move.G.cells[cellIndex]` nicht `null` ist.
   </script>
 
   <script id="turn-md" type="text/markdown">
@@ -67,23 +113,8 @@
     },
     ```
 
-    👉 **Deine Aufgabe:** In deiner Datei ist unten ein leeres `turn`-Objekt
-    dazugekommen. Trag dort `minMoves: 1` und `maxMoves: 1` ein.
-  </script>
-
-  <script id="game-editor" type="module">
-    const gameCode = view(codeEditor("bgio:game", {
-      value: starter,
-      label: "Deine Datei: TicTacToe.js"
-    }));
-  </script>
-
-  <script id="game-board" type="module">
-    display(gameBoard(gameCode, {
-      showDebug: true,
-      showState: true,
-      hint: "Versuch, zweimal auf dasselbe Feld zu klicken — der zweite Klick wird abgelehnt. Und nach jedem gültigen Klick wechselt automatisch der Spieler (✕ ↔ ◯)."
-    }));
+    👉 **Deine Aufgabe:** In deiner Datei ist ein leeres `turn`-Objekt dazugekommen.
+    Trag dort `minMoves: 1` und `maxMoves: 1` ein.
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -91,44 +122,10 @@
 
     ## Übung 🎯
 
-    Die Auswertung prüft beide Verbesserungen:
+    Die Auswertung (rechts) prüft beide Verbesserungen:
 
     1. Ein Klick auf ein **belegtes** Feld wird abgelehnt (`INVALID_MOVE`).
     2. Nach einem Zug ist **automatisch der nächste Spieler** dran (`turn`).
-  </script>
-
-  <script id="uebung-feedback" type="module">
-    {
-      let feedback;
-      try {
-        const game = loadGame(gameCode);
-
-        // 1. invalid move: occupy cell 0, then try to overwrite it
-        const c1 = makeClient(game);
-        if (!(c1.getState() && c1.getState().G && Array.isArray(c1.getState().G.cells)))
-          throw new Error("setup gibt noch kein { cells: [...] } zurück (siehe Kapitel 1).");
-        c1.moves.clickCell(0);
-        const owner = c1.getState().G.cells[0];
-        c1.moves.clickCell(0);
-        const rejectsOccupied = c1.getState().G.cells[0] === owner && owner !== null;
-
-        // 2. turn handling: after one move the current player should change
-        const c2 = makeClient(game);
-        const p0 = c2.getState().ctx.currentPlayer;
-        c2.moves.clickCell(4);
-        const switched = c2.getState().ctx.currentPlayer !== p0;
-
-        if (!rejectsOccupied)
-          feedback = err(html`Ein Klick auf ein belegtes Feld sollte abgelehnt werden — gib <code>INVALID_MOVE</code> zurück, wenn <code>move.G.cells[cellIndex] !== null</code>.`);
-        else if (!switched)
-          feedback = err(html`Nach einem Zug sollte automatisch der nächste Spieler dran sein — füg <code>turn: { minMoves: 1, maxMoves: 1 }</code> hinzu.`);
-        else
-          feedback = ok(html`🎉 Stark! Ungültige Züge werden abgelehnt und der Spieler wechselt automatisch.`);
-      } catch (e) {
-        feedback = err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
-      }
-      display(feedback);
-    }
   </script>
 
   <script id="outro" type="text/markdown">

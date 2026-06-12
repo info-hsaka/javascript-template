@@ -12,19 +12,71 @@
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
-    const { gameBoard } = createGameUI({ html });
+    const { gameBoard, mountPanel } = createGameUI({ html });
     const starter = prepareGameFile(4);
+  </script>
+
+  <script id="panel" type="module">
+    const editor = codeEditor("bgio:game", { value: starter, label: "Deine Datei: TicTacToe.js" });
+    const boardSlot = html`<div></div>`;
+    const feedbackSlot = html`<div></div>`;
+
+    function check(code) {
+      try {
+        const game = loadGame(code);
+        if (!game.ai || typeof game.ai.enumerate !== "function")
+          return err(html`Es fehlt die <code>ai.enumerate</code>-Funktion.`);
+
+        const indicesFor = (cells) => {
+          const res = game.ai.enumerate({ cells }, { currentPlayer: "0" }, "0");
+          if (!Array.isArray(res)) return null;
+          if (!res.every(m => m && m.move === "clickCell" && Array.isArray(m.args) && m.args.length === 1)) return "shape";
+          return res.map(m => m.args[0]).sort((a, b) => a - b);
+        };
+        const empty = indicesFor([null, null, null, null, null, null, null, null, null]);
+        const partial = indicesFor(["0", null, "1", null, null, "1", null, "0", null]); // empty: 1,3,4,6,8
+        const eq = (a, b) => Array.isArray(a) && a.length === b.length && a.every((v, i) => v === b[i]);
+
+        if (empty === null || partial === null)
+          return err(html`<code>enumerate</code> muss ein <strong>Array</strong> von Zügen zurückgeben.`);
+        if (empty === "shape" || partial === "shape")
+          return err(html`Jeder Zug muss die Form <code>{ move: 'clickCell', args: [index] }</code> haben.`);
+        if (!eq(empty, [0, 1, 2, 3, 4, 5, 6, 7, 8]))
+          return err(html`Auf einem leeren Feld sollte <code>enumerate</code> <strong>9</strong> Züge liefern — du gibst ${empty.length} zurück.`);
+        if (!eq(partial, [1, 3, 4, 6, 8]))
+          return err(html`<code>enumerate</code> soll nur Züge für <strong>leere</strong> Zellen liefern. Erwartet: 1, 3, 4, 6, 8 — bekommen: ${partial.join(", ") || "keine"}.`);
+        return ok(html`🎉 Geschafft! Dein Bot kennt alle möglichen Züge und spielt ein ganzes Spiel. Probier ⏩ simulate!`);
+      } catch (e) {
+        return err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
+      }
+    }
+
+    function rerun() {
+      const code = editor.value;
+      boardSlot.replaceChildren(gameBoard(code, {
+        showDebug: true,
+        showBot: true,
+        showState: true,
+        hint: "Mit korrektem enumerate spielt der Bot richtig gut. Drück ⏩ simulate für ein Bot-gegen-Bot-Spiel."
+      }));
+      feedbackSlot.replaceChildren(check(code));
+    }
+    editor.addEventListener("input", rerun);
+    rerun();
+
+    mountPanel({ children: [editor, boardSlot, feedbackSlot] });
   </script>
 
   <script id="intro" type="text/markdown">
     # 4. Bots 🤖
 
-    Letztes Kapitel, **dieselbe Datei**: Wir geben dem Spiel einen **Computer-Gegner**.
-    Wir müssen dem Bot nur sagen, welche Spielzüge überhaupt möglich sind — den Rest
-    erledigt das Framework: Es sucht Züge, die zu einem Sieg führen.
+    Letztes Kapitel, **dieselbe Datei** (rechts): Wir geben dem Spiel einen
+    **Computer-Gegner**. Wir müssen dem Bot nur sagen, welche Spielzüge überhaupt
+    möglich sind — den Rest erledigt das Framework: Es sucht Züge, die zu einem Sieg
+    führen.
 
-    Dafür gibt es in deiner Datei schon den `ai`-Abschnitt mit einer
-    `enumerate`-Funktion.
+    Dafür ist beim Wechsel in dieses Kapitel der `ai`-Abschnitt mit einer
+    `enumerate`-Funktion in deiner Datei dazugekommen.
   </script>
 
   <script id="enumerate-md" type="text/markdown">
@@ -54,18 +106,11 @@
     👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 4` in `enumerate` aus.
   </script>
 
-  <script id="game-editor" type="module">
-    const gameCode = view(codeEditor("bgio:game", {
-      value: starter,
-      label: "Deine Datei: TicTacToe.js"
-    }));
-  </script>
-
   <script id="play-md" type="text/markdown">
     ### `play` und `simulate`
 
-    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld zwei Bot-Knöpfe —
-    wie der KI-Bereich im echten Debug Panel:
+    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld (rechts) zwei
+    Bot-Knöpfe — wie der KI-Bereich im echten Debug Panel:
 
     - **🤖 play** — der Bot berechnet **einen** Zug und führt ihn aus.
     - **⏩ simulate** — der Bot spielt das **ganze Spiel** allein zu Ende.
@@ -74,59 +119,13 @@
     zwei in eine Reihe zu legen, und schau, ob der Bot blockt!
   </script>
 
-  <script id="game-board" type="module">
-    display(gameBoard(gameCode, {
-      showDebug: true,
-      showBot: true,
-      showState: true,
-      hint: "Mit einem korrekten enumerate spielt der Bot richtig gut. Drück ⏩ simulate für ein komplettes Bot-gegen-Bot-Spiel."
-    }));
-  </script>
-
   <script id="uebung-md" type="text/markdown">
     ---
 
     ## Übung 🎯
 
-    Die Auswertung prüft, ob `enumerate` für **jede leere Zelle** genau einen
+    Die Auswertung (rechts) prüft, ob `enumerate` für **jede leere Zelle** genau einen
     `clickCell`-Zug zurückgibt.
-  </script>
-
-  <script id="uebung-feedback" type="module">
-    {
-      let feedback;
-      try {
-        const game = loadGame(gameCode);
-        if (!game.ai || typeof game.ai.enumerate !== "function") {
-          feedback = err(html`Es fehlt die <code>ai.enumerate</code>-Funktion.`);
-        } else {
-          const indicesFor = (cells) => {
-            const res = game.ai.enumerate({ cells }, { currentPlayer: "0" }, "0");
-            if (!Array.isArray(res)) return null;
-            if (!res.every(m => m && m.move === "clickCell" && Array.isArray(m.args) && m.args.length === 1)) return "shape";
-            return res.map(m => m.args[0]).sort((a, b) => a - b);
-          };
-
-          const empty = indicesFor([null, null, null, null, null, null, null, null, null]);
-          const partial = indicesFor(["0", null, "1", null, null, "1", null, "0", null]); // empty: 1,3,4,6,8
-          const eq = (a, b) => Array.isArray(a) && a.length === b.length && a.every((v, i) => v === b[i]);
-
-          if (empty === null || partial === null)
-            feedback = err(html`<code>enumerate</code> muss ein <strong>Array</strong> von Zügen zurückgeben.`);
-          else if (empty === "shape" || partial === "shape")
-            feedback = err(html`Jeder Zug muss die Form <code>{ move: 'clickCell', args: [index] }</code> haben.`);
-          else if (!eq(empty, [0, 1, 2, 3, 4, 5, 6, 7, 8]))
-            feedback = err(html`Auf einem leeren Feld sollte <code>enumerate</code> <strong>9</strong> Züge liefern (für jede Zelle einen) — du gibst ${empty.length} zurück.`);
-          else if (!eq(partial, [1, 3, 4, 6, 8]))
-            feedback = err(html`<code>enumerate</code> soll nur Züge für <strong>leere</strong> Zellen liefern. Erwartet: Felder 1, 3, 4, 6, 8 — bekommen: ${partial.join(", ") || "keine"}.`);
-          else
-            feedback = ok(html`🎉 Geschafft! Dein Bot kennt alle möglichen Züge und spielt ein ganzes Spiel. Probier ⏩ simulate!`);
-        }
-      } catch (e) {
-        feedback = err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
-      }
-      display(feedback);
-    }
   </script>
 
   <script id="outro" type="text/markdown">
