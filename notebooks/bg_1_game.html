@@ -8,7 +8,7 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
-    import { createGameUI, createEngine, loadGame } from "./lib/bgio.js";
+    import { createGameUI, loadGame, makeClient, TICTACTOE_SKELETON } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
@@ -20,173 +20,82 @@
 
     Wir definieren ein Spiel, indem wir ein **Objekt** erstellen, das boardgame.io
     mitteilt, wie das Spiel funktioniert. Fast alles daran ist **optional** — wir
-    können also klein anfangen und nach und nach mehr Komplexität hinzufügen.
+    fangen also klein an und füllen nach und nach mehr aus.
 
-    > 📌 Im echten Projekt steht dieses Objekt in der Datei `src/TicTacToe.js`. Hier
-    > schreibst du es direkt in die Code-Felder. Klick auf **▶ Ausführen** (oder
-    > drück ⌘/Strg+Enter), damit dein Code läuft und sich das Spielfeld darunter
-    > aktualisiert.
+    > 📌 **Eine Datei für das ganze Tutorial.** Unten siehst du deine Datei
+    > `TicTacToe.js`. Sie enthält schon das Gerüst des Spiels mit `TODO`-Kommentaren —
+    > aber **noch keinen fertigen Code**. Du füllst sie über die nächsten Kapitel
+    > Schritt für Schritt selbst aus. Deine Änderungen bleiben gespeichert und wandern
+    > mit dir von Kapitel zu Kapitel. Klick auf **▶ Ausführen** (oder ⌘/Strg+Enter),
+    > damit dein Code läuft und sich das Spielfeld aktualisiert.
   </script>
 
   <script id="setup-md" type="text/markdown">
     ## Der Spielzustand `G` — die `setup`-Funktion
 
-    Zu Beginn füllen wir die `setup`-Funktion aus. Sie legt den **Anfangswert** des
-    Spielzustands `G` fest.
+    Die `setup`-Funktion legt den **Anfangswert** des Spielzustands `G` fest.
+    boardgame.io ruft sie zu Beginn eines Spiels für dich auf.
 
     Für Tic-Tac-Toe besteht `G` aus einem Array `cells` mit **9 Feldern**. Am Anfang
-    ist jedes Feld leer — das stellen wir mit `null` dar.
+    ist jedes Feld leer — das stellen wir mit `null` dar. `setup` soll also ein Objekt
+    der Form `{ cells: [...] }` zurückgeben, in dem `cells` **neun** `null`-Werte
+    enthält.
 
-    > 📌 **Info** — Die Syntax `setup: function setup() { ... }` sieht vielleicht neu
-    > aus, aber wir definieren hier nur eine **Funktion in einem Objekt**. Sie ist
-    > dann als `TicTacToe.setup()` verfügbar. Aufrufen müssen wir sie nicht selbst —
-    > boardgame.io macht das für uns.
-  </script>
+    > 📌 **Info** — Die Syntax `setup: function setup() { ... }` definiert eine
+    > **Funktion in einem Objekt**. Sie ist dann als `TicTacToe.setup()` verfügbar.
 
-  <script id="setup-editor" type="module">
-    const setupCode = view(codeEditor("bgio:setup", {
-      value: `export const TicTacToe = {
-  // Fülle die 9 Zellen mit \`null\`, um zu zeigen, dass sie leer sind.
-  // Das ist der Anfangszustand des Spiels.
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  }
-};`
-    }));
-  </script>
-
-  <script id="setup-board" type="module">
-    display(gameBoard(setupCode, {
-      showState: true,
-      hint: "Es gibt noch keinen Move — Klicken auf die Felder tut deshalb noch nichts. Schau dir aber den Spielzustand G darunter an: 9-mal null."
-    }));
+    👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `setup` unten aus.
   </script>
 
   <script id="moves-md" type="text/markdown">
-    ## Spielzüge — das `moves`-Objekt
+    ## Spielzüge — der `clickCell`-Move
 
-    Ein **Move** (Spielzug) ist eine Funktion, die eine Eingabe entgegennimmt (z. B.
-    das Feld, auf das ein Spieler geklickt hat) und `G` auf den gewünschten neuen
-    Zustand bringt. Moves repräsentieren das, was ein Spieler im Spiel **tun** kann.
+    Ein **Move** (Spielzug) ist eine Funktion, die beschreibt, was ein Spieler tun
+    kann. Bei Tic-Tac-Toe: auf ein Feld klicken und dort seine Markierung setzen. Alle
+    Moves stehen im `moves`-Objekt.
 
-    Bei Tic-Tac-Toe ist das einfach: Ein Spieler kann auf ein Feld klicken, um dort
-    seine Markierung zu setzen. Alle Moves sammeln wir im `moves`-Objekt, mit ihrem
-    Namen als Schlüssel. Fangen wir ganz simpel an — `clickCell` gibt erstmal nur
-    etwas auf der Konsole aus:
-  </script>
+    Move-Funktionen bekommen als **erstes Argument** ein Objekt (wir nennen es `move`)
+    mit nützlichen Feldern — vor allem `move.G` (der Spielzustand) und `move.playerID`
+    (die ID des ziehenden Spielers, `"0"` oder `"1"`). Das **zweite Argument** ist alles
+    Weitere, das wir brauchen — bei `clickCell` der `cellIndex`, also **welches** Feld
+    geklickt wurde.
 
-  <script id="moves1-editor" type="module">
-    const moves1Code = view(codeEditor("bgio:moves1", {
-      value: `export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: () => {
-      console.log("Ein clickCell-Spielzug wurde ausgeführt!")
-    },
-  },
-};`
-    }));
-  </script>
-
-  <script id="moves1-board" type="module">
-    display(gameBoard(moves1Code, {
-      showState: true,
-      hint: "Klick auf ein Feld. Der Move läuft (siehe Konsole), aber er verändert G noch nicht — das Feld bleibt leer."
-    }));
-  </script>
-
-  <script id="moves2-md" type="text/markdown">
-    ### Eingaben an einen Move
-
-    Move-Funktionen bekommen als **erstes Argument** ein Objekt mit nützlichen
-    Feldern — vor allem `G` (der Spielzustand) und `playerID` (die ID des Spielers,
-    der den Zug macht, bei uns `0` oder `1`).
-
-    Das **zweite Argument** ist alles, was wir sonst noch brauchen, um den Zug
-    auszuführen. Bei `clickCell` müssen wir wissen, in **welches Feld** der Spieler
-    klicken will — also fügen wir ein zweites Argument `cellIndex` hinzu:
-  </script>
-
-  <script id="moves2-editor" type="module">
-    const moves2Code = view(codeEditor("bgio:moves2", {
-      value: `export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      console.log("Spieler Nummer " + move.playerID + " moechte seine Markierung in Zelle " + cellIndex + " setzen")
-    },
-  },
-};`
-    }));
-  </script>
-
-  <script id="moves2-board" type="module">
-    display(gameBoard(moves2Code, {
-      showState: true,
-      hint: "Klick auf verschiedene Felder und beobachte die Konsole — der cellIndex ist die Nummer des Feldes (0 oben links bis 8 unten rechts)."
-    }));
-  </script>
-
-  <script id="moves3-md" type="text/markdown">
-    ### `G` verändern
-
-    Jetzt der entscheidende Schritt: Statt nur etwas auszugeben, **aktualisieren** wir
-    `G`. Wir schreiben einfach die `playerID` in das angeklickte Feld:
+    Um den Zustand zu ändern, schreiben wir die `playerID` an die passende Stelle im
+    `cells`-Array:
 
     ```js
     move.G.cells[cellIndex] = move.playerID;
     ```
 
-    `move.G.cells` ist das Array aus der `setup`-Funktion. Indem wir an der Stelle
-    `cellIndex` die `playerID` eintragen, merken wir uns, welcher Spieler dort seine
-    Markierung gesetzt hat.
+    > 💡 Du kannst zum Ausprobieren auch erstmal nur etwas ausgeben, z. B.
+    > `console.log("Klick auf Feld " + cellIndex)`. Die Ausgabe erscheint unter dem
+    > Spielfeld. Für die Übung brauchst du dann aber die Zeile oben, die `G` verändert.
+
+    👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 1` in `clickCell` aus.
   </script>
 
-  <script id="moves3-editor" type="module">
-    const moves3Code = view(codeEditor("bgio:moves3", {
-      value: `export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      // cells ist das Array aus setup. Wir tragen an der Stelle cellIndex die
-      // playerID ein, um zu zeigen, wer dort seine Markierung gesetzt hat.
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-};`
+  <script id="game-editor" type="module">
+    const gameCode = view(codeEditor("bgio:game", {
+      value: TICTACTOE_SKELETON,
+      label: "Deine Datei: TicTacToe.js"
     }));
   </script>
 
-  <script id="moves3-board" type="module">
-    display(gameBoard(moves3Code, {
+  <script id="game-board" type="module">
+    display(gameBoard(gameCode, {
       showDebug: true,
       showState: true,
-      hint: "Jetzt verändert dein Klick das Spielfeld! Alle Markierungen sind ✕ (Spieler 0), weil der Zug nie an Spieler 1 übergeben wird. Klick im Debug Panel auf endTurn, um zu Spieler ◯ (1) zu wechseln — genau wie im echten Debug Panel von boardgame.io."
+      hint: "Sobald setup und clickCell stimmen, kannst du auf die Felder klicken. Alle Markierungen sind ✕ (Spieler 0), bis du im Debug Panel auf endTurn klickst — denn das automatische Wechseln bauen wir erst in Kapitel 2."
     }));
   </script>
 
-  <script id="recap-md" type="text/markdown">
-    ### Das echte Debug Panel
+  <script id="debug-md" type="text/markdown">
+    ### Das Debug Panel
 
-    Im echten Projekt (auf `localhost:3000`) bekommst du neben dem Spielfeld ein
-    **Debug Panel** von boardgame.io. Dort kannst du Moves von Hand auslösen: `clickCell`
-    anklicken, eine Zahl zwischen `0` und `8` eingeben, **Enter** drücken — und mit
-    `endTurn` den Zug an den nächsten Spieler übergeben.
-
-    Genau das macht das kleine **Debug Panel** über dem Spielfeld oben nach. Probier es
-    aus: Tipp eine Feld-Nummer ein, klick `clickCell(…)`, dann `endTurn`.
-
-    > 💡 Du kannst das Debug Panel im echten Projekt mit `debug: false` in der
-    > `Client`-Konfiguration ausschalten.
+    Im echten Projekt (auf `localhost:3000`) liefert boardgame.io neben dem Spielfeld
+    ein **Debug Panel**, mit dem man Moves von Hand auslöst. Das kleine Debug Panel
+    über dem Spielfeld macht genau das nach: Feld-Nummer eintippen, `clickCell(…)`
+    klicken, und mit `endTurn` den Zug an den nächsten Spieler übergeben.
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -194,55 +103,28 @@
 
     ## Übung 🎯
 
-    Jetzt du. Vervollständige das `TicTacToe`-Objekt selbst, **ohne** zu spicken:
+    Wenn du beide `TODO Kapitel 1` ausgefüllt hast, prüft die Auswertung automatisch:
 
-    1. `setup` soll `{ cells: [...] }` mit **9-mal `null`** zurückgeben.
-    2. Der Move `clickCell` soll an der Stelle `cellIndex` die `playerID` des
-       ziehenden Spielers in `cells` eintragen.
-
-    Wenn alles stimmt, kannst du im Spielfeld darunter klicken und siehst deine
-    Markierung — und die Auswertung zeigt ✅.
-  </script>
-
-  <script id="uebung-editor" type="module">
-    const uebungCode = view(codeEditor("bgio:ch1_final", {
-      value: `export const TicTacToe = {
-  setup: function setup() {
-    // gib { cells: [...] } mit 9-mal null zurueck
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      // trage move.playerID an der Stelle cellIndex in move.G.cells ein
-    },
-  },
-};`
-    }));
-  </script>
-
-  <script id="uebung-board" type="module">
-    display(gameBoard(uebungCode, { showState: true }));
+    1. `setup` gibt `{ cells: [...] }` mit **9-mal `null`** zurück.
+    2. `clickCell` trägt die `playerID` an der Stelle `cellIndex` ein.
   </script>
 
   <script id="uebung-feedback" type="module">
     {
       let feedback;
       try {
-        const game = loadGame(uebungCode);
-        const engine = createEngine(game);
-        const cells = engine.G && engine.G.cells;
+        const client = makeClient(loadGame(gameCode));
+        const st = client.getState();
+        const cells = st && st.G && st.G.cells;
         const setupOk = Array.isArray(cells) && cells.length === 9 && cells.every(c => c === null);
 
         if (!setupOk) {
           feedback = err(html`<code>setup</code> sollte <code>{ cells: [...] }</code> mit genau 9-mal <code>null</code> zurückgeben.`);
         } else {
-          const res = engine.makeMove("clickCell", 4);
-          if (res.reason === "unknown")
-            feedback = err(html`Es gibt noch keinen <code>clickCell</code>-Move im <code>moves</code>-Objekt.`);
-          else if (res.reason === "error")
-            feedback = err(html`Fehler im Move: ${res.message}`);
-          else if (engine.G.cells[4] !== 0)
-            feedback = err(html`Nach <code>clickCell(4)</code> von Spieler 0 sollte <code>cells[4]</code> den Wert <code>0</code> haben — trag <code>move.playerID</code> an der Stelle <code>cellIndex</code> ein.`);
+          client.moves.clickCell(4);
+          const after = client.getState().G.cells;
+          if (after[4] !== "0")
+            feedback = err(html`Nach <code>clickCell(4)</code> von Spieler 0 sollte <code>cells[4]</code> den Wert <code>"0"</code> haben — trag <code>move.playerID</code> an der Stelle <code>cellIndex</code> ein.`);
           else
             feedback = ok(html`🎉 Geschafft! <code>setup</code> und <code>clickCell</code> funktionieren. Probier dein Spielfeld oben aus.`);
         }
@@ -262,11 +144,11 @@
 
     - Ein Spiel ist ein **Objekt** mit Feldern wie `setup` und `moves`.
     - **`setup`** legt den Anfangszustand `G` fest (bei uns: 9 leere `cells`).
-    - Ein **Move** ist eine Funktion, die `G` verändert. `clickCell` bekommt das
-      `move`-Objekt (mit `G` und `playerID`) und einen `cellIndex`.
+    - Ein **Move** wie `clickCell` verändert `G` — er bekommt das `move`-Objekt (mit
+      `G` und `playerID`) und einen `cellIndex`.
 
-    Im Moment kann man allerdings noch in belegte Felder klicken und der Zug wird nie
-    an den nächsten Spieler übergeben. Das ändern wir als Nächstes.
+    Aber: Man kann noch in belegte Felder klicken, und der Spieler wechselt nicht
+    automatisch. Das beheben wir als Nächstes — **in derselben Datei**.
 
     **[2. Spielverbesserungen →](./bg_2_improvements)**
 

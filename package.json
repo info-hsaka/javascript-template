@@ -16,5 +16,8 @@
         "codemirror": "^6.0.2",
         "lz-string": "^1.5.0",
         "prettier": "^3.2.5"
+    },
+    "dependencies": {
+        "boardgame.io": "^0.50.2"
     }
 }

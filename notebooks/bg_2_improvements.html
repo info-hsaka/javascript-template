@@ -8,7 +8,7 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
-    import { createGameUI, createEngine, loadGame } from "./lib/bgio.js";
+    import { createGameUI, loadGame, makeClient, TICTACTOE_SKELETON } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
@@ -18,79 +18,45 @@
   <script id="intro" type="text/markdown">
     # 2. Spielverbesserungen 🛠️
 
-    Unser Spiel funktioniert schon — aber es hat zwei Macken:
+    Wir arbeiten in **derselben Datei** weiter wie in Kapitel 1. Unser Spiel hat noch
+    zwei Macken, die wir jetzt beheben:
 
     1. Man kann in ein **bereits belegtes Feld** klicken und es überschreiben.
     2. Der Zug wird **nie automatisch** an den nächsten Spieler übergeben.
-
-    Beides bringen wir jetzt in Ordnung.
   </script>
 
   <script id="invalid-md" type="text/markdown">
     ## Spielzüge validieren — `INVALID_MOVE`
 
-    Bisher überschreibt `clickCell` eine bereits ausgefüllte Zelle. Verhindern wir
-    das: Wenn das gewählte Feld nicht `null` ist, soll der Zug als **ungültig**
-    gelten.
+    Ein Move kann dem Framework mitteilen, dass er **ungültig** ist, indem er die
+    spezielle Konstante `INVALID_MOVE` **zurückgibt**. boardgame.io verwirft den Zug
+    dann komplett — `G` bleibt unverändert.
 
-    Ein Move teilt dem Framework mit, dass er ungültig ist, indem er eine spezielle
-    Konstante `INVALID_MOVE` **zurückgibt**. Im echten Projekt importierst du sie oben
-    in der Datei:
+    `INVALID_MOVE` kommt aus boardgame.io und wird oben in der Datei importiert (die
+    `import`-Zeile steht in deiner Datei schon ganz oben):
 
     ```js
     import { INVALID_MOVE } from 'boardgame.io/core';
     ```
 
-    > 📌 **Info** — In diesem Notebook ist `INVALID_MOVE` bereits für dich verfügbar.
-    > Die `import`-Zeile darfst du trotzdem stehen lassen — sie wird hier einfach
-    > ignoriert, damit dein Code genauso aussieht wie im echten Projekt.
+    Für `clickCell` heißt das: **Bevor** wir die Markierung setzen, prüfen wir, ob das
+    Feld schon belegt ist (also nicht `null`). Wenn ja, geben wir `INVALID_MOVE` zurück
+    und setzen **nichts**.
 
-    Wenn ein Move `INVALID_MOVE` zurückgibt, verwirft boardgame.io den Zug komplett —
-    `G` bleibt unverändert. Wir prüfen also **zuerst**, ob das Feld frei ist:
-  </script>
-
-  <script id="invalid-editor" type="module">
-    const invalidCode = view(codeEditor("bgio:invalid", {
-      value: `import { INVALID_MOVE } from 'boardgame.io/core';
-
-export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      // Ist das Feld schon belegt? Dann ist der Zug ungueltig.
-      if (move.G.cells[cellIndex] !== null) {
-        return INVALID_MOVE;
-      }
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-};`
-    }));
-  </script>
-
-  <script id="invalid-board" type="module">
-    display(gameBoard(invalidCode, {
-      showDebug: true,
-      showState: true,
-      hint: "Versuch, zweimal auf dasselbe Feld zu klicken — der zweite Klick wird jetzt abgelehnt. (Mit endTurn im Debug Panel kannst du den Spieler wechseln.)"
-    }));
+    👉 **Deine Aufgabe:** Ergänze das `TODO Kapitel 2` in `clickCell` — gib
+    `INVALID_MOVE` zurück, wenn `move.G.cells[cellIndex]` nicht `null` ist.
   </script>
 
   <script id="turn-md" type="text/markdown">
     ## Züge verwalten — das `turn`-Objekt
 
-    Bisher mussten wir im Debug Panel von Hand auf `endTurn` klicken, um den Zug an
-    den nächsten Spieler zu übergeben. In Tic-Tac-Toe wissen wir aber: Der Zug
-    **sollte immer enden**, sobald ein Spielzug gemacht wurde.
+    Bisher mussten wir im Debug Panel von Hand auf `endTurn` klicken. In Tic-Tac-Toe
+    soll der Zug aber **immer** enden, sobald ein Move gemacht wurde. Dafür gibt es das
+    `turn`-Objekt:
 
-    boardgame.io bietet dafür das `turn`-Objekt mit zwei nützlichen Optionen:
-
-    - **`maxMoves: 1`** — der Zug eines Spielers endet automatisch nach **einem** Move.
-    - **`minMoves: 1`** — ein Spieler **muss** mindestens einen Move machen und kann
-      nicht einfach `endTurn` aufrufen.
+    - **`maxMoves: 1`** — der Zug endet automatisch nach **einem** Move.
+    - **`minMoves: 1`** — ein Spieler **muss** einen Move machen (kann nicht einfach
+      `endTurn` aufrufen).
 
     ```js
     turn: {
@@ -99,47 +65,23 @@ export const TicTacToe = {
     },
     ```
 
-    Probier's aus: Jetzt wechselt nach jedem Klick automatisch der Spieler — ✕ und ◯
-    im Wechsel:
+    👉 **Deine Aufgabe:** Ersetze das `TODO Kapitel 2` (zwischen `moves` und `endIf`)
+    durch ein solches `turn`-Objekt. **Achte auf das Komma** hinter `},`.
   </script>
 
-  <script id="turn-editor" type="module">
-    const turnCode = view(codeEditor("bgio:turn", {
-      value: `import { INVALID_MOVE } from 'boardgame.io/core';
-
-export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      if (move.G.cells[cellIndex] !== null) {
-        return INVALID_MOVE;
-      }
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-
-  turn: {
-    minMoves: 1,
-    maxMoves: 1,
-  },
-};`
+  <script id="game-editor" type="module">
+    const gameCode = view(codeEditor("bgio:game", {
+      value: TICTACTOE_SKELETON,
+      label: "Deine Datei: TicTacToe.js"
     }));
   </script>
 
-  <script id="turn-board" type="module">
-    display(gameBoard(turnCode, {
+  <script id="game-board" type="module">
+    display(gameBoard(gameCode, {
       showDebug: true,
       showState: true,
-      hint: "Klick auf verschiedene Felder: Es wechselt automatisch zwischen Spieler ✕ (0) und ◯ (1). Im Debug Panel scheitert endTurn jetzt, solange du noch keinen Zug gemacht hast (minMoves)."
+      hint: "Versuch, zweimal auf dasselbe Feld zu klicken — der zweite Klick wird abgelehnt. Und nach jedem gültigen Klick wechselt automatisch der Spieler (✕ ↔ ◯)."
     }));
-  </script>
-
-  <script id="turn-note-md" type="text/markdown">
-    > 💡 Es gibt noch viele weitere Möglichkeiten, Züge zu steuern (Zugreihenfolge,
-    > Phasen, Ereignisse). Für Tic-Tac-Toe reichen uns `minMoves` und `maxMoves`.
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -147,64 +89,34 @@ export const TicTacToe = {
 
     ## Übung 🎯
 
-    Bau die beiden Verbesserungen selbst ein. Starte vom Stand aus Kapitel 1 und
-    ergänze:
+    Die Auswertung prüft beide Verbesserungen:
 
-    1. `clickCell` soll **`INVALID_MOVE` zurückgeben**, wenn das Feld schon belegt ist
-       (also nicht `null`).
-    2. Füge ein `turn`-Objekt mit **`minMoves: 1`** und **`maxMoves: 1`** hinzu.
-
-    Die Auswertung prüft beides automatisch.
-  </script>
-
-  <script id="uebung-editor" type="module">
-    const uebungCode = view(codeEditor("bgio:ch2_final", {
-      value: `import { INVALID_MOVE } from 'boardgame.io/core';
-
-export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      // 1. gib INVALID_MOVE zurueck, wenn das Feld schon belegt ist
-
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-
-  // 2. fuege hier ein turn-Objekt mit minMoves und maxMoves hinzu
-};`
-    }));
-  </script>
-
-  <script id="uebung-board" type="module">
-    display(gameBoard(uebungCode, { showDebug: true, showState: true }));
+    1. Ein Klick auf ein **belegtes** Feld wird abgelehnt (`INVALID_MOVE`).
+    2. Nach einem Zug ist **automatisch der nächste Spieler** dran (`turn`).
   </script>
 
   <script id="uebung-feedback" type="module">
     {
       let feedback;
       try {
-        const game = loadGame(uebungCode);
-        const engine = createEngine(game);
+        const game = loadGame(gameCode);
 
-        // 1. invalid move check: occupy cell 0, then try to overwrite it
-        engine.makeMove("clickCell", 0);
-        const beforeOwner = engine.G.cells[0];
-        const overwrite = engine.makeMove("clickCell", 0);
-        const rejectsOccupied = overwrite.reason === "invalid" && engine.G.cells[0] === beforeOwner;
+        // 1. invalid move: occupy cell 0, then try to overwrite it
+        const c1 = makeClient(game);
+        if (!(c1.getState() && c1.getState().G && Array.isArray(c1.getState().G.cells)))
+          throw new Error("setup gibt noch kein { cells: [...] } zurück (siehe Kapitel 1).");
+        c1.moves.clickCell(0);
+        const owner = c1.getState().G.cells[0];
+        c1.moves.clickCell(0);
+        const rejectsOccupied = c1.getState().G.cells[0] === owner && owner !== null;
 
-        // 2. turn handling: after one move the player should have switched.
-        const fresh = createEngine(loadGame(uebungCode));
-        const p0 = fresh.ctx.currentPlayer;
-        fresh.makeMove("clickCell", 4);
-        const switched = fresh.ctx.currentPlayer !== p0;
+        // 2. turn handling: after one move the current player should change
+        const c2 = makeClient(game);
+        const p0 = c2.getState().ctx.currentPlayer;
+        c2.moves.clickCell(4);
+        const switched = c2.getState().ctx.currentPlayer !== p0;
 
-        if (!(game.moves && game.moves.clickCell))
-          feedback = err(html`Es fehlt der <code>clickCell</code>-Move.`);
-        else if (!rejectsOccupied)
+        if (!rejectsOccupied)
           feedback = err(html`Ein Klick auf ein belegtes Feld sollte abgelehnt werden — gib <code>INVALID_MOVE</code> zurück, wenn <code>move.G.cells[cellIndex] !== null</code>.`);
         else if (!switched)
           feedback = err(html`Nach einem Zug sollte automatisch der nächste Spieler dran sein — füg <code>turn: { minMoves: 1, maxMoves: 1 }</code> hinzu.`);
@@ -222,15 +134,14 @@ export const TicTacToe = {
 
     ## Geschafft! 🚀
 
-    Du hast in diesem Kapitel gelernt:
+    Neu in diesem Kapitel:
 
-    - **`INVALID_MOVE`** — ein Move gibt diese Konstante zurück, um sich selbst für
-      ungültig zu erklären; `G` bleibt dann unverändert.
-    - **`turn: { minMoves, maxMoves }`** — steuert, wie viele Moves ein Spieler pro Zug
-      machen muss bzw. darf, und beendet den Zug automatisch.
+    - **`INVALID_MOVE`** — ein Move erklärt sich selbst für ungültig; `G` bleibt
+      unverändert.
+    - **`turn: { minMoves, maxMoves }`** — steuert die Züge und beendet sie automatisch.
 
-    Unser Spiel hat aber noch ein Problem: Es **endet nie**. Selbst wenn jemand drei in
-    einer Reihe hat, läuft es weiter. Das beheben wir als Nächstes.
+    Trotzdem **endet** unser Spiel noch nie — selbst bei drei in einer Reihe läuft es
+    weiter. Das ist das nächste (und kniffligste) Kapitel.
 
     **[3. Siegbedingung →](./bg_3_victory)**
 

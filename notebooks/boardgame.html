@@ -35,19 +35,23 @@
     klonen, mit `npm i` jede Menge Programme installieren und einen Entwicklungsserver
     auf `http://localhost:3000` starten, um dein Spiel zu sehen.
 
-    **Das brauchst du hier nicht.** Der Trick: Die eigentliche Spiel-*Logik* von
-    boardgame.io — wie das Spiel aufgesetzt wird (`setup`), welche Züge es gibt
-    (`moves`), wann es vorbei ist (`endIf`) und wie ein Bot spielt (`ai`) — ist ganz
-    normales **JavaScript**. Dafür braucht es weder React noch einen Server.
+    **Das brauchst du hier nicht.** Es läuft das **echte boardgame.io** direkt im
+    Browser — dieselbe Bibliothek wie im echten Projekt, nur ohne Server und ohne
+    Installation. Du schreibst genau denselben Code, und statt `localhost:3000`
+    erscheint hier direkt ein **klickbares Spielfeld**, auf dem dein Code läuft.
 
-    Wir haben deshalb eine kleine boardgame.io-Engine direkt in dieses Notebook
-    eingebaut. Du schreibst genau denselben Code wie im echten Projekt, und statt
-    `localhost:3000` erscheint hier direkt ein **klickbares Spielfeld**, das deinen
-    Code ausführt.
+    > 📌 **Info** — Das Einzige, was wir dir abnehmen, ist das **Zeichnen** des
+    > Spielfelds (das macht man im echten Projekt z. B. mit React). Die **Spiellogik**,
+    > um die es in diesem Tutorial geht, schreibst du komplett selbst — und sie ist
+    > exakt dieselbe wie im echten Projekt.
 
-    > 📌 **Info** — Im echten Projekt verteilst du diesen Code auf mehrere Dateien
-    > (z. B. `src/TicTacToe.js`) und zeichnest das Spielfeld selbst mit React. Die
-    > **Spiellogik**, um die es in diesem Tutorial geht, ist exakt dieselbe.
+    ### Eine Datei, Kapitel für Kapitel 📄
+
+    Du arbeitest das ganze Tutorial über an **einer einzigen Datei** `TicTacToe.js`.
+    Sie startet als Gerüst mit `TODO`-Kommentaren, und in jedem Kapitel füllst du den
+    nächsten Teil **selbst** aus. Deine Datei wird automatisch gespeichert und wandert
+    mit dir von Kapitel zu Kapitel — am Ende hast du das vollständige Spiel selbst
+    geschrieben.
   </script>
 
   <script id="toc-md" type="text/markdown">

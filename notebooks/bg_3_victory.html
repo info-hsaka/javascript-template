@@ -8,7 +8,7 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner, runTestCasesWithTimeout } from "./lib/helpers.js";
-    import { createGameUI, createEngine, loadGame } from "./lib/bgio.js";
+    import { createGameUI, loadGame, makeClient, stripModuleSyntax, TICTACTOE_SKELETON } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint, testReport } = createUI({ html });
@@ -18,49 +18,51 @@
   <script id="intro" type="text/markdown">
     # 3. Siegbedingung 🏆
 
-    Unser Tic-Tac-Toe endet bisher **nie** — selbst wenn jemand drei in einer Reihe
-    hat, läuft das Spiel weiter. Das ändern wir jetzt.
+    Weiter in **derselben Datei**. Unser Tic-Tac-Toe endet bisher **nie** — selbst bei
+    drei in einer Reihe läuft es weiter. Das ändern wir jetzt.
 
-    Dafür müssen wir zwei Dinge herausfinden:
+    Dafür brauchen wir zwei **Hilfsfunktionen** (sie stehen schon als Gerüst ganz oben
+    in deiner Datei):
 
-    1. Ist das Spiel **unentschieden** (alle Felder voll, kein Gewinner)?
-    2. Hat ein Spieler **gewonnen** — und wenn ja, welcher?
+    1. `isDraw(cells)` — ist das Spiel unentschieden (alle Felder voll)?
+    2. `isVictory(cells)` — hat jemand gewonnen, und wenn ja, wer?
 
-    Für beides schreiben wir je eine **Hilfsfunktion**. Hilfsfunktionen sind ganz
-    normale Funktionen neben dem `TicTacToe`-Objekt in derselben Datei.
+    Diese beiden testen wir gleich einzeln, bevor wir sie ins Spiel einbauen.
+  </script>
+
+  <script id="editor-md" type="text/markdown">
+    Hier ist wie immer deine Datei. Wir füllen jetzt die `TODO Kapitel 3` aus —
+    erst `isDraw`, dann `isVictory`, dann `endIf`. Die Test-Boxen darunter prüfen
+    `isDraw` und `isVictory` automatisch, sobald du **▶ Ausführen** drückst.
+  </script>
+
+  <script id="game-editor" type="module">
+    const gameCode = view(codeEditor("bgio:game", {
+      value: TICTACTOE_SKELETON,
+      label: "Deine Datei: TicTacToe.js"
+    }));
   </script>
 
   <script id="isdraw-md" type="text/markdown">
     ## `isDraw` — ist das Spiel unentschieden?
 
-    Tic-Tac-Toe endet oft unentschieden. Schreib eine Funktion `isDraw(cells)`, die
-    `true` zurückgibt, wenn **alle** Zellen gefüllt sind (also keine mehr `null`),
-    und sonst `false`.
+    Schreib `isDraw(cells)` so, dass es `true` zurückgibt, wenn **alle** Zellen belegt
+    sind (also keine mehr `null` ist), und sonst `false`.
 
-    > 💡 Eine leere Zelle ist `null`. Du musst also nur prüfen, ob es **keine** `null`
-    > mehr im Array gibt. Ein `for`-Loop über `cells` oder eine passende Array-Methode
-    > hilft dir.
-  </script>
-
-  <script id="isdraw-editor" type="module">
-    const isDrawCode = view(codeEditor("bgio:isDraw", {
-      value: `function isDraw(cells) {
-  // Gib true zurueck, wenn alle Zellen gefuellt sind (keine ist null),
-  // sonst false.
-}`
-    }));
+    > 💡 Du musst nur prüfen, ob es **keine** `null` mehr im Array gibt. Ein `for`-Loop
+    > über `cells` oder eine passende Array-Methode hilft.
   </script>
 
   <script id="isdraw-eval" type="module">
     const isDrawResult = runTestCasesWithTimeout({
-      code: isDrawCode,
+      code: stripModuleSyntax(gameCode),
       fnName: "isDraw",
       cases: [
-        [[[0, 1, 0, 1, 0, 1, 0, 1, 0]], true],
-        [[[null, 1, 0, 1, 0, 1, 0, 1, 0]], false],
-        [[[0, 1, 0, 1, 0, 1, 0, 1, null]], false],
+        [[["0", "1", "0", "1", "0", "1", "0", "1", "0"]], true],
+        [[[null, "1", "0", "1", "0", "1", "0", "1", "0"]], false],
+        [[["0", "1", "0", "1", "0", "1", "0", "1", null]], false],
         [[[null, null, null, null, null, null, null, null, null]], false],
-        [[[1, 1, 1, 0, 0, 0, 1, 0, 1]], true]
+        [[["1", "1", "1", "0", "0", "0", "1", "0", "1"]], true]
       ]
     });
   </script>
@@ -72,14 +74,11 @@
   <script id="isvictory-md" type="text/markdown">
     ## `isVictory` — hat jemand gewonnen?
 
-    In Tic-Tac-Toe gewinnt ein Spieler, wenn er **drei seiner Markierungen in einer
-    Reihe** hat — horizontal, vertikal oder diagonal.
+    Ein Spieler gewinnt mit **drei gleichen Markierungen in einer Reihe** — horizontal,
+    vertikal oder diagonal. Schreib `isVictory(cells)` so, dass es die Markierung des
+    Gewinners (`"0"` oder `"1"`) zurückgibt, falls es einen gibt, und sonst `null`.
 
-    Schreib eine Funktion `isVictory(cells)`, die die `playerID` des Gewinners
-    zurückgibt (`0` oder `1`), falls es einen gibt, und sonst `null`.
-
-    Stell dir die 9 Felder so angeordnet vor — die Zahl ist jeweils der Index im
-    Array:
+    Stell dir die 9 Felder so vor — die Zahl ist der Index im Array:
 
     ```
     0 | 1 | 2
@@ -89,34 +88,26 @@
     6 | 7 | 8
     ```
 
-    > 💡 Es gibt genau **8 Gewinn-Linien**: 3 Zeilen, 3 Spalten und 2 Diagonalen. Für
-    > jede Linie prüfst du: Sind alle drei Felder belegt **und** gleich? Dann ist der
-    > Wert dieser Felder die `playerID` des Gewinners.
+    > 💡 Es gibt genau **8 Gewinn-Linien**: 3 Zeilen, 3 Spalten, 2 Diagonalen. Leg dir
+    > am besten eine Liste dieser Linien an (z. B. `[0,1,2]`, `[3,4,5]`, …, `[2,4,6]`)
+    > und prüfe für jede: Sind die drei Felder gleich **und** nicht `null`? Dann ist
+    > ihr Wert die Markierung des Gewinners.
 
-    > ⚠️ Achtung: Drei leere Felder (`null, null, null`) sind **kein** Sieg! Prüf
-    > immer zusätzlich, dass das erste Feld der Linie nicht `null` ist.
-  </script>
-
-  <script id="isvictory-editor" type="module">
-    const isVictoryCode = view(codeEditor("bgio:isVictory", {
-      value: `function isVictory(cells) {
-  // Pruefe jede der 8 Gewinn-Linien (3 Zeilen, 3 Spalten, 2 Diagonalen).
-  // Gib die playerID (0 oder 1) des Gewinners zurueck, falls es einen gibt.
-  // Sonst gib null zurueck.
-}`
-    }));
+    > ⚠️ **Achtung:** Vergleiche die Felder **miteinander** (nicht mit einer festen
+    > Zahl) und prüf zusätzlich, dass das Feld nicht `null` ist — drei leere Felder
+    > sind **kein** Sieg!
   </script>
 
   <script id="isvictory-eval" type="module">
     const isVictoryResult = runTestCasesWithTimeout({
-      code: isVictoryCode,
+      code: stripModuleSyntax(gameCode),
       fnName: "isVictory",
       cases: [
-        [[[0, 0, 0, null, 1, 1, null, null, null]], 0],
-        [[[1, 0, null, 1, 0, null, 1, null, null]], 1],
-        [[[0, 1, null, 1, 0, null, null, null, 0]], 0],
-        [[[0, 0, 1, null, 1, null, 1, null, null]], 1],
-        [[[0, 1, 0, 1, 0, 1, 1, 0, 1]], null],
+        [[["0", "0", "0", null, "1", "1", null, null, null]], "0"],
+        [[["1", "0", null, "1", "0", null, "1", null, null]], "1"],
+        [[["0", "1", null, "1", "0", null, null, null, "0"]], "0"],
+        [[["0", "0", "1", null, "1", null, "1", null, null]], "1"],
+        [[["0", "1", "0", "1", "0", "1", "1", "0", "1"]], null],
         [[[null, null, null, null, null, null, null, null, null]], null]
       ]
     });
@@ -129,9 +120,8 @@
   <script id="endif-md" type="text/markdown">
     ## `endIf` — das Spiel beenden
 
-    Jetzt haben wir die beiden Hilfsfunktionen. Wir hängen unserem Spiel eine
-    **`endIf`-Methode** an. boardgame.io ruft sie nach **jeder** Zustandsänderung auf,
-    um zu prüfen, ob das Spiel vorbei ist.
+    Jetzt verdrahten wir die beiden Funktionen. boardgame.io ruft `endIf` nach
+    **jeder** Zustandsänderung auf, um zu prüfen, ob das Spiel vorbei ist.
 
     ```js
     endIf: function endIf(endIf) {
@@ -145,11 +135,20 @@
     },
     ```
 
-    > 📌 **Info** — `endIf` bekommt (wie ein Move) ein Objekt mit `G`. Wenn die
-    > Funktion **irgendetwas** zurückgibt, endet das Spiel, und der Rückgabewert steht
-    > danach unter `ctx.gameover`. Gibt sie `undefined` zurück (gar kein `return`),
-    > läuft das Spiel weiter. Damit später der Bot funktioniert, sollte der Gewinner
-    > als Objekt mit `winner`-Schlüssel zurückgegeben werden.
+    > 📌 **Info** — `endIf` bekommt (wie ein Move) ein Objekt mit `G`. Gibt die Funktion
+    > **irgendetwas** zurück, ist das Spiel vorbei und der Rückgabewert steht unter
+    > `ctx.gameover`. Gibt sie nichts zurück, läuft das Spiel weiter. Damit später der
+    > Bot funktioniert, sollte der Gewinner als `{ winner: ... }` zurückkommen.
+
+    👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 3` in `endIf` aus (nutze deine beiden
+    Funktionen). Danach ist dein Spielfeld **vollständig spielbar**:
+  </script>
+
+  <script id="game-board" type="module">
+    display(gameBoard(gameCode, {
+      showState: true,
+      hint: "Spiel ein paar Runden: Gewinne mit drei in einer Reihe oder füll das ganze Feld für ein Unentschieden — das Spiel sollte jetzt enden."
+    }));
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -157,75 +156,27 @@
 
     ## Übung 🎯 — Das vollständige Spiel
 
-    Bring jetzt alles zusammen. Unten ist das **komplette** `TicTacToe`-Spiel mit
-    `setup`, `moves` und `turn` aus den letzten Kapiteln. Fülle die drei noch fehlenden
-    Teile aus:
-
-    1. **`isDraw(cells)`** — `true`, wenn alle Felder voll sind.
-    2. **`isVictory(cells)`** — `playerID` des Gewinners oder `null`.
-    3. **`endIf`** — nutzt die beiden Funktionen (siehe oben) und gibt `{ winner }`
-       bzw. `{ draw: true }` zurück.
-
-    Sobald es stimmt, ist das Spielfeld darunter **vollständig spielbar** und endet mit
-    Sieg oder Unentschieden!
-  </script>
-
-  <script id="uebung-editor" type="module">
-    const finalCode = view(codeEditor("bgio:ch3_final", {
-      value: `import { INVALID_MOVE } from 'boardgame.io/core';
-
-function isDraw(cells) {
-  // 1. true, wenn keine Zelle mehr null ist
-}
-
-function isVictory(cells) {
-  // 2. playerID des Gewinners (0 oder 1) oder null
-}
-
-export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      if (move.G.cells[cellIndex] !== null) {
-        return INVALID_MOVE;
-      }
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-
-  turn: {
-    minMoves: 1,
-    maxMoves: 1,
-  },
-
-  endIf: function endIf(endIf) {
-    // 3. nutze isVictory und isDraw (siehe Erklaerung oben)
-  },
-};`
-    }));
-  </script>
-
-  <script id="uebung-board" type="module">
-    display(gameBoard(finalCode, { showState: true,
-      hint: "Spiel ein paar Runden durch — gewinne in einer Reihe oder füll das ganze Feld für ein Unentschieden." }));
+    Die Auswertung spielt zwei komplette Partien gegen dein Spiel: eine mit Gewinner
+    und eine, die unentschieden endet.
   </script>
 
   <script id="uebung-feedback" type="module">
     {
       let feedback;
       try {
-        // Win: player 0 takes the top row (0,1,2), player 1 plays elsewhere.
-        const winEngine = createEngine(loadGame(finalCode));
-        for (const i of [0, 3, 1, 4, 2]) winEngine.makeMove("clickCell", i);
-        const wonByZero = winEngine.ctx.gameover && winEngine.ctx.gameover.winner === 0;
+        const game = loadGame(gameCode);
 
-        // Draw: fill the whole board with no three-in-a-row.
-        const drawEngine = createEngine(loadGame(finalCode));
-        for (const i of [0, 1, 2, 4, 3, 5, 7, 6, 8]) drawEngine.makeMove("clickCell", i);
-        const drew = drawEngine.ctx.gameover && drawEngine.ctx.gameover.draw === true;
+        const winClient = makeClient(game);
+        if (!(winClient.getState() && winClient.getState().G && Array.isArray(winClient.getState().G.cells)))
+          throw new Error("setup gibt noch kein { cells: [...] } zurück (Kapitel 1).");
+        for (const i of [0, 3, 1, 4, 2]) winClient.moves.clickCell(i);
+        const go1 = winClient.getState().ctx.gameover;
+        const wonByZero = go1 && go1.winner === "0";
+
+        const drawClient = makeClient(game);
+        for (const i of [0, 1, 2, 4, 3, 5, 7, 6, 8]) drawClient.moves.clickCell(i);
+        const go2 = drawClient.getState().ctx.gameover;
+        const drew = go2 && go2.draw === true;
 
         if (!wonByZero)
           feedback = err(html`Drei in einer Reihe sollten das Spiel beenden — prüf <code>isVictory</code> und ob <code>endIf</code> <code>{ winner: ... }</code> zurückgibt.`);
@@ -245,14 +196,14 @@ export const TicTacToe = {
 
     ## Geschafft! 🚀
 
-    Du hast in diesem Kapitel gelernt:
+    Neu in diesem Kapitel:
 
-    - **Hilfsfunktionen** (`isDraw`, `isVictory`) neben dem Spielobjekt zu schreiben.
+    - **Hilfsfunktionen** (`isDraw`, `isVictory`) neben dem Spielobjekt.
     - **`endIf`** — wird nach jeder Zustandsänderung aufgerufen; gibt sie etwas zurück,
       ist das Spiel vorbei (`ctx.gameover`).
 
-    Dein Tic-Tac-Toe ist jetzt voll funktionsfähig für zwei Spieler. Im letzten Kapitel
-    geben wir dem Spiel einen **Computer-Gegner**.
+    Dein Tic-Tac-Toe ist jetzt voll spielbar für zwei Personen. Im letzten Kapitel
+    bekommt es einen **Computer-Gegner**.
 
     **[4. Bots →](./bg_4_bots)**
 

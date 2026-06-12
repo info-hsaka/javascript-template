@@ -8,7 +8,7 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
-    import { createGameUI, createEngine, loadGame } from "./lib/bgio.js";
+    import { createGameUI, loadGame, TICTACTOE_SKELETON } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
@@ -18,215 +18,96 @@
   <script id="intro" type="text/markdown">
     # 4. Bots 🤖
 
-    Zum Abschluss geben wir dem Spiel einen **Computer-Gegner**. Wir müssen dem Bot
-    nur mitteilen, welche Spielzüge im Spiel überhaupt erlaubt sind — den Rest erledigt
-    das Framework, indem es Züge sucht, die eher zu einem Sieg führen.
+    Letztes Kapitel, **dieselbe Datei**: Wir geben dem Spiel einen **Computer-Gegner**.
+    Wir müssen dem Bot nur sagen, welche Spielzüge überhaupt möglich sind — den Rest
+    erledigt das Framework: Es sucht Züge, die zu einem Sieg führen.
 
-    Dafür fügen wir der Spieldefinition einen `ai`-Abschnitt mit einer
-    `enumerate`-Funktion hinzu.
+    Dafür gibt es in deiner Datei schon den `ai`-Abschnitt mit einer
+    `enumerate`-Funktion.
   </script>
 
   <script id="enumerate-md" type="text/markdown">
     ## `ai.enumerate` — welche Züge sind möglich?
 
-    Die Funktion `enumerate` bekommt den Spielzustand `G` und soll ein **Array aller
-    möglichen Spielzüge** zurückgeben. Jeder Spielzug ist ein Objekt mit dem Namen des
-    Moves (`move`) und seinen Argumenten (`args`):
+    `enumerate` bekommt den Spielzustand `G` und soll ein **Array aller möglichen
+    Spielzüge** zurückgeben. Jeder Zug ist ein Objekt mit dem Namen des Moves (`move`)
+    und seinen Argumenten (`args`):
 
     ```js
-    { move: 'clickCell', args: [0] }   // clickCell(0)
+    { move: 'clickCell', args: [0] }   // bedeutet: clickCell(0)
     ```
 
-    Bei Tic-Tac-Toe ist jeder `clickCell`-Zug auf eine **leere** Zelle möglich. Die
-    Startvariante unten gibt aber immer nur die Zelle oben links (`0`) zurück — der Bot
-    kann damit also nur ein einziges Feld bespielen.
+    Bei Tic-Tac-Toe ist jeder `clickCell`-Zug auf eine **leere** Zelle möglich. Du
+    sollst also durch `G.cells` gehen und für jedes Feld, das `null` ist, ein solches
+    Zug-Objekt ins Ergebnis-Array packen.
 
-    > 📌 **So spielt unser Bot** — Im echten boardgame.io durchsucht der Bot mit einem
-    > Verfahren namens [MCTS](https://nicolodavis.com/blog/tic-tac-toe/) den Spielbaum
-    > und wählt **gute** Züge. Unser eingebauter Browser-Bot ist simpler: Er wählt
-    > **zufällig** einen der Züge, die `enumerate` zurückgibt. Genau deshalb ist
-    > `enumerate` so wichtig — gibt es nur einen Zug zurück, kann der Bot auch nur
-    > diesen einen spielen.
+    > 💡 Leg dir ein leeres Array an, geh mit einem `for`-Loop über `G.cells`, und bei
+    > jeder Zelle, die `null` ist, häng `{ move: 'clickCell', args: [i] }` an (mit `i`
+    > als Index). Am Ende gib das Array zurück.
+
+    > 📌 **So spielt der Bot** — boardgame.io durchsucht mit einem Verfahren namens
+    > [MCTS](https://nicolodavis.com/blog/tic-tac-toe/) den Spielbaum und wählt **gute**
+    > Züge. Aber er kann nur Züge wählen, die `enumerate` zurückgibt! Gibt deine
+    > Funktion nur ein Feld zurück, kann der Bot auch nur dieses eine Feld spielen.
+
+    👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 4` in `enumerate` aus.
   </script>
 
-  <script id="enum-demo-editor" type="module">
-    const demoCode = view(codeEditor("bgio:enum_demo", {
-      value: `import { INVALID_MOVE } from 'boardgame.io/core';
-
-function isVictory(cells) {
-  const lines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6],
-  ];
-  for (const line of lines) {
-    const [a, b, c] = line;
-    if (cells[a] !== null && cells[a] === cells[b] && cells[a] === cells[c]) {
-      return cells[a];
-    }
-  }
-  return null;
-}
-
-function isDraw(cells) {
-  return cells.every(cell => cell !== null);
-}
-
-export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      if (move.G.cells[cellIndex] !== null) {
-        return INVALID_MOVE;
-      }
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-
-  turn: { minMoves: 1, maxMoves: 1 },
-
-  endIf: function endIf(endIf) {
-    const winner = isVictory(endIf.G.cells);
-    if (winner != null) {
-      return { winner: winner };
-    }
-    if (isDraw(endIf.G.cells)) {
-      return { draw: true };
-    }
-  },
-
-  ai: {
-    enumerate: function enumerate(G) {
-      // Diese Funktion gibt immer nur die Zelle oben links zurueck.
-      // Der Bot kann damit nur Feld 0 bespielen.
-      return [{ move: 'clickCell', args: [0] }];
-    },
-  },
-};`
+  <script id="game-editor" type="module">
+    const gameCode = view(codeEditor("bgio:game", {
+      value: TICTACTOE_SKELETON,
+      label: "Deine Datei: TicTacToe.js"
     }));
-  </script>
-
-  <script id="enum-demo-board" type="module">
-    display(gameBoard(demoCode, { showBot: true, showState: true,
-      hint: "Klick auf 🤖 play — der Bot spielt immer Feld 0 und bleibt danach stecken. Genau das beheben wir in der Übung." }));
   </script>
 
   <script id="play-md" type="text/markdown">
     ### `play` und `simulate`
 
-    Sobald `enumerate` definiert ist, erscheinen über dem Spielfeld zwei Bot-Knöpfe —
-    sie machen dasselbe wie der KI-Bereich im echten Debug Panel:
+    Sobald `enumerate` funktioniert, erscheinen über dem Spielfeld zwei Bot-Knöpfe —
+    wie der KI-Bereich im echten Debug Panel:
 
     - **🤖 play** — der Bot berechnet **einen** Zug und führt ihn aus.
     - **⏩ simulate** — der Bot spielt das **ganze Spiel** allein zu Ende.
 
-    Mit `play` kannst du eigene Züge mit Bot-Zügen mischen: Mach selbst ein paar Züge
-    und lass den Bot dann antworten.
+    Mit `play` kannst du selbst Züge machen und den Bot antworten lassen. Versuch mal,
+    zwei in eine Reihe zu legen, und schau, ob der Bot blockt!
+  </script>
+
+  <script id="game-board" type="module">
+    display(gameBoard(gameCode, {
+      showDebug: true,
+      showBot: true,
+      showState: true,
+      hint: "Mit einem korrekten enumerate spielt der Bot richtig gut. Drück ⏩ simulate für ein komplettes Bot-gegen-Bot-Spiel."
+    }));
   </script>
 
   <script id="uebung-md" type="text/markdown">
     ---
 
-    ## Übung 🎯 — Einen richtigen Bot bauen
+    ## Übung 🎯
 
-    Ändere `enumerate` so, dass es **alle möglichen** `clickCell`-Züge zurückgibt —
-    also einen Zug für **jede leere Zelle** in `G.cells`.
-
-    > 💡 Geh mit einem Loop durch `G.cells`. Ist eine Zelle `null`, dann ist ein Zug
-    > auf diesen Index möglich: häng `{ move: 'clickCell', args: [index] }` an dein
-    > Ergebnis-Array an.
-
-    Wenn es klappt, spielt der Bot auf zufällige freie Felder — und mit ⏩ simulate
-    läuft ein ganzes Spiel von allein bis zu Sieg oder Unentschieden durch.
-  </script>
-
-  <script id="uebung-editor" type="module">
-    const botCode = view(codeEditor("bgio:ch4_final", {
-      value: `import { INVALID_MOVE } from 'boardgame.io/core';
-
-function isVictory(cells) {
-  const lines = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8],
-    [0, 3, 6], [1, 4, 7], [2, 5, 8],
-    [0, 4, 8], [2, 4, 6],
-  ];
-  for (const line of lines) {
-    const [a, b, c] = line;
-    if (cells[a] !== null && cells[a] === cells[b] && cells[a] === cells[c]) {
-      return cells[a];
-    }
-  }
-  return null;
-}
-
-function isDraw(cells) {
-  return cells.every(cell => cell !== null);
-}
-
-export const TicTacToe = {
-  setup: function setup() {
-    return { cells: [null, null, null, null, null, null, null, null, null] }
-  },
-
-  moves: {
-    clickCell: function clickCell(move, cellIndex) {
-      if (move.G.cells[cellIndex] !== null) {
-        return INVALID_MOVE;
-      }
-      move.G.cells[cellIndex] = move.playerID;
-    },
-  },
-
-  turn: { minMoves: 1, maxMoves: 1 },
-
-  endIf: function endIf(endIf) {
-    const winner = isVictory(endIf.G.cells);
-    if (winner != null) {
-      return { winner: winner };
-    }
-    if (isDraw(endIf.G.cells)) {
-      return { draw: true };
-    }
-  },
-
-  ai: {
-    enumerate: function enumerate(G) {
-      // Gib einen clickCell-Zug fuer JEDE leere Zelle zurueck.
-      const moves = [];
-      // ... dein Code hier ...
-      return moves;
-    },
-  },
-};`
-    }));
-  </script>
-
-  <script id="uebung-board" type="module">
-    display(gameBoard(botCode, { showDebug: true, showBot: true, showState: true,
-      hint: "Drück ⏩ simulate — ein vollständiges Spiel sollte ohne Stecken­bleiben durchlaufen." }));
+    Die Auswertung prüft, ob `enumerate` für **jede leere Zelle** genau einen
+    `clickCell`-Zug zurückgibt.
   </script>
 
   <script id="uebung-feedback" type="module">
     {
       let feedback;
       try {
-        const game = loadGame(botCode);
+        const game = loadGame(gameCode);
         if (!game.ai || typeof game.ai.enumerate !== "function") {
-          feedback = err(html`Es fehlt der <code>ai.enumerate</code>-Abschnitt.`);
+          feedback = err(html`Es fehlt die <code>ai.enumerate</code>-Funktion.`);
         } else {
           const indicesFor = (cells) => {
-            const res = game.ai.enumerate({ cells }, { currentPlayer: 0 }, 0);
+            const res = game.ai.enumerate({ cells }, { currentPlayer: "0" }, "0");
             if (!Array.isArray(res)) return null;
             if (!res.every(m => m && m.move === "clickCell" && Array.isArray(m.args) && m.args.length === 1)) return "shape";
             return res.map(m => m.args[0]).sort((a, b) => a - b);
           };
 
           const empty = indicesFor([null, null, null, null, null, null, null, null, null]);
-          const partial = indicesFor([0, null, 1, null, null, 1, null, 0, null]); // empty: 1,3,4,6,8
-
+          const partial = indicesFor(["0", null, "1", null, null, "1", null, "0", null]); // empty: 1,3,4,6,8
           const eq = (a, b) => Array.isArray(a) && a.length === b.length && a.every((v, i) => v === b[i]);
 
           if (empty === null || partial === null)
@@ -234,11 +115,11 @@ export const TicTacToe = {
           else if (empty === "shape" || partial === "shape")
             feedback = err(html`Jeder Zug muss die Form <code>{ move: 'clickCell', args: [index] }</code> haben.`);
           else if (!eq(empty, [0, 1, 2, 3, 4, 5, 6, 7, 8]))
-            feedback = err(html`Auf einem leeren Feld sollte <code>enumerate</code> <strong>9</strong> Züge zurückgeben (für jede Zelle einen) — du gibst ${empty.length} zurück.`);
+            feedback = err(html`Auf einem leeren Feld sollte <code>enumerate</code> <strong>9</strong> Züge liefern (für jede Zelle einen) — du gibst ${empty.length} zurück.`);
           else if (!eq(partial, [1, 3, 4, 6, 8]))
             feedback = err(html`<code>enumerate</code> soll nur Züge für <strong>leere</strong> Zellen liefern. Erwartet: Felder 1, 3, 4, 6, 8 — bekommen: ${partial.join(", ") || "keine"}.`);
           else
-            feedback = ok(html`🎉 Geschafft! Dein Bot kennt alle möglichen Züge und kann ein ganzes Spiel spielen. Probier ⏩ simulate!`);
+            feedback = ok(html`🎉 Geschafft! Dein Bot kennt alle möglichen Züge und spielt ein ganzes Spiel. Probier ⏩ simulate!`);
         }
       } catch (e) {
         feedback = err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
@@ -252,9 +133,9 @@ export const TicTacToe = {
 
     ## Geschafft — und was jetzt? 🎓
 
-    Herzlichen Glückwunsch! Du hast ein vollständiges Tic-Tac-Toe mit boardgame.io
-    gebaut — inklusive Spielzustand, Zügen, Regeln, Siegbedingung und einem Bot. Damit
-    kennst du die **Kernkonzepte** des Frameworks:
+    Herzlichen Glückwunsch! Du hast mit dem **echten** boardgame.io ein vollständiges
+    Tic-Tac-Toe gebaut — in **einer Datei**, die du Kapitel für Kapitel selbst
+    geschrieben hast. Damit kennst du die **Kernkonzepte** des Frameworks:
 
     - **`setup`** & **`G`** — der Spielzustand
     - **`moves`** — wie Spieler den Zustand verändern
@@ -262,16 +143,14 @@ export const TicTacToe = {
     - **`endIf`** — wann das Spiel endet
     - **`ai.enumerate`** — ein Computer-Gegner
 
-    Spiel ruhig noch weiter mit deinem Tic-Tac-Toe herum und überleg dir, wie sich
-    andere Spiele auf diese Konzepte übertragen lassen.
+    > 🧐 Das Einzige, was wir dir hier abgenommen haben, ist das **Zeichnen** des
+    > Spielfelds. Im echten Projekt machst du das z. B. mit React; in einem späteren
+    > Tutorial lernst du, wie. Die **Spiellogik**, die du hier geschrieben hast, ist
+    > exakt dieselbe wie im echten Projekt — du kannst deine `TicTacToe.js` direkt
+    > übernehmen.
 
-    > 🧐 In einem späteren Tutorial lernst du, die **Benutzeroberfläche** selbst zu
-    > zeichnen und auf Eingaben zu reagieren. In diesem Notebook hat das die eingebaute
-    > Engine für dich übernommen — im echten Projekt erledigst du das z. B. mit React.
-    > Die **Spiellogik**, die du hier geschrieben hast, bleibt dabei exakt dieselbe.
-
-    Wenn du das Gefühl hast, dass du verstehst, was in deinem Tic-Tac-Toe vor sich geht,
-    ist das mehr als genug. 🚀
+    Spiel ruhig noch weiter herum und überleg dir, wie sich andere Spiele auf diese
+    Konzepte übertragen lassen. 🚀
 
     ← [Zurück zur Übersicht](./boardgame) · [Zum JavaScript-Kurs](./)
   </script>
