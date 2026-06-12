@@ -8,11 +8,12 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
-    import { createGameUI, loadGame, makeClient, TICTACTOE_SKELETON } from "./lib/bgio.js";
+    import { createGameUI, loadGame, makeClient, prepareGameFile } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
     const { gameBoard } = createGameUI({ html });
+    const starter = prepareGameFile(1);
   </script>
 
   <script id="intro" type="text/markdown">
@@ -23,11 +24,11 @@
     fangen also klein an und füllen nach und nach mehr aus.
 
     > 📌 **Eine Datei für das ganze Tutorial.** Unten siehst du deine Datei
-    > `TicTacToe.js`. Sie enthält schon das Gerüst des Spiels mit `TODO`-Kommentaren —
-    > aber **noch keinen fertigen Code**. Du füllst sie über die nächsten Kapitel
-    > Schritt für Schritt selbst aus. Deine Änderungen bleiben gespeichert und wandern
-    > mit dir von Kapitel zu Kapitel. Klick auf **▶ Ausführen** (oder ⌘/Strg+Enter),
-    > damit dein Code läuft und sich das Spielfeld aktualisiert.
+    > `TicTacToe.js`. Im Moment enthält sie nur `setup` und `moves` als leeres Gerüst —
+    > in **jedem Kapitel kommt ein neuer Teil dazu**, den du selbst ausfüllst. Deine
+    > Änderungen bleiben gespeichert und wandern mit dir von Kapitel zu Kapitel; am
+    > Ende hast du das ganze Spiel selbst geschrieben. Klick auf **▶ Ausführen** (oder
+    > ⌘/Strg+Enter), damit dein Code läuft und sich das Spielfeld aktualisiert.
   </script>
 
   <script id="setup-md" type="text/markdown">
@@ -76,7 +77,7 @@
 
   <script id="game-editor" type="module">
     const gameCode = view(codeEditor("bgio:game", {
-      value: TICTACTOE_SKELETON,
+      value: starter,
       label: "Deine Datei: TicTacToe.js"
     }));
   </script>

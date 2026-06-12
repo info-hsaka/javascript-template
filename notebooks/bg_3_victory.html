@@ -8,11 +8,12 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner, runTestCasesWithTimeout } from "./lib/helpers.js";
-    import { createGameUI, loadGame, makeClient, stripModuleSyntax, TICTACTOE_SKELETON } from "./lib/bgio.js";
+    import { createGameUI, loadGame, makeClient, stripModuleSyntax, prepareGameFile } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint, testReport } = createUI({ html });
     const { gameBoard } = createGameUI({ html });
+    const starter = prepareGameFile(3);
   </script>
 
   <script id="intro" type="text/markdown">
@@ -38,7 +39,7 @@
 
   <script id="game-editor" type="module">
     const gameCode = view(codeEditor("bgio:game", {
-      value: TICTACTOE_SKELETON,
+      value: starter,
       label: "Deine Datei: TicTacToe.js"
     }));
   </script>

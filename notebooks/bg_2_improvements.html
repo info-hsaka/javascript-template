@@ -8,11 +8,12 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
-    import { createGameUI, loadGame, makeClient, TICTACTOE_SKELETON } from "./lib/bgio.js";
+    import { createGameUI, loadGame, makeClient, prepareGameFile } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, ok, err, hint } = createUI({ html });
     const { gameBoard } = createGameUI({ html });
+    const starter = prepareGameFile(2);
   </script>
 
   <script id="intro" type="text/markdown">
@@ -43,8 +44,9 @@
     Feld schon belegt ist (also nicht `null`). Wenn ja, geben wir `INVALID_MOVE` zurück
     und setzen **nichts**.
 
-    👉 **Deine Aufgabe:** Ergänze das `TODO Kapitel 2` in `clickCell` — gib
-    `INVALID_MOVE` zurück, wenn `move.G.cells[cellIndex]` nicht `null` ist.
+    👉 **Deine Aufgabe:** Ergänze `clickCell` in deiner Datei — gib **vor** dem Setzen
+    der Markierung `INVALID_MOVE` zurück, wenn `move.G.cells[cellIndex]` nicht `null`
+    ist. (Die `import`-Zeile für `INVALID_MOVE` ist oben automatisch dazugekommen.)
   </script>
 
   <script id="turn-md" type="text/markdown">
@@ -65,13 +67,13 @@
     },
     ```
 
-    👉 **Deine Aufgabe:** Ersetze das `TODO Kapitel 2` (zwischen `moves` und `endIf`)
-    durch ein solches `turn`-Objekt. **Achte auf das Komma** hinter `},`.
+    👉 **Deine Aufgabe:** In deiner Datei ist unten ein leeres `turn`-Objekt
+    dazugekommen. Trag dort `minMoves: 1` und `maxMoves: 1` ein.
   </script>
 
   <script id="game-editor" type="module">
     const gameCode = view(codeEditor("bgio:game", {
-      value: TICTACTOE_SKELETON,
+      value: starter,
       label: "Deine Datei: TicTacToe.js"
     }));
   </script>

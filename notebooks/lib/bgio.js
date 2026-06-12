@@ -23,49 +23,111 @@ export { INVALID_MOVE };
 
 // The students build up ONE file across all chapters. This is its starting
 // point: the full structure with TODOs, but no implemented logic — every body
-// is theirs to write. Each chapter fills in the next TODO. Exported so every
-// chapter page uses the exact same starter (one persistent localStorage key).
-export const TICTACTOE_SKELETON = `import { INVALID_MOVE } from 'boardgame.io/core';
+// is theirs to write. Rather than dumping every chapter's TODO into the file
+// at once, the file *grows*: chapter 1 starts with just `setup` + `moves`, and
+// each later chapter inserts only the section it introduces — merged into
+// whatever the student has written so far, without touching their edits.
+//
+// The student's file lives under this single localStorage key (the editor key
+// "bgio:game" + helpers.js's "jskurs:" prefix). `prepareGameFile(chapter)` is
+// called by each chapter page before the editor is created.
+const STORAGE_KEY = "jskurs:bgio:game";
 
-// === Hilfsfunktionen (Kapitel 3) ===========================================
-
-function isVictory(cells) {
-  // TODO Kapitel 3: Gib die Markierung des Gewinners ("0" oder "1") zurueck,
-  // falls drei gleiche in einer Reihe sind. Sonst gib null zurueck.
-}
-
-function isDraw(cells) {
-  // TODO Kapitel 3: Gib true zurueck, wenn alle Felder belegt sind, sonst false.
-}
-
-// === Das Spiel ==============================================================
-
-export const TicTacToe = {
+// Chapter 1 base: only what chapter 1 teaches. No import, no future stubs.
+export const BASE_SKELETON = `export const TicTacToe = {
   setup: function setup() {
     // TODO Kapitel 1: Gib { cells: [...] } mit 9-mal null zurueck.
   },
 
   moves: {
     clickCell: function clickCell(move, cellIndex) {
-      // TODO Kapitel 2: belegtes Feld? Dann INVALID_MOVE zurueckgeben.
-
       // TODO Kapitel 1: move.playerID an der Stelle cellIndex in move.G.cells eintragen.
-    },
-  },
-
-  // TODO Kapitel 2: turn-Objekt mit minMoves und maxMoves ergaenzen.
-
-  endIf: function endIf(endIf) {
-    // TODO Kapitel 3: mit isVictory/isDraw pruefen, ob das Spiel vorbei ist.
-  },
-
-  ai: {
-    enumerate: function enumerate(G) {
-      // TODO Kapitel 4: einen clickCell-Zug fuer jede leere Zelle zurueckgeben.
     },
   },
 };
 `;
+
+const IMPORT_LINE = `import { INVALID_MOVE } from 'boardgame.io/core';`;
+
+const HELPERS_STUB = `// === Hilfsfunktionen (Kapitel 3) ===========================================
+
+function isVictory(cells) {
+  // TODO Kapitel 3: Markierung des Gewinners ("0" oder "1") zurueckgeben, sonst null.
+}
+
+function isDraw(cells) {
+  // TODO Kapitel 3: true, wenn alle Felder belegt sind, sonst false.
+}`;
+
+const TURN_STUB = `
+  turn: {
+    // TODO Kapitel 2: minMoves und maxMoves (jeweils 1) eintragen.
+  },`;
+
+const ENDIF_STUB = `
+  endIf: function endIf(endIf) {
+    // TODO Kapitel 3: mit isVictory/isDraw pruefen, ob das Spiel vorbei ist.
+  },`;
+
+const AI_STUB = `
+  ai: {
+    enumerate: function enumerate(G) {
+      // TODO Kapitel 4: einen clickCell-Zug fuer jede leere Zelle zurueckgeben.
+    },
+  },`;
+
+// Insert a new top-level helper block right before `export const TicTacToe`.
+function insertBeforeGame(code, snippet) {
+  const m = code.match(/export\s+const\s+TicTacToe|const\s+TicTacToe/);
+  if (!m) return snippet + "\n\n" + code;
+  const i = code.indexOf(m[0]);
+  return code.slice(0, i) + snippet + "\n\n" + code.slice(i);
+}
+
+// Insert a new object key right before the `};` that closes the game object.
+function insertObjectKey(code, snippet) {
+  const i = code.lastIndexOf("};");
+  if (i === -1) return code + "\n" + snippet;
+  return code.slice(0, i).replace(/\s*$/, "\n") + snippet + "\n" + code.slice(i);
+}
+
+// Each section: which chapter introduces it, how to detect it's already there
+// (so we never insert twice), and how to insert it.
+const SECTIONS = [
+  { chapter: 2, has: (c) => /boardgame\.io\/core/.test(c), apply: (c) => IMPORT_LINE + "\n\n" + c },
+  { chapter: 2, has: (c) => /\bturn\s*:/.test(c), apply: (c) => insertObjectKey(c, TURN_STUB) },
+  { chapter: 3, has: (c) => /function\s+isVictory/.test(c), apply: (c) => insertBeforeGame(c, HELPERS_STUB) },
+  { chapter: 3, has: (c) => /\bendIf\b/.test(c), apply: (c) => insertObjectKey(c, ENDIF_STUB) },
+  { chapter: 4, has: (c) => /\benumerate\b/.test(c) || /\bai\s*:/.test(c), apply: (c) => insertObjectKey(c, AI_STUB) },
+];
+
+// Add every section up to `chapter` that isn't present yet. Idempotent.
+export function growSkeleton(code, chapter) {
+  let out = code;
+  for (const s of SECTIONS) {
+    if (s.chapter <= chapter && !s.has(out)) out = s.apply(out);
+  }
+  return out;
+}
+
+/**
+ * Called by each chapter page (in the setup cell) before the editor is built.
+ * Grows the student's stored file with this chapter's new section(s) without
+ * clobbering their edits, persists it, and returns this chapter's *clean*
+ * skeleton to use as the editor's reset target.
+ */
+export function prepareGameFile(chapter) {
+  let stored = null;
+  try { stored = localStorage.getItem(STORAGE_KEY); } catch { /* no storage */ }
+  if (stored !== null) {
+    const grown = growSkeleton(stored, chapter);
+    if (grown !== stored) {
+      try { localStorage.setItem(STORAGE_KEY, grown); } catch { /* ignore */ }
+    }
+  }
+  // Reset target / fallback for a fresh visit: a clean skeleton for this chapter.
+  return growSkeleton(BASE_SKELETON, chapter);
+}
 
 // boardgame.io move/setup/endIf code uses `import { INVALID_MOVE } from
 // 'boardgame.io/core'` and `export const`. We can't `import`/`export` inside a
