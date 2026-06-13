@@ -18,6 +18,13 @@
 import { Client } from "boardgame.io/client";
 import { INVALID_MOVE } from "boardgame.io/core";
 import { MCTSBot, Step } from "boardgame.io/ai";
+// The real boardgame.io debug panel (the Svelte UI shipped with the package —
+// the same one you normally get on localhost:3000). We pass it explicitly as
+// `debug: { impl: Debug }` rather than `debug: true`: the bundled default is
+// only wired up when `process.env.NODE_ENV !== 'production'`, which Vite
+// strips out in the GitHub Pages build, so an explicit impl is what makes the
+// panel show up there too.
+import { Debug } from "boardgame.io/debug";
 
 export { INVALID_MOVE };
 
@@ -150,8 +157,19 @@ export function loadGame(code, { console: fakeConsole, name = "TicTacToe" } = {}
 }
 
 // Create and start a real local boardgame.io client (no server, in-memory).
-export function makeClient(game, { numPlayers = 2 } = {}) {
-  const client = Client({ game, numPlayers, debug: false });
+// Pass `debug: true` to mount boardgame.io's own debug panel for this client.
+// `debugCollapsed` starts the panel collapsed — used to preserve the panel's
+// open/closed state across the client rebuilds that happen on every edit.
+export function makeClient(game, { numPlayers = 2, debug = false, debugCollapsed = false } = {}) {
+  const client = Client({
+    game,
+    numPlayers,
+    // We keep boardgame.io's built-in arrow tab in the DOM (our own toggle clicks
+    // it — .click() works even though we hide it with CSS), but hide it visually
+    // because it docked on top of the theme toggle. See `.visibility-toggle` in
+    // style.css.
+    debug: debug ? { impl: Debug, collapseOnLoad: debugCollapsed } : false,
+  });
   client.start();
   return client;
 }
@@ -168,6 +186,21 @@ export function createGameUI({ html }) {
     const push = (prefix) => (...args) =>
       lines.push(prefix + args.map((a) => (typeof a === "string" ? a : fmt(a))).join(" "));
     return { lines, console: { log: push(""), error: push("⚠ "), warn: push("⚠ ") } };
+  }
+
+  // boardgame.io's debug panel exposes no public toggle API, but it mounts a
+  // ".visibility-toggle" button (which we hide with CSS) that flips its `visible`
+  // state; .click() drives it reliably even while hidden. As a fallback it also
+  // toggles on the "." key (a window keydown listener). When expanded the button
+  // carries the ".closer" class, collapsed it's ".opener" — that's how we read
+  // the current state to remember it across rebuilds.
+  function isDebugPanelOpen() {
+    return !!document.querySelector(".debug-panel .closer");
+  }
+  function toggleDebugPanel() {
+    const toggle = document.querySelector(".debug-panel .visibility-toggle");
+    if (toggle) toggle.click();
+    else window.dispatchEvent(new KeyboardEvent("keydown", { key: "." }));
   }
 
   // playerID is the string "0" / "1" in boardgame.io.
@@ -197,15 +230,37 @@ export function createGameUI({ html }) {
    *
    * opts: { showDebug, showBot, showState, hint }
    */
+  // boardgame.io's ClientManager only ever mounts ONE debug panel (the first
+  // started client wins) and keeps every started client in a map. The editor
+  // re-runs `gameBoard` on each keystroke, so we stop the previous board client
+  // before building a new one — otherwise the debug panel would freeze on the
+  // first run's client and stale clients would pile up.
+  let liveClient = null;
+  // The panel is tied to client lifecycle, so rebuilding the client on every
+  // keystroke would otherwise re-open it from scratch. We remember whether the
+  // user had it open and restore that on the next mount (collapseOnLoad). Starts
+  // collapsed on load; the student opens it via the state-display toggle.
+  let debugCollapsed = true;
+
   function gameBoard(code, opts = {}) {
     const { showDebug = false, showBot = false, showState = true } = opts;
     const root = html`<div class="bg-game"></div>`;
+
+    if (liveClient) {
+      // Capture the panel's current open/closed state before tearing it down,
+      // so toggles via our button, the panel's own arrow, or the "." key all
+      // survive the rebuild.
+      if (showDebug) debugCollapsed = !isDebugPanelOpen();
+      try { liveClient.stop(); } catch { /* ignore */ }
+      liveClient = null;
+    }
 
     let client, game;
     const cap = makeCapture();
     try {
       game = loadGame(code, { console: cap.console });
-      client = makeClient(game);
+      client = makeClient(game, { debug: showDebug, debugCollapsed });
+      liveClient = client;
     } catch (e) {
       root.appendChild(html`<div class="feedback feedback-err">❌ ${e.message}</div>`);
       return root;
@@ -257,23 +312,6 @@ export function createGameUI({ html }) {
       return grid;
     }
 
-    function debugPanel() {
-      const idx = html`<input class="bg-idx" type="number" min="0" max="8" value="0">`;
-      const moveBtn = html`<button class="run-button" type="button">clickCell(…)</button>`;
-      moveBtn.addEventListener("click", () => clickCell(Number(idx.value)));
-      const endBtn = html`<button class="reset-button" type="button">endTurn</button>`;
-      endBtn.addEventListener("click", () => {
-        cap.lines.length = 0;
-        try { client.events.endTurn(); flash(null); }
-        catch (e) { flash(html`<div class="feedback feedback-err">❌ ${e.message}</div>`); }
-        render();
-      });
-      return html`<div class="bg-debug">
-        <span class="bg-debug-label">Debug Panel:</span>
-        <code>clickCell(</code>${idx}<code>)</code> ${moveBtn} ${endBtn}
-      </div>`;
-    }
-
     function botPanel() {
       if (!bot) {
         return html`<div class="bg-notice"><div class="feedback feedback-hint">⏳ Noch kein funktionierendes <code>ai.enumerate</code> — füg es hinzu, um den Bot zu aktivieren.</div></div>`;
@@ -313,7 +351,6 @@ export function createGameUI({ html }) {
       if (!cells())
         root.appendChild(html`<div class="feedback feedback-hint">⏳ <code>setup</code> gibt noch kein <code>{ cells: [...] }</code> zurück — deshalb ist das Feld leer.</div>`);
 
-      if (showDebug) root.appendChild(debugPanel());
       if (showBot) root.appendChild(botPanel());
       root.appendChild(notice);
 
@@ -333,6 +370,19 @@ export function createGameUI({ html }) {
           </div></details>`;
         details.open = stateOpen;
         details.addEventListener("toggle", () => { stateOpen = details.open; });
+
+        // When the real boardgame.io debug panel is mounted, give the state
+        // display a button to show/hide it (the panel also has its own arrow
+        // tab + the "." hotkey; this is just a discoverable entry point).
+        if (showDebug) {
+          const dbgBtn = html`<button class="reset-button bg-debug-toggle" type="button">🛠️ Debug-Menü toggle</button>`;
+          dbgBtn.addEventListener("click", () => {
+            toggleDebugPanel();
+            debugCollapsed = !isDebugPanelOpen();
+          });
+          root.appendChild(html`<div class="bg-state-tools">${dbgBtn}</div>`);
+        }
+
         root.appendChild(details);
       }
 

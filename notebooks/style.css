@@ -409,6 +409,23 @@
 .bg-app.bg-has-panel body { right: var(--bg-panel-width); }
 .bg-app.bg-has-panel .theme-toggle { right: calc(16px + var(--bg-panel-width)); }
 
+/* The boardgame.io debug panel is fixed at right:0 (z-index 99999) just like the
+ * editor panel, so with the editor open they overlap — the panel's close arrow
+ * lands on top of the editor's header button. Shift the whole debug panel left by
+ * the editor width so it docks flush against the editor's inner edge instead,
+ * mirroring how body/theme-toggle are offset above. */
+.bg-app.bg-has-panel .debug-panel { right: var(--bg-panel-width) !important; }
+
+/* The debug panel (z-index 99999) docks right where the theme toggle sits, so
+ * lift the toggle above it to keep it visible and clickable when the panel pane
+ * is open. */
+.bg-app .theme-toggle { z-index: 100000; }
+
+/* Hide boardgame.io's built-in arrow tab: it docked on top of the theme toggle.
+ * We toggle the panel from our own button in the state display instead (it still
+ * clicks this button under the hood, which works even though it's hidden). */
+.debug-panel .visibility-toggle { display: none !important; }
+
 /* Only this container scrolls. <main> holds the notebook instruction cells. */
 .bg-app main {
   flex: 1 1 auto;
@@ -591,6 +608,8 @@ html.bg-panel-hidden .bg-panel-tab { display: block; }
     padding: 0;
   }
   .bg-app.bg-has-panel .theme-toggle { right: 16px; }
+  /* Editor goes inline on narrow screens, so the debug panel reclaims the edge. */
+  .bg-app.bg-has-panel .debug-panel { right: 0 !important; }
   .bg-panel {
     position: static;
     width: auto;
@@ -676,3 +695,112 @@ html.bg-panel-hidden .bg-panel-tab { display: block; }
 }
 .bg-notice:empty { display: none; }
 .bg-state { margin-top: 0.5em; }
+.bg-state-tools { margin: 0.6em 0 0.3em; }
+
+/* === boardgame.io debug panel — dark mode =================================
+ * The debug panel is the real third-party Svelte component (mounted on <body>)
+ * and ships with light-only styles baked in as `.x.svelte-HASH.svelte-HASH`
+ * (specificity 0,3,0). We retint its surfaces/text/borders for dark mode here.
+ * `!important` is needed to beat that compound specificity — and it keeps these
+ * rules working if the Svelte hash changes on a boardgame.io bump. Everything is
+ * scoped to dark, so light mode stays byte-for-byte the panel's own design.
+ * The state inspector is a svelte-json-tree that reads CSS custom properties, so
+ * for it we just set those variables (reusing the site's syntax palette). */
+:root[data-theme="dark"] .debug-panel {
+  color: #cfd3da !important;
+  --string-color: var(--syntax-string, #85e89d);
+  --number-color: var(--syntax-atom, #79b8ff);
+  --boolean-color: var(--syntax-literal, #b392f0);
+  --null-color: var(--syntax-meta, #f97583);
+  --undefined-color: var(--syntax-meta, #f97583);
+  --function-color: var(--syntax-keyword, #ff9959);
+  --symbol-color: var(--syntax-string, #85e89d);
+  --date-color: var(--syntax-atom, #79b8ff);
+  --label-color: #cfd3da;
+  --arrow-color: #cfd3da;
+  --json-tree-null-color: #9aa0aa;
+}
+:root[data-theme="dark"] .debug-panel .pane,
+:root[data-theme="dark"] .debug-panel .secondary-pane {
+  background: #1b1e23 !important;
+  border-left-color: #3a3f47 !important;
+  box-shadow: -1px 0 5px rgba(0, 0, 0, 0.5) !important;
+}
+/* generic controls (step/reset/ai/… buttons we don't name individually); the
+ * specific rules below win by specificity where they apply. */
+:root[data-theme="dark"] .debug-panel button {
+  background: #23272e !important;
+  color: #cfd3da !important;
+  border-color: #3a3f47 !important;
+}
+:root[data-theme="dark"] .debug-panel select {
+  background: #23272e !important;
+  color: #cfd3da !important;
+  border-color: #3a3f47 !important;
+}
+:root[data-theme="dark"] .debug-panel .visibility-toggle {
+  background: #23272e !important;
+  color: #cfd3da !important;
+  border-color: #3a3f47 !important;
+}
+:root[data-theme="dark"] .debug-panel .visibility-toggle:hover,
+:root[data-theme="dark"] .debug-panel .visibility-toggle:focus {
+  background: #2d323a !important;
+}
+:root[data-theme="dark"] .debug-panel .menu {
+  border-color: #3a3f47 !important;
+}
+:root[data-theme="dark"] .debug-panel .menu-item {
+  background: #1b1e23 !important;
+  color: #cfd3da !important;
+}
+:root[data-theme="dark"] .debug-panel .menu-item.active,
+:root[data-theme="dark"] .debug-panel .menu-item:hover,
+:root[data-theme="dark"] .debug-panel .menu-item:focus {
+  background: #2d323a !important;
+  color: #fff !important;
+}
+/* turn / phase stepper buttons */
+:root[data-theme="dark"] .debug-panel .key button {
+  background: #23272e !important;
+  color: #cfd3da !important;
+  border-color: #3a3f47 !important;
+  box-shadow: 1px 1px 1px #000 !important;
+}
+:root[data-theme="dark"] .debug-panel .key button:hover,
+:root[data-theme="dark"] .debug-panel .key.active button {
+  background: #2d323a !important;
+}
+/* move list */
+:root[data-theme="dark"] .debug-panel .move { color: #b8bdc6 !important; }
+:root[data-theme="dark"] .debug-panel .move:hover { color: #e6e6e6 !important; }
+:root[data-theme="dark"] .debug-panel .move.active { color: #fff !important; }
+:root[data-theme="dark"] .debug-panel .move-error { color: #f08071 !important; }
+/* player chips — keep the coral "active" ring; recolor fill + the gap border */
+:root[data-theme="dark"] .debug-panel .player {
+  background: #2d323a !important;
+  border-color: #1b1e23 !important;
+}
+:root[data-theme="dark"] .debug-panel .player.current {
+  background: #cfd3da !important;
+  color: #1b1e23 !important;
+}
+:root[data-theme="dark"] .debug-panel .player.active {
+  border-color: #ff7f50 !important;
+}
+/* game log entries — don't touch border-left-color (it carries the player hue) */
+:root[data-theme="dark"] .debug-panel .log-event {
+  background: #23272e !important;
+  color: #b8bdc6 !important;
+  border-top-color: #3a3f47 !important;
+  border-right-color: #3a3f47 !important;
+  border-bottom-color: #3a3f47 !important;
+}
+:root[data-theme="dark"] .debug-panel .log-event:hover,
+:root[data-theme="dark"] .debug-panel .log-event:focus,
+:root[data-theme="dark"] .debug-panel .log-event.pinned {
+  background: #2d323a !important;
+}
+/* game-info rows */
+:root[data-theme="dark"] .debug-panel label { color: #b8bdc6 !important; }
+:root[data-theme="dark"] .debug-panel .value { color: #e6e6e6 !important; }
