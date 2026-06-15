@@ -1,0 +1,285 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 5 — Text</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Text 🔤
+
+    Neben Formen können wir auch **Text** auf das Canvas zeichnen — nützlich für
+    Beschriftungen, Punktestände in Spielen oder Diagramme. Es gibt wieder zwei
+    Funktionen:
+
+    ```javascript
+    ctx.fillText(text, x, y, maxWidth)    // ausgefüllter Text
+    ctx.strokeText(text, x, y, maxWidth)  // nur der Umriss
+    ```
+
+    `maxWidth` ist optional und gibt an, wie breit der Text maximal sein darf —
+    längerer Text wird gestaucht.
+  </script>
+
+  <script id="basic-demo" type="module">
+    const code_basic = view(codeEditor("canvas:text-basic", {
+      value: `ctx.strokeStyle = "blue"
+ctx.lineWidth = 1
+ctx.strokeText("Stroke Canvas!", 50, 100)
+
+ctx.fillStyle = "black"
+ctx.fillText("Fill Canvas!", 50, 200)`
+    }));
+  </script>
+  <script id="basic-out" type="module">
+    display(canvasOutput(code_basic, { width: 400, height: 260 }));
+  </script>
+
+  <script id="baseline-md" type="text/markdown">
+    ## Wo ist der Text positioniert?
+
+    Die Koordinaten `(x, y)` geben an, wo die **Baseline** (Grundlinie) des Textes
+    liegt:
+
+    - `x`: Text startet `x` Pixel von links
+    - `y`: die **Grundlinie** des Textes liegt `y` Pixel von oben
+
+    > 📌 Der Text geht **nach oben** von dieser Linie weg. Buchstaben wie „g“,
+    > „y“, „p“ ragen etwas darunter.
+  </script>
+
+  <script id="baseline-demo" type="module">
+    const code_baseline = view(codeEditor("canvas:text-baseline", {
+      value: `ctx.font = "24px Arial"
+
+// rote Hilfslinie auf der Baseline (y = 100)
+ctx.strokeStyle = "red"
+ctx.beginPath()
+ctx.moveTo(0, 100)
+ctx.lineTo(400, 100)
+ctx.stroke()
+
+ctx.fillStyle = "black"
+ctx.fillText("The quick brown fox", 25, 100)`
+    }));
+  </script>
+  <script id="baseline-out" type="module">
+    display(canvasOutput(code_baseline, { width: 400, height: 200 }));
+  </script>
+
+  <script id="font-md" type="text/markdown">
+    ## Schriftart und -größe
+
+    Mit `font` legst du Schriftart und -größe fest. Das Format ist
+    `"[Stil] [Größe] [Schriftart]"`:
+
+    ```javascript
+    ctx.font = "30px Arial"
+    ctx.font = "bold 30px Arial"
+    ctx.font = "italic 30px Arial"
+    ctx.font = "bold italic 30px Arial"
+    ```
+  </script>
+
+  <script id="font-demo" type="module">
+    const code_font = view(codeEditor("canvas:text-font", {
+      value: `ctx.fillStyle = "black"
+
+ctx.font = "30px Arial"
+ctx.fillText("Normaler Text", 30, 50)
+
+ctx.font = "bold 30px Arial"
+ctx.fillText("Fetter Text", 30, 110)
+
+ctx.font = "italic 30px Arial"
+ctx.fillText("Kursiver Text", 30, 170)
+
+ctx.font = "bold italic 40px Courier"
+ctx.fillText("Groß & Courier", 30, 240)`
+    }));
+  </script>
+  <script id="font-out" type="module">
+    display(canvasOutput(code_font, { width: 460, height: 280 }));
+  </script>
+
+  <script id="align-md" type="text/markdown">
+    ## Textausrichtung
+
+    Mit `textAlign` legst du fest, wie der Text relativ zur **x**-Position liegt:
+
+    ```javascript
+    ctx.textAlign = "left"    // Standard: Text startet bei x
+    ctx.textAlign = "center"  // Text zentriert um x
+    ctx.textAlign = "right"   // Text endet bei x
+    ```
+
+    Die rote Hilfslinie unten liegt bei `x = 150`:
+  </script>
+
+  <script id="align-demo" type="module">
+    const code_align = view(codeEditor("canvas:text-align", {
+      value: `// Hilfslinie bei x = 150
+ctx.strokeStyle = "red"
+ctx.beginPath()
+ctx.moveTo(150, 0)
+ctx.lineTo(150, 300)
+ctx.stroke()
+
+ctx.fillStyle = "black"
+ctx.font = "36px Arial"
+
+ctx.textAlign = "left"
+ctx.fillText("left", 150, 70)
+
+ctx.textAlign = "center"
+ctx.fillText("center", 150, 150)
+
+ctx.textAlign = "right"
+ctx.fillText("right", 150, 230)`
+    }));
+  </script>
+  <script id="align-out" type="module">
+    display(canvasOutput(code_align, { width: 320, height: 300 }));
+  </script>
+
+  <script id="baseline2-md" type="text/markdown">
+    ## Vertikale Ausrichtung
+
+    Mit `textBaseline` änderst du die vertikale Positionierung:
+
+    ```javascript
+    ctx.textBaseline = "alphabetic"  // Standard: Grundlinie
+    ctx.textBaseline = "top"         // y ist die Oberkante
+    ctx.textBaseline = "middle"      // y ist die Mitte
+    ctx.textBaseline = "bottom"      // y ist die Unterkante
+    ```
+
+    > 💡 Meistens nimmst du den Standard `alphabetic`, aber `top` ist praktisch,
+    > wenn du `y` als **Oberkante** verstehen willst.
+  </script>
+
+  <script id="baseline2-demo" type="module">
+    const code_baseline2 = view(codeEditor("canvas:text-baseline2", {
+      value: `// Hilfslinie bei y = 100
+ctx.strokeStyle = "red"
+ctx.beginPath()
+ctx.moveTo(0, 100)
+ctx.lineTo(400, 100)
+ctx.stroke()
+
+ctx.fillStyle = "black"
+ctx.font = "28px Arial"
+
+ctx.textBaseline = "alphabetic"
+ctx.fillText("alpha", 10, 100)
+
+ctx.textBaseline = "top"
+ctx.fillText("top", 150, 100)
+
+ctx.textBaseline = "middle"
+ctx.fillText("middle", 250, 100)`
+    }));
+  </script>
+  <script id="baseline2-out" type="module">
+    display(canvasOutput(code_baseline2, { width: 400, height: 200 }));
+  </script>
+
+  <script id="color-md" type="text/markdown">
+    ## Farben bei Text
+
+    Text funktioniert wie Formen — mit `fillStyle` und `strokeStyle`, und du
+    kannst beides kombinieren:
+  </script>
+
+  <script id="color-demo" type="module">
+    const code_color = view(codeEditor("canvas:text-color", {
+      value: `ctx.font = "40px Arial"
+
+ctx.fillStyle = "blue"
+ctx.fillText("Blau", 50, 60)
+
+ctx.strokeStyle = "red"
+ctx.lineWidth = 2
+ctx.strokeText("Rot-Umriss", 50, 120)
+
+ctx.fillStyle = "yellow"
+ctx.strokeStyle = "black"
+ctx.lineWidth = 3
+ctx.fillText("Gelb mit Rand", 50, 190)
+ctx.strokeText("Gelb mit Rand", 50, 190)`
+    }));
+  </script>
+  <script id="color-out" type="module">
+    display(canvasOutput(code_color, { width: 400, height: 230 }));
+  </script>
+
+  <script id="ex1-md" type="text/markdown">
+    ---
+
+    ## Übung 1 🎯 — Text in einem Quadrat
+
+    Male ein **unausgefülltes Quadrat** 150 × 150 mit 10 px Rand. Schreibe das
+    Wort **„Quadrat“ zentriert** in die Mitte. Beschrifte die vier Ecken mit
+    ihren Koordinaten — nutze dafür horizontale (`textAlign`) **und** vertikale
+    (`textBaseline`) Ausrichtung.
+  </script>
+
+  <script id="ex1-demo" type="module">
+    const code_ex1 = view(codeEditor("canvas:text-ex1", {
+      value: `// Quadrat + Beschriftungen:
+`
+    }));
+  </script>
+  <script id="ex1-out" type="module">
+    display(canvasOutput(code_ex1, { width: 400, height: 320 }));
+  </script>
+
+  <script id="ex2-md" type="text/markdown">
+    ## Übung 2 🎯 — Beschriftetes Schachbrett
+
+    Geh zurück zu deinem Schachbrett aus dem [Farben-Kapitel](./2_colors) und
+    zeichne am Rand die **Beschriftungen** ein: Zahlen für die Reihen und
+    Buchstaben für die Spalten.
+
+    > 💡 Du kannst den Schachbrett-Loop wiederverwenden und in einem zweiten Loop
+    > am Rand die Beschriftungen mit `fillText` ergänzen.
+  </script>
+
+  <script id="ex2-demo" type="module">
+    const code_ex2 = view(codeEditor("canvas:text-ex2", {
+      value: `const größe = 40
+const rand = 20
+
+// 1. Schachbrett zeichnen (mit Versatz um 'rand')
+// 2. Buchstaben A-H unter den Spalten, Zahlen 1-8 links der Reihen
+`
+    }));
+  </script>
+  <script id="ex2-out" type="module">
+    display(canvasOutput(code_ex2, { width: 380, height: 380 }));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🎉
+
+    Du kannst jetzt **Text zeichnen** (`fillText` / `strokeText`), **Schriftart
+    und -größe** über `font` setzen und Text **horizontal** (`textAlign`) und
+    **vertikal** (`textBaseline`) ausrichten.
+
+    Damit hast du das **Canvas-Tutorial abgeschlossen** — du kannst Formen,
+    Farben und Text kombinieren, um beliebige Grafiken und Spiel-Oberflächen zu
+    bauen. 🚀
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>

@@ -1,0 +1,252 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 3 — Farben</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Farben 🌈
+
+    Bis jetzt haben wir nur schwarze Rechtecke gezeichnet. Zeit für etwas Farbe!
+
+    ## Wie Computer Farben darstellen
+
+    Das gängigste System ist **RGB** — **R**ot **G**rün **B**lau. Eine Farbe
+    besteht aus drei Zahlen, jeweils zwischen **0 und 255**:
+
+    - **R** (Rot): wie viel Rot? (0 = kein Rot, 255 = maximales Rot)
+    - **G** (Grün): wie viel Grün?
+    - **B** (Blau): wie viel Blau?
+
+    > 📌 RGB ist **additive Farbmischung** — wir mischen Licht, nicht Farbe! Alle
+    > Werte auf `0` → **Schwarz** (kein Licht). Alle Werte auf `255` → **Weiß**.
+
+    | Farbe   | RGB-Notation         |
+    | ------- | -------------------- |
+    | Rot     | `rgb(255, 0, 0)`     |
+    | Grün    | `rgb(0, 255, 0)`     |
+    | Blau    | `rgb(0, 0, 255)`     |
+    | Gelb    | `rgb(255, 255, 0)`   |
+    | Cyan    | `rgb(0, 255, 255)`   |
+    | Magenta | `rgb(255, 0, 255)`   |
+    | Weiß    | `rgb(255, 255, 255)` |
+    | Schwarz | `rgb(0, 0, 0)`       |
+    | Grau    | `rgb(128, 128, 128)` |
+  </script>
+
+  <script id="setcolors-md" type="text/markdown">
+    ## Farben in Canvas setzen
+
+    In Canvas funktionieren Farben wie bei einem echten Pinsel:
+
+    1. Du **wählst eine Farbe** (tauchst den Pinsel ein)
+    2. Du **malst** mit dieser Farbe
+    3. Die Farbe bleibt aktiv, **bis du sie wechselst**
+
+    - **`ctx.fillStyle`** — Farbe für **ausgefüllte** Formen
+    - **`ctx.strokeStyle`** — Farbe für **Umrisse**
+  </script>
+
+  <script id="setcolors-demo" type="module">
+    const code_set = view(codeEditor("canvas:colors-set", {
+      value: `ctx.fillStyle = "rgb(255, 0, 0)"    // Rot wählen
+ctx.fillRect(50, 50, 100, 100)        // Rotes Rechteck
+
+ctx.strokeStyle = "rgb(0, 128, 0)"  // Grün wählen
+ctx.lineWidth = 4
+ctx.strokeRect(200, 50, 100, 100)     // Grüner Umriss`
+    }));
+  </script>
+  <script id="setcolors-out" type="module">
+    display(canvasOutput(code_set, { width: 400, height: 220 }));
+  </script>
+
+  <script id="brush-md" type="text/markdown">
+    ### Das Pinsel-Prinzip
+
+    Einmal gewählt, bleibt die Farbe für **alle folgenden** Formen aktiv — bis du
+    sie wechselst. Beide ersten Rechtecke unten sind rot, obwohl `fillStyle` nur
+    einmal gesetzt wurde:
+  </script>
+
+  <script id="brush-demo" type="module">
+    const code_brush = view(codeEditor("canvas:colors-brush", {
+      value: `ctx.fillStyle = "rgb(255, 0, 0)"   // Pinsel in Rot tauchen
+ctx.fillRect(50, 50, 100, 100)       // Rotes Rechteck
+ctx.fillRect(200, 50, 100, 100)      // Noch ein rotes Rechteck!
+
+ctx.fillStyle = "rgb(0, 0, 255)"   // Pinsel in Blau tauchen
+ctx.fillRect(350, 50, 100, 100)      // Blaues Rechteck`
+    }));
+  </script>
+  <script id="brush-out" type="module">
+    display(canvasOutput(code_brush, { width: 500, height: 220 }));
+  </script>
+
+  <script id="notation-md" type="text/markdown">
+    ## Verschiedene Farbnotationen
+
+    Canvas akzeptiert mehrere Schreibweisen für dieselbe Farbe:
+
+    ```javascript
+    ctx.fillStyle = "rgb(255, 100, 50)"  // 1. RGB
+    ctx.fillStyle = "#FF6432"            // 2. Hex (gleiche Farbe)
+    ctx.fillStyle = "#F00"               // Kurzform für #FF0000
+    ctx.fillStyle = "red"                // 3. Farbname
+    ```
+
+    > 💡 RGB gibt dir die meiste Kontrolle, Farbnamen sind am einfachsten für
+    > Standardfarben. Eine vollständige Liste aller Namen findest du im
+    > [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color).
+  </script>
+
+  <script id="notation-demo" type="module">
+    const code_notation = view(codeEditor("canvas:colors-notation", {
+      value: `ctx.fillStyle = "rgb(255, 100, 50)"
+ctx.fillRect(20, 50, 100, 100)
+
+ctx.fillStyle = "#FF6432"
+ctx.fillRect(150, 50, 100, 100)
+
+ctx.fillStyle = "tomato"
+ctx.fillRect(280, 50, 100, 100)`
+    }));
+  </script>
+  <script id="notation-out" type="module">
+    display(canvasOutput(code_notation, { width: 420, height: 220 }));
+  </script>
+
+  <script id="rgba-md" type="text/markdown">
+    ## RGBA — Transparenz
+
+    Mit **RGBA** kannst du Farben halbtransparent machen. Der vierte Wert
+    (**Alpha**) liegt zwischen `0` (komplett transparent) und `1` (komplett
+    undurchsichtig):
+
+    ```javascript
+    ctx.fillStyle = "rgba(255, 0, 0, 0.5)"  // 50 % transparentes Rot
+    ```
+  </script>
+
+  <script id="rgba-demo" type="module">
+    const code_rgba = view(codeEditor("canvas:colors-rgba", {
+      value: `ctx.fillStyle = "rgb(255, 0, 0)"
+ctx.fillRect(50, 50, 150, 150)
+
+ctx.fillStyle = "rgba(0, 0, 255, 0.5)"  // 50 % transparentes Blau
+ctx.fillRect(100, 100, 150, 150)          // überlappt das rote`
+    }));
+  </script>
+  <script id="rgba-out" type="module">
+    display(canvasOutput(code_rgba, { width: 320, height: 300 }));
+  </script>
+
+  <script id="ex1-md" type="text/markdown">
+    ---
+
+    ## Übung 1 🎯 — Bunte Rechtecke
+
+    Male **drei überlappende Quadrate** in Rot, Grün und Blau mit jeweils
+    **70 % Transparenz** (Alpha `0.7`).
+  </script>
+
+  <script id="ex1-demo" type="module">
+    const code_ex1 = view(codeEditor("canvas:colors-ex1", {
+      value: `// Tipp: rgba(R, G, B, 0.7)
+`
+    }));
+  </script>
+  <script id="ex1-out" type="module">
+    display(canvasOutput(code_ex1, { width: 360, height: 320 }));
+  </script>
+
+  <script id="ex2-md" type="text/markdown">
+    ## Übung 2 🎯 — Schachbrett
+
+    Denk an die Loops aus dem JS-Tutorial zurück und male **möglichst effizient**
+    ein Schachbrett: **8 × 8** Quadrate, alternierende Farben, dunkles Feld in
+    der linken unteren Ecke.
+
+    > ⚠️ 64-mal `ctx.fillRect` zu kopieren zählt **nicht** als Lösung — benutze
+    > verschachtelte `for`-Loops!
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Zwei verschachtelte Loops über `zeile` (0–7) und `spalte` (0–7).
+    - Ein Feld ist dunkel, wenn `(zeile + spalte) % 2 === 0` … oder `=== 1`,
+      je nachdem wo das dunkle Feld liegen soll.
+    - Position eines Feldes: `x = spalte * größe`, `y = zeile * größe`.
+
+    </details>
+  </script>
+
+  <script id="ex2-demo" type="module">
+    const code_ex2 = view(codeEditor("canvas:colors-ex2", {
+      value: `const größe = 40
+
+for (let zeile = 0; zeile < 8; zeile++) {
+  for (let spalte = 0; spalte < 8; spalte++) {
+    // welche Farbe?
+    // ctx.fillStyle = ...
+    // ctx.fillRect(...)
+  }
+}`
+    }));
+  </script>
+  <script id="ex2-out" type="module">
+    display(canvasOutput(code_ex2, { width: 320, height: 320 }));
+  </script>
+
+  <script id="ex3-md" type="text/markdown">
+    ## Übung 3 🎯 — Füllung und Rand
+
+    Schreib eine **Funktion**, die ein Quadrat mit Rand zeichnet. Position,
+    Größe, Randdicke sowie Füll- und Randfarbe sollen jeweils **Parameter** sein.
+    Zeichne damit vier verschiedene Quadrate.
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    Zwei übereinanderliegende Rechtecke ergeben den Eindruck eines Randes: erst
+    ein großes in der Randfarbe, dann ein kleineres (um die Randdicke eingerückt)
+    in der Füllfarbe.
+
+    </details>
+  </script>
+
+  <script id="ex3-demo" type="module">
+    const code_ex3 = view(codeEditor("canvas:colors-ex3", {
+      value: `function quadratMitRand(x, y, größe, rand, füllFarbe, randFarbe) {
+  // erst die Randfarbe ...
+  // dann eingerückt die Füllfarbe ...
+}
+
+quadratMitRand(20, 20, 100, 5, "red", "black")
+quadratMitRand(150, 20, 100, 10, "green", "black")`
+    }));
+  </script>
+  <script id="ex3-out" type="module">
+    display(canvasOutput(code_ex3, { width: 300, height: 300 }));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt **`fillStyle`** / **`strokeStyle`**, das **Pinsel-Prinzip**,
+    **RGB / Hex / Farbnamen** und **Transparenz mit RGBA**.
+
+    Weiter geht's mit **[anderen Formen →](./3_shapes)**
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>

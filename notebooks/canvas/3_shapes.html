@@ -1,0 +1,215 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 4 — Andere Formen</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Andere Formen ⚪
+
+    Rechtecke sind ein guter Start, aber für die meisten Grafiken brauchen wir
+    mehr: Kreise, Linien, Dreiecke. Dafür gibt es in Canvas das Konzept der
+    **Pfade** (Paths).
+
+    Ein Pfad ist wie eine Linie, die du mit einem Stift zeichnest, ohne ihn
+    abzusetzen:
+
+    ```javascript
+    ctx.beginPath()   // 1. Neuen Pfad starten
+    // ... Pfad zeichnen (arc, moveTo, lineTo, ...) ...
+    ctx.fill()        // 3a. Pfad ausfüllen
+    ctx.stroke()      // 3b. Pfad als Umriss zeichnen
+    ```
+
+    > 📌 `beginPath()` startet immer einen neuen Pfad. Du kannst danach nur
+    > `fill()`, nur `stroke()` oder beides verwenden.
+  </script>
+
+  <script id="circle-md" type="text/markdown">
+    ## Kreise zeichnen
+
+    Kreise (und Kreisbögen) zeichnet man mit `arc()`:
+
+    ```javascript
+    ctx.arc(x, y, radius, startWinkel, endWinkel)
+    ```
+
+    - `x`, `y`: Mittelpunkt des Kreises
+    - `radius`: Radius (Abstand vom Mittelpunkt zum Rand)
+    - `startWinkel`, `endWinkel`: in **Radiant** (nicht Grad!)
+
+    ### Was sind Radianten?
+
+    - `0` = 0° (rechts)
+    - `Math.PI / 2` = 90° (unten)
+    - `Math.PI` = 180° (links)
+    - `2 * Math.PI` = 360° (voller Kreis)
+
+    > ⚠️ Die Reihenfolge von `fill()` und `stroke()` kann das Ergebnis
+    > beeinflussen — der zweite Aufruf malt über den ersten.
+  </script>
+
+  <script id="circle-demo" type="module">
+    const code_circle = view(codeEditor("canvas:shapes-circle", {
+      value: `ctx.fillStyle = "red"
+ctx.strokeStyle = "green"
+ctx.lineWidth = 40
+
+ctx.beginPath()
+ctx.arc(150, 150, 100, 0, 2 * Math.PI)
+ctx.fill()    // erst füllen
+ctx.stroke()  // dann den Rand`
+    }));
+  </script>
+  <script id="circle-out" type="module">
+    display(canvasOutput(code_circle, { width: 320, height: 320 }));
+  </script>
+
+  <script id="line1-md" type="text/markdown">
+    ## Linien zeichnen
+
+    - `moveTo(x, y)`: setzt den „Stift“ an eine Position (**ohne** zu zeichnen)
+    - `lineTo(x, y)`: zieht eine Linie von der aktuellen Position zu `(x, y)`
+  </script>
+
+  <script id="line1-demo" type="module">
+    const code_line1 = view(codeEditor("canvas:shapes-line1", {
+      value: `ctx.beginPath()
+ctx.moveTo(50, 50)     // Startpunkt
+ctx.lineTo(200, 150)   // Endpunkt
+ctx.stroke()`
+    }));
+  </script>
+  <script id="line1-out" type="module">
+    display(canvasOutput(code_line1, { width: 300, height: 220 }));
+  </script>
+
+  <script id="line2-md" type="text/markdown">
+    ### Mehrere verbundene Linien
+
+    Mehrere `lineTo` hintereinander ergeben einen Linienzug:
+  </script>
+
+  <script id="line2-demo" type="module">
+    const code_line2 = view(codeEditor("canvas:shapes-line2", {
+      value: `ctx.beginPath()
+ctx.moveTo(50, 50)
+ctx.lineTo(250, 50)
+ctx.lineTo(250, 250)
+ctx.lineTo(50, 250)
+ctx.stroke()`
+    }));
+  </script>
+  <script id="line2-out" type="module">
+    display(canvasOutput(code_line2, { width: 320, height: 320 }));
+  </script>
+
+  <script id="line3-md" type="text/markdown">
+    ### Geschlossene Form (Dreieck)
+
+    `closePath()` schließt den Pfad automatisch zum Startpunkt zurück — praktisch
+    für gefüllte Formen wie ein Dreieck:
+  </script>
+
+  <script id="line3-demo" type="module">
+    const code_line3 = view(codeEditor("canvas:shapes-line3", {
+      value: `ctx.beginPath()
+ctx.moveTo(100, 50)    // Spitze oben
+ctx.lineTo(50, 150)    // Ecke unten links
+ctx.lineTo(150, 150)   // Ecke unten rechts
+ctx.closePath()        // zurück zum Start
+ctx.fill()`
+    }));
+  </script>
+  <script id="line3-out" type="module">
+    display(canvasOutput(code_line3, { width: 220, height: 220 }));
+  </script>
+
+  <script id="linewidth-md" type="text/markdown">
+    ## Linienbreite steuern
+
+    Mit `lineWidth` änderst du die Dicke von Linien und Umrissen (Standard: `1`).
+
+    > 📌 `lineWidth` bleibt aktiv wie `fillStyle` und `strokeStyle` — setze es
+    > **vor** dem Zeichnen!
+  </script>
+
+  <script id="linewidth-demo" type="module">
+    const code_lw = view(codeEditor("canvas:shapes-linewidth", {
+      value: `ctx.strokeStyle = "black"
+
+for (const [y, breite] of [[40, 1], [90, 5], [140, 15], [190, 25]]) {
+  ctx.lineWidth = breite
+  ctx.beginPath()
+  ctx.moveTo(50, y)
+  ctx.lineTo(250, y)
+  ctx.stroke()
+}`
+    }));
+  </script>
+  <script id="linewidth-out" type="module">
+    display(canvasOutput(code_lw, { width: 300, height: 240 }));
+  </script>
+
+  <script id="ex-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯 — Pacman
+
+    Nutze, was du in diesem Kapitel gelernt hast, um **Pacman** zu zeichnen: ein
+    gelber Kreis mit einem keilförmigen Mund und schwarzem Rand.
+
+    > 💡 Du kannst Arcs und Lines kombinieren. Ein `arc` muss keinen vollen Kreis
+    > zeichnen — lass einen Winkelbereich für den Mund frei und verbinde die Enden
+    > über den Mittelpunkt (`lineTo` zur Mitte, `closePath`).
+
+    <details><summary>💡 Lösung anzeigen</summary>
+
+    ```javascript
+    ctx.fillStyle = "yellow"
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = 3
+
+    ctx.beginPath()
+    ctx.moveTo(150, 150)                                 // Mittelpunkt
+    ctx.arc(150, 150, 100, 0.25 * Math.PI, 1.75 * Math.PI) // Kreis ohne Mund
+    ctx.closePath()                                      // Mund schließen
+    ctx.fill()
+    ctx.stroke()
+    ```
+
+    </details>
+  </script>
+
+  <script id="ex-demo" type="module">
+    const code_ex = view(codeEditor("canvas:shapes-pacman", {
+      value: `// Zeichne Pacman:
+`
+    }));
+  </script>
+  <script id="ex-out" type="module">
+    display(canvasOutput(code_ex, { width: 320, height: 320 }));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du kennst jetzt **Pfade** (`beginPath` / `fill` / `stroke`), **Kreise**
+    (`arc`), **Linien** (`moveTo` / `lineTo` / `closePath`) und **`lineWidth`**.
+
+    Weiter geht's mit **[Text →](./4_text)**
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>

@@ -150,6 +150,156 @@ export function createUI({ html }) {
     return wrapper;
   }
 
+  // Runs canvas-drawing code on a REAL, on-page <canvas> (not the Web Worker
+  // sandbox — the worker has no DOM and OffscreenCanvas fonts/metrics differ).
+  // The student's code gets `ctx` (a 2D context) and `canvas` as locals and can
+  // either draw directly (`ctx.fillRect(...)`) or define a `draw(ctx)` function
+  // — if one exists it's called automatically, mirroring the App.js workflow
+  // from the original tutorial.
+  function canvasOutput(code, { width = 500, height = 400, background = "white" } = {}) {
+    const canvas = html`<canvas class="canvas-surface" width="${width}" height="${height}"></canvas>`;
+    const ctx = canvas.getContext("2d");
+
+    // Reset to a clean, predictable starting state on every run.
+    if (background) {
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+    }
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+
+    const logs = [];
+    const fakeConsole = {
+      log: (...a) => logs.push(a.map(fmtVal).join(" ")),
+      error: (...a) => logs.push("⚠ " + a.map(fmtVal).join(" ")),
+      warn: (...a) => logs.push("⚠ " + a.map(fmtVal).join(" "))
+    };
+
+    let error = null;
+    const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+    try {
+      const body = `"use strict";\n${cleaned}\n;\nif (typeof draw === "function") draw(ctx);`;
+      new Function("ctx", "canvas", "console", body)(ctx, canvas, fakeConsole);
+    } catch (e) {
+      error = e.message;
+    }
+
+    const wrap = html`<div class="canvas-output"></div>`;
+    wrap.appendChild(html`<div class="canvas-label">Canvas</div>`);
+    const frame = html`<div class="canvas-frame"></div>`;
+    frame.appendChild(canvas);
+    wrap.appendChild(frame);
+    for (const l of logs) wrap.appendChild(html`<div class="console-line" style="font-family:var(--monospace);font-size:13px">${l}</div>`);
+    if (error) wrap.appendChild(html`<div class="canvas-error">⚠ ${error}</div>`);
+    return wrap;
+  }
+
+  // Runs canvas code on a hidden real canvas while RECORDING every ctx call and
+  // property set, then reads the rendered pixels back via getImageData. This
+  // lets exercises be graded on the *outcome* (which pixels ended up which
+  // color, which calls were made) instead of diffing against a reference image.
+  //
+  // Each `check` is `{ name, run({ base, probe }) }` and returns `true`/`false`
+  // or `{ passed, detail }`. `base` is the rendered API for the student's code
+  // as-is; `probe({ callArgs })` re-runs the code and — when `extract` names a
+  // function — calls that function with `callArgs` (for parametric exercises).
+  function canvasTest(code, { width = 300, height = 300, background = "white", checks = [], extract = null } = {}) {
+    const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+
+    function colorEq(px, rgb, tol = 24) {
+      return Math.abs(px[0] - rgb[0]) <= tol && Math.abs(px[1] - rgb[1]) <= tol && Math.abs(px[2] - rgb[2]) <= tol;
+    }
+
+    function probe({ callArgs = null } = {}) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const real = canvas.getContext("2d", { willReadFrequently: true });
+      if (background) { real.fillStyle = background; real.fillRect(0, 0, width, height); }
+      real.fillStyle = "black";
+      real.strokeStyle = "black";
+      real.lineWidth = 1;
+
+      const calls = [];
+      const ctx = new Proxy(real, {
+        get(t, p) {
+          const v = t[p];
+          if (typeof v === "function") return (...a) => { calls.push({ name: String(p), args: a }); return v.apply(t, a); };
+          return v;
+        },
+        set(t, p, val) { calls.push({ name: String(p), set: true, value: val }); t[p] = val; return true; }
+      });
+      const logs = [];
+      const fakeConsole = { log: (...a) => logs.push(a.map(fmtVal).join(" ")), error: () => {}, warn: () => {} };
+
+      let error = null, fn;
+      try {
+        let body = `"use strict";\n${cleaned}\n;`;
+        if (extract) body += `\nreturn typeof ${extract} !== "undefined" ? ${extract} : undefined;`;
+        else body += `\nif (typeof draw === "function") draw(ctx);`;
+        fn = new Function("ctx", "canvas", "console", body)(ctx, canvas, fakeConsole);
+        if (extract && callArgs) {
+          if (typeof fn !== "function") error = `Die Funktion \`${extract}\` wurde nicht gefunden.`;
+          else fn(...callArgs);
+        }
+      } catch (e) { error = e.message; }
+
+      const img = real.getImageData(0, 0, width, height);
+      const pixel = (x, y) => {
+        const i = (Math.round(y) * width + Math.round(x)) * 4;
+        return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
+      };
+      // A region/connected blob summary for a target color, sampled on a grid.
+      const region = (rgb, tol = 30) => {
+        let count = 0, sx = 0, sy = 0, minX = width, minY = height, maxX = 0, maxY = 0;
+        for (let y = 0; y < height; y += 2) for (let x = 0; x < width; x += 2) {
+          if (colorEq(pixel(x, y), rgb, tol)) {
+            count++; sx += x; sy += y;
+            if (x < minX) minX = x; if (x > maxX) maxX = x;
+            if (y < minY) minY = y; if (y > maxY) maxY = y;
+          }
+        }
+        return { count, cx: count ? sx / count : 0, cy: count ? sy / count : 0, minX, minY, maxX, maxY };
+      };
+      return {
+        calls, logs, error, width, height, pixel, region, fnFound: typeof fn === "function",
+        isColor: (x, y, rgb, tol) => colorEq(pixel(x, y), rgb, tol),
+        isBackground: (x, y, tol) => colorEq(pixel(x, y), [255, 255, 255], tol ?? 8),
+        callsTo: (name) => calls.filter(c => c.name === name && !c.set),
+        setsOf: (name) => calls.filter(c => c.name === name && c.set).map(c => c.value)
+      };
+    }
+
+    const base = probe();
+    if (base.error) return { error: base.error, results: [] };
+    const results = [];
+    for (const chk of checks) {
+      try {
+        const r = chk.run({ base, probe });
+        const passed = r === true ? true : r === false ? false : !!r.passed;
+        results.push({ name: chk.name, passed, detail: (r && r.detail) || null });
+      } catch (e) {
+        results.push({ name: chk.name, passed: false, detail: "Test-Fehler: " + e.message });
+      }
+    }
+    return { error: null, results };
+  }
+
+  function canvasTestReport({ error, results }, title = "Aufgabe") {
+    if (error) return err(html`Dein Code hat einen Fehler: <code>${error}</code>`);
+    if (!results || !results.length) return hint(html`Schreib deine Lösung — dann prüfe ich sie automatisch.`);
+    const passed = results.filter(r => r.passed).length;
+    const total = results.length;
+    const allOk = passed === total;
+    const wrap = html`<div class="feedback ${allOk ? 'feedback-ok' : 'feedback-err'}"></div>`;
+    wrap.appendChild(html`<div class="test-report-head">${allOk ? `🎉 ${title}: Alle ${total} Checks bestanden!` : `${title}: ${passed} von ${total} Checks bestanden`}</div>`);
+    for (const r of results) {
+      wrap.appendChild(html`<div class="test-report-row">${r.passed ? "✅" : "❌"} ${r.name}${r.detail ? html` — <span style="opacity:.8">${r.detail}</span>` : ""}</div>`);
+    }
+    return wrap;
+  }
+
   function ok(msg) {
     return html`<div class="feedback feedback-ok">✅ ${msg}</div>`;
   }
@@ -192,7 +342,7 @@ export function createUI({ html }) {
     return wrap;
   }
 
-  return { codeEditor, ok, err, hint, consoleOutput, testReport };
+  return { codeEditor, ok, err, hint, consoleOutput, testReport, canvasOutput, canvasTest, canvasTestReport };
 }
 
 function fmtArg(v) {
@@ -250,6 +400,10 @@ export function installHashImportBanner({ html, display }) {
 // Direct named-import (in addition to the re-export above) so we can call it
 // from `installHashImportBanner` without a circular path.
 import { installHashImport as doInstallHashImport } from "./progress.js";
+
+// Direct import so `canvasOutput` can format console.log args without relying
+// on the re-exported binding (re-exports aren't in module-local scope).
+import { formatValue as fmtVal } from "./run.js";
 
 // === Hint blockquote classifier =============================================
 // Markdown blockquotes don't carry a class, so we tag them at runtime based on
