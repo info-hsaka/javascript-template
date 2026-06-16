@@ -93,10 +93,6 @@
     { move: 'clickCell', args: [0] }   // bedeutet: clickCell(0)
     ```
 
-    Bei Tic-Tac-Toe ist jeder `clickCell`-Zug auf eine **leere** Zelle möglich. Du
-    sollst also durch `G.cells` gehen und für jedes Feld, das `null` ist, ein solches
-    Zug-Objekt ins Ergebnis-Array packen.
-
     > 📌 **So spielt der Bot** — boardgame.io durchsucht mit einem Verfahren namens
     > [MCTS](https://nicolodavis.com/blog/tic-tac-toe/) den Spielbaum und wählt **gute**
     > Züge. Standardmäßig macht er 1000 Iterationen pro Zug; das lässt sich anpassen,
