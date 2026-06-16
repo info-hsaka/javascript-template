@@ -42,7 +42,7 @@
           return err(html`Ein Klick auf ein belegtes Feld sollte abgelehnt werden — gib <code>INVALID_MOVE</code> zurück, wenn <code>move.G.cells[cellIndex] !== null</code>.`);
         if (!switched)
           return err(html`Nach einem Zug sollte automatisch der nächste Spieler dran sein — füg <code>turn: { minMoves: 1, maxMoves: 1 }</code> hinzu.`);
-        return ok(html`🎉 Stark! Ungültige Züge werden abgelehnt und der Spieler wechselt automatisch.`);
+        return ok(html`🎉 Ungültige Züge werden abgelehnt und der Spieler wechselt automatisch.`);
       } catch (e) {
         return err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
       }
@@ -105,9 +105,9 @@
     soll der Zug aber **immer** enden, sobald ein Move gemacht wurde. Dafür gibt es das
     `turn`-Objekt:
 
-    - **`maxMoves: 1`** — der Zug endet automatisch nach **einem** Move.
     - **`minMoves: 1`** — ein Spieler **muss** einen Move machen (kann nicht einfach
       `endTurn` aufrufen).
+    - **`maxMoves: 1`** — der Zug endet automatisch nach **einem** Move.
 
     ```js
     turn: {

@@ -135,12 +135,36 @@
   </script>
 
   <script id="debug-md" type="text/markdown">
-    ### Das Debug Panel
+    ### Das Debug-Menü — spiel selbst ein bisschen 🛠️
 
-    Im echten Projekt (auf `localhost:3000`) liefert boardgame.io neben dem Spielfeld
-    ein **Debug Panel**, mit dem man Moves von Hand auslöst. Das kleine Debug Panel
-    über dem Spielfeld (in der Spiel-Sektion) macht genau das nach: Feld-Nummer eintippen,
-    `clickCell(…)` klicken, und mit `endTurn` den Zug an den nächsten Spieler übergeben.
+    Sobald `setup` und `clickCell` funktionieren, kannst du dein Spiel ausprobieren.
+    boardgame.io bringt dafür ein eingebautes **Debug-Menü** mit — im echten Projekt
+    (auf `localhost:3000`) erscheint es automatisch neben dem Spielfeld. Damit löst 
+    du Moves und Events **von Hand** aus, wechselst
+    den aktiven Spieler, siehst den Zustand und setzt das Spiel zurück — ganz ohne
+    eigene Oberfläche.
+
+    **So öffnest du es:** In der Spiel-Sektion oben (beim Spielzustand) gibt es einen
+    Button **🛠️ Debug-Menü öffnen**. Klick ihn — das Menü dockt rechts am Bildschirmrand
+    an. Ein erneuter Klick schließt es wieder.
+
+    **So benutzt du es:**
+
+    - Unter **Available Moves** steht dein `clickCell`. Klick darauf (oder drück den
+      angezeigten Tastenkürzel-Buchstaben), tipp als Argument die **Feld-Nummer `0`–`8`**
+      ein und drück **Enter**. Das Feld wird gesetzt — Spielfeld und Spielzustand
+      aktualisieren sich sofort.
+    - Unter den **Events** übergibst du mit **`endTurn`** den Zug an den nächsten Spieler.
+      (Bis Kapitel 2 wechselt der Spieler **nicht** automatisch — bis dahin sind alle
+      Markierungen ✕ von Spieler 0, bis du `endTurn` klickst.)
+    - Über die **Players** kannst du direkt zwischen Spieler `0` und `1` umschalten.
+    - **reset** setzt das Spiel auf den Anfangszustand zurück.
+
+    👉 **Probier's aus:** Setz ein paar Markierungen mit `clickCell`, klick zwischendurch
+    `endTurn` und schau zu, wie sich Spieler 0 (✕) und Spieler 1 (◯) abwechseln.
+
+    > 💡 Du kannst dieselben Felder auch einfach **direkt im Spielfeld anklicken** — das
+    > Debug-Menü ist nur der direktere Weg, jeden Move einzeln und gezielt auszulösen.
   </script>
 
   <script id="uebung-md" type="text/markdown">

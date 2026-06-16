@@ -73,9 +73,9 @@
       const code = editor.value;
       const stripped = stripModuleSyntax(code);
       runTestCasesWithTimeout({ code: stripped, fnName: "isDraw", cases: DRAW_CASES })
-        .then(r => isDrawSlot.replaceChildren(testReport(r, "isDraw")));
+        .then(r => isDrawSlot.replaceChildren(testReport(r, "isDraw", { summaryOnly: true })));
       runTestCasesWithTimeout({ code: stripped, fnName: "isVictory", cases: VICTORY_CASES })
-        .then(r => isVictorySlot.replaceChildren(testReport(r, "isVictory")));
+        .then(r => isVictorySlot.replaceChildren(testReport(r, "isVictory", { summaryOnly: true })));
       boardSlot.replaceChildren(gameBoard(code, {
         showState: true,
         hint: "Gewinne mit drei in einer Reihe oder füll das ganze Feld für ein Unentschieden — das Spiel sollte jetzt enden."
@@ -139,14 +139,8 @@
     6 | 7 | 8
     ```
 
-    > 💡 Es gibt genau **8 Gewinn-Linien**: 3 Zeilen, 3 Spalten, 2 Diagonalen. Leg dir
-    > am besten eine Liste dieser Linien an (z. B. `[0,1,2]`, `[3,4,5]`, …, `[2,4,6]`)
-    > und prüfe für jede: Sind die drei Felder gleich **und** nicht `null`? Dann ist
-    > ihr Wert die Markierung des Gewinners.
-
-    > ⚠️ **Achtung:** Vergleiche die Felder **miteinander** (nicht mit einer festen
-    > Zahl) und prüf zusätzlich, dass das Feld nicht `null` ist — drei leere Felder
-    > sind **kein** Sieg!
+    > 💡 Überlege wann genau ein Tic-Tac-Toe Spiel gewonnen ist. Es gibt nicht so
+    > viele verschiedene Möglichkeiten, allerdings musst du natürlich alle überprüfen.
   </script>
 
   <script id="endif-md" type="text/markdown">
@@ -157,13 +151,10 @@
 
     ```js
     endIf: function endIf(endIf) {
-      const winner = isVictory(endIf.G.cells);
-      if (winner != null) {
-        return { winner: winner };
-      }
-      if (isDraw(endIf.G.cells)) {
-        return { draw: true };
-      }
+      // falls Spieler 0 gewonnen hat:
+      // return { winner: 0 };
+      // falls das Spiel unentschieden ist:
+      // return { draw: true };
     },
     ```
 

@@ -97,10 +97,6 @@
     sollst also durch `G.cells` gehen und für jedes Feld, das `null` ist, ein solches
     Zug-Objekt ins Ergebnis-Array packen.
 
-    > 💡 Leg dir ein leeres Array an, geh mit einem `for`-Loop über `G.cells`, und bei
-    > jeder Zelle, die `null` ist, häng `{ move: 'clickCell', args: [i] }` an (mit `i`
-    > als Index). Am Ende gib das Array zurück.
-
     > 📌 **So spielt der Bot** — boardgame.io durchsucht mit einem Verfahren namens
     > [MCTS](https://nicolodavis.com/blog/tic-tac-toe/) den Spielbaum und wählt **gute**
     > Züge. Standardmäßig macht er 1000 Iterationen pro Zug; das lässt sich anpassen,
@@ -143,7 +139,7 @@
     ## Geschafft — und was jetzt? 🎓
 
     Herzlichen Glückwunsch! Du hast mit dem **echten** boardgame.io ein vollständiges
-    Tic-Tac-Toe gebaut — in **einer Datei**, die du Kapitel für Kapitel selbst
+    Tic-Tac-Toe gebaut, die du Kapitel für Kapitel selbst
     geschrieben hast. Damit kennst du die **Kernkonzepte** des Frameworks:
 
     - **`setup`** & **`G`** — der Spielzustand
@@ -153,10 +149,8 @@
     - **`ai.enumerate`** — ein Computer-Gegner
 
     > 🧐 Das Einzige, was wir dir hier abgenommen haben, ist das **Zeichnen** des
-    > Spielfelds. Im echten Projekt machst du das z. B. mit React; in einem späteren
-    > Tutorial lernst du, wie. Die **Spiellogik**, die du hier geschrieben hast, ist
-    > exakt dieselbe wie im echten Projekt — du kannst deine `TicTacToe.js` direkt
-    > übernehmen.
+    > Spielfelds. Im echten Projekt machst du das selbst; im nächsten
+    > Tutorial lernst du, wie.
 
     Spiel ruhig noch weiter herum und überleg dir, wie sich andere Spiele auf diese
     Konzepte übertragen lassen. 🚀
