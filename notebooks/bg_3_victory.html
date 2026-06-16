@@ -20,6 +20,7 @@
     const editor = codeEditor("bgio:game", { value: starter, label: "Deine Datei: TicTacToe.js" });
     const isDrawSlot = html`<div></div>`;
     const isVictorySlot = html`<div></div>`;
+    const endIfSlot = html`<div></div>`;
     const boardSlot = html`<div></div>`;
     const feedbackSlot = html`<div></div>`;
 
@@ -43,6 +44,45 @@
       [[["0", "1", "0", "1", "0", "1", "1", "0", "1"]], null],     // voll, kein Gewinner
       [[[null, null, null, null, null, null, null, null, null]], null] // leer
     ];
+    // endIf bekommt (wie ein Move) ein Objekt mit `G` und gibt den Spielausgang
+    // zurück. Erwartet: { winner: "0"/"1" } bei Sieg, { draw: true } bei voll/kein
+    // Sieger, und null (oder gar nichts) solange das Spiel weiterläuft.
+    const ENDIF_CASES = [
+      [[{ G: { cells: ["0", "0", "0", null, "1", "1", null, null, null] } }], { winner: "0" }], // obere Zeile -> Sieg 0
+      [[{ G: { cells: ["1", "0", null, "1", "0", null, "1", null, null] } }], { winner: "1" }], // linke Spalte -> Sieg 1
+      [[{ G: { cells: ["0", "1", null, "1", "0", null, null, null, "0"] } }], { winner: "0" }], // Diagonale -> Sieg 0
+      [[{ G: { cells: ["0", "0", "0", "1", "1", "0", "1", "0", "1"] } }], { winner: "0" }],      // volles Feld, Sieg im letzten Zug -> Sieg schlägt Unentschieden
+      [[{ G: { cells: ["0", "1", "0", "1", "0", "1", "1", "0", "1"] } }], { draw: true }],       // voll, kein Sieger -> Unentschieden
+      [[{ G: { cells: [null, null, null, null, null, null, null, null, null] } }], null],        // leer -> läuft weiter
+      [[{ G: { cells: ["0", "1", null, null, "0", null, null, null, "1"] } }], null]             // teils gefüllt, kein Sieger -> läuft weiter
+    ];
+
+    // endIf ist eine Methode auf dem TicTacToe-Objekt (kein Top-Level-Name), daher
+    // laden wir das Spiel und rufen game.endIf direkt auf — statt des Worker-Runners,
+    // der nur globale Funktionen wie isDraw/isVictory findet.
+    function endIfReport(code) {
+      let game;
+      try { game = loadGame(code); }
+      catch (e) { return err(html`Dein Code lässt sich nicht ausführen: ${e.message}`); }
+      if (!game || typeof game.endIf !== "function")
+        return hint(html`Schreib die <code>endIf</code>-Funktion.`);
+      const results = ENDIF_CASES.map(([args, expected]) => {
+        let actual, error;
+        try { actual = game.endIf(...args); }
+        catch (e) { error = e.message; }
+        // null bedeutet "läuft weiter" — endIf darf dafür null ODER nichts (undefined)
+        // zurückgeben. Den Gewinner vergleichen wir als String "0"/"1" (so wie isVictory
+        // ihn liefert und die Übung unten ihn prüft).
+        const passed = !error && (
+          expected === null
+            ? actual == null
+            : actual != null && typeof actual === "object" &&
+              (expected.draw ? actual.draw === true : actual.winner === expected.winner)
+        );
+        return { args, expected, actual: actual ?? null, passed, error };
+      });
+      return testReport({ error: null, results }, "endIf", { summaryOnly: true });
+    }
 
     function capstone(code) {
       try {
@@ -76,6 +116,7 @@
         .then(r => isDrawSlot.replaceChildren(testReport(r, "isDraw", { summaryOnly: true })));
       runTestCasesWithTimeout({ code: stripped, fnName: "isVictory", cases: VICTORY_CASES })
         .then(r => isVictorySlot.replaceChildren(testReport(r, "isVictory", { summaryOnly: true })));
+      endIfSlot.replaceChildren(endIfReport(code));
       boardSlot.replaceChildren(gameBoard(code, {
         showState: true,
         hint: "Gewinne mit drei in einer Reihe oder füll das ganze Feld für ein Unentschieden — das Spiel sollte jetzt enden."
@@ -87,6 +128,7 @@
       nodes: [
         sectionLabel("Test: isDraw"), isDrawSlot,
         sectionLabel("Test: isVictory"), isVictorySlot,
+        sectionLabel("Test: endIf"), endIfSlot,
         sectionLabel("Dein Spiel"), boardSlot,
         sectionLabel("Übung"), feedbackSlot
       ],
@@ -108,8 +150,8 @@
     1. `isDraw(cells)` — ist das Spiel unentschieden (alle Felder voll)?
     2. `isVictory(cells)` — hat jemand gewonnen, und wenn ja, wer?
 
-    Die zwei Test-Boxen in der Spiel-Sektion prüfen `isDraw` und `isVictory` automatisch,
-    sobald du **▶ Ausführen** drückst.
+    Die Test-Boxen in der Spiel-Sektion prüfen `isDraw`, `isVictory` und `endIf`
+    automatisch, sobald du **▶ Ausführen** drückst.
   </script>
 
   <script id="isdraw-md" type="text/markdown">
@@ -148,10 +190,10 @@
 
     ```js
     endIf: function endIf(endIf) {
-      // falls Spieler 0 gewonnen hat:
-      // return { winner: 0 }
       // falls das Spiel unentschieden ist:
       // return { draw: true }
+      // falls Spieler 0 gewonnen hat:
+      // return { winner: 0 }
       // falls das spiel nicht zu ende ist:
       // return null
     },
