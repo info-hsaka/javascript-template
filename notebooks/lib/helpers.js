@@ -172,7 +172,7 @@ export function createUI({ html }) {
     return box;
   }
 
-  function testReport({ error, results }, fnName) {
+  function testReport({ error, results }, fnName, { summaryOnly = false } = {}) {
     if (error) return err(html`Fehler beim Laden: ${error}`);
     if (!results || !results.length) return hint(html`Schreib deine Funktion <code>${fnName}</code>.`);
     const passed = results.filter(r => r.passed).length;
@@ -181,6 +181,10 @@ export function createUI({ html }) {
     const head = html`<div class="test-report-head">${allOk ? `🎉 Alle ${total} Tests bestanden!` : `${passed} von ${total} Tests bestanden`}</div>`;
     const wrap = html`<div class="feedback ${allOk ? 'feedback-ok' : 'feedback-err'}"></div>`;
     wrap.appendChild(head);
+    // In summary-only mode (used by the boardgame tutorial) we only reveal the
+    // count of passing tests, never the individual cases, so students can't read
+    // the expected answers off the failing rows.
+    if (summaryOnly && !allOk) return wrap;
     for (const r of results) {
       const args = r.args.map(fmtArg).join(", ");
       let row;

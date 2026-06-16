@@ -1,0 +1,70 @@
+<!doctype html>
+<notebook theme="air">
+  <title>boardgame.io-Tutorial — Tic-Tac-Toe</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  </script>
+
+  <script id="setup" type="module">
+    import { installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+  </script>
+
+  <script id="welcome-md" type="text/markdown">
+    # boardgame.io 🎲
+
+    In diesem Tutorial baust du Schritt für Schritt ein **Tic-Tac-Toe-Spiel** mit
+    [boardgame.io](https://boardgame.io). Du lernst die grundlegenden Konzepte des
+    Frameworks kennen und wie man sie einsetzt. Am Ende hast du ein funktionierendes,
+    spielbares Spiel — inklusive Computer-Gegner.
+
+    Du brauchst **nichts zu installieren** — alle Übungen laufen direkt im Browser.
+    Dein Fortschritt wird automatisch gespeichert.
+
+    > 💡 Falls du das JavaScript-Grundlagen-Tutorial noch nicht durch hast, schau dir
+    > zuerst [den JavaScript-Kurs](./) an. Hier setzen wir Variablen, Funktionen,
+    > Arrays und Objekte als bekannt voraus.
+  </script>
+
+  <script id="online-md" type="text/markdown">
+    > 📌 **Info** — Das Einzige, was wir dir abnehmen, ist das **Zeichnen** des
+    > Spielfelds (das kommt später). Die **Spiellogik**,
+    > um die es in diesem Tutorial geht, schreibst du komplett selbst — und sie ist
+    > exakt dieselbe wie im echten Projekt.
+
+    ### Eine Datei, Kapitel für Kapitel 📄
+
+    Du arbeitest das ganze Tutorial über an **einer einzigen Datei** `TicTacToe.js`.
+    Sie startet als Gerüst mit `TODO`-Kommentaren, und in jedem Kapitel füllst du den
+    nächsten Teil **selbst** aus. Deine Datei wird automatisch gespeichert und wandert
+    mit dir von Kapitel zu Kapitel — am Ende hast du das vollständige Spiel selbst
+    geschrieben.
+  </script>
+
+  <script id="concepts-md" type="text/markdown">
+    ## Worum geht's bei boardgame.io?
+
+    boardgame.io ist ein Framework, um **rundenbasierte Spiele** zu bauen. Die Idee:
+    Du beschreibst dein Spiel als ein einfaches JavaScript-Objekt, und das Framework
+    kümmert sich um den Rest — Spielerwechsel, Spielstände, Netzwerk-Multiplayer und
+    sogar einen Bot.
+
+    Die zwei wichtigsten Begriffe, die dich durch das ganze Tutorial begleiten:
+
+    > 📌 **`G`** — der **Spielzustand** (*game state*). Ein ganz normales
+    > JavaScript-Objekt, das alles enthält, was das Spiel gerade ausmacht. Bei
+    > Tic-Tac-Toe ist das die Belegung der 9 Felder.
+
+    > 📌 **Move** — ein **Spielzug**. Eine Funktion, die beschreibt, wie ein Spieler
+    > `G` verändert. Bei Tic-Tac-Toe: „setze meine Markierung in dieses Feld“.
+
+    Bereit? Dann los:
+
+    **[1. Ein Spiel definieren →](./bg_1_game)**
+
+    ← [Zurück zum JavaScript-Kurs](./)
+  </script>
+</notebook>

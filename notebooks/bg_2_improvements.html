@@ -1,0 +1,157 @@
+<!doctype html>
+<notebook theme="air">
+  <title>boardgame.io 2 — Spielverbesserungen</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
+    import { createGameUI, loadGame, makeClient, prepareGameFile } from "./lib/bgio.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, ok, err, hint } = createUI({ html });
+    const { gameBoard, mountEditor, mountGameSection } = createGameUI({ html });
+    const starter = prepareGameFile(2);
+  </script>
+
+  <script id="panel" type="module">
+    const editor = codeEditor("bgio:game", { value: starter, label: "Deine Datei: TicTacToe.js" });
+    const boardSlot = html`<div></div>`;
+    const feedbackSlot = html`<div></div>`;
+
+    function check(code) {
+      try {
+        const game = loadGame(code);
+
+        const c1 = makeClient(game);
+        if (!(c1.getState() && c1.getState().G && Array.isArray(c1.getState().G.cells)))
+          throw new Error("setup gibt noch kein { cells: [...] } zurück (siehe Kapitel 1).");
+        c1.moves.clickCell(0);
+        const owner = c1.getState().G.cells[0];
+        c1.moves.clickCell(0);
+        const rejectsOccupied = c1.getState().G.cells[0] === owner && owner !== null;
+
+        const c2 = makeClient(game);
+        const p0 = c2.getState().ctx.currentPlayer;
+        c2.moves.clickCell(4);
+        const switched = c2.getState().ctx.currentPlayer !== p0;
+
+        if (!rejectsOccupied)
+          return err(html`Ein Klick auf ein belegtes Feld sollte abgelehnt werden — gib <code>INVALID_MOVE</code> zurück, wenn <code>move.G.cells[cellIndex] !== null</code>.`);
+        if (!switched)
+          return err(html`Nach einem Zug sollte automatisch der nächste Spieler dran sein — füg <code>turn: { minMoves: 1, maxMoves: 1 }</code> hinzu.`);
+        return ok(html`🎉 Ungültige Züge werden abgelehnt und der Spieler wechselt automatisch.`);
+      } catch (e) {
+        return err(html`Dein Code lässt sich nicht ausführen: ${e.message}`);
+      }
+    }
+
+    function rerun() {
+      const code = editor.value;
+      boardSlot.replaceChildren(gameBoard(code, {
+        showDebug: true,
+        showState: true,
+        hint: "Versuch zweimal aufs selbe Feld zu klicken — der zweite Klick wird abgelehnt. Und nach jedem gültigen Klick wechselt der Spieler (✕ ↔ ◯)."
+      }));
+      feedbackSlot.replaceChildren(check(code));
+    }
+    mountEditor({ editor });
+    const section = mountGameSection({
+      nodes: [boardSlot, feedbackSlot],
+      onRun: () => { const b = editor.querySelector(".run-button"); if (b) b.click(); }
+    });
+    editor.addEventListener("input", () => { rerun(); section.expand(); });
+    rerun();
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # 2. Spielverbesserungen 🛠️
+
+    Wir arbeiten in weiter wie in Kapitel 1 (rechts). Unser Spiel
+    hat noch zwei Macken, die wir jetzt beheben:
+
+    1. Man kann in ein **bereits belegtes Feld** klicken und es überschreiben.
+    2. Der Zug wird **nie automatisch** an den nächsten Spieler übergeben.
+  </script>
+
+  <script id="invalid-md" type="text/markdown">
+    ## Spielzüge validieren — `INVALID_MOVE`
+
+    Ein Move kann dem Framework mitteilen, dass er **ungültig** ist, indem er die
+    spezielle Konstante `INVALID_MOVE` **zurückgibt**. boardgame.io verwirft den Zug
+    dann komplett — `G` bleibt unverändert.
+
+    `INVALID_MOVE` kommt aus boardgame.io und wird oben in der Datei importiert (die
+    `import`-Zeile ist beim Wechsel in dieses Kapitel automatisch dazugekommen):
+
+    ```js
+    import { INVALID_MOVE } from 'boardgame.io/core';
+    ```
+
+    Für `clickCell` heißt das: **Bevor** wir die Markierung setzen, prüfen wir, ob das
+    Feld schon belegt ist (also nicht `null`). Wenn ja, geben wir `INVALID_MOVE` zurück
+    und setzen **nichts**.
+
+    👉 **Deine Aufgabe:** Ergänze `clickCell` — gib **vor** dem Setzen der Markierung
+    `INVALID_MOVE` zurück, wenn `move.G.cells[cellIndex]` nicht `null` ist.
+  </script>
+
+  <script id="turn-md" type="text/markdown">
+    ## Züge verwalten — das `turn`-Objekt
+
+    Bisher mussten wir im Debug Panel von Hand auf `endTurn` klicken. In Tic-Tac-Toe
+    soll der Zug aber **immer** enden, sobald ein Move gemacht wurde. Dafür gibt es das
+    `turn`-Objekt:
+
+    - **`minMoves: 1`** — ein Spieler **muss** einen Move machen (kann nicht einfach
+      `endTurn` aufrufen).
+    - **`maxMoves: 1`** — der Zug endet automatisch nach **einem** Move.
+
+    ```js
+    turn: {
+      minMoves: 1,
+      maxMoves: 1,
+    },
+    ```
+
+    👉 **Deine Aufgabe:** In deiner Datei ist ein leeres `turn`-Objekt dazugekommen.
+    Trag dort `minMoves: 1` und `maxMoves: 1` ein.
+
+    > 💡 Es gibt in boardgame.io noch viele weitere Möglichkeiten, Züge zu steuern —
+    > etwa die **Zugreihenfolge**, **Phasen** und **Ereignisse**. Für Tic-Tac-Toe
+    > reichen uns `minMoves` und `maxMoves`.
+  </script>
+
+  <script id="uebung-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯
+
+    Die Auswertung (in der Spiel-Sektion) prüft beide Verbesserungen:
+
+    1. Ein Klick auf ein **belegtes** Feld wird abgelehnt (`INVALID_MOVE`).
+    2. Nach einem Zug ist **automatisch der nächste Spieler** dran (`turn`).
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Neu in diesem Kapitel:
+
+    - **`INVALID_MOVE`** — ein Move erklärt sich selbst für ungültig; `G` bleibt
+      unverändert.
+    - **`turn: { minMoves, maxMoves }`** — steuert die Züge und beendet sie automatisch.
+
+    Trotzdem **endet** unser Spiel noch nie — selbst bei drei in einer Reihe läuft es
+    weiter. Das ist das nächste (und kniffligste) Kapitel.
+
+    **[3. Siegbedingung →](./bg_3_victory)**
+
+    ← [Zurück zur Übersicht](./)
+  </script>
+</notebook>
