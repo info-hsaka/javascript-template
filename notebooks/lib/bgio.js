@@ -398,7 +398,7 @@ export function createGameUI({ html }) {
         // display a button to show/hide it (the panel also has its own arrow
         // tab; this is just a discoverable entry point).
         if (showDebug) {
-          const dbgBtn = html`<button class="reset-button bg-debug-toggle" type="button">🛠️ Debug-Menü öffnen</button>`;
+          const dbgBtn = html`<button class="reset-button bg-debug-toggle" type="button">🛠️ Debug-Menü öffnen/schließen</button>`;
           dbgBtn.addEventListener("click", () => {
             toggleDebugPanel();
             debugCollapsed = !isDebugPanelOpen();
