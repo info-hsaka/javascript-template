@@ -115,11 +115,8 @@
   <script id="isdraw-md" type="text/markdown">
     ## `isDraw` — ist das Spiel unentschieden?
 
-    Schreib `isDraw(cells)` so, dass es `true` zurückgibt, wenn **alle** Zellen belegt
-    sind (also keine mehr `null` ist), und sonst `false`.
-
-    > 💡 Du musst nur prüfen, ob es **keine** `null` mehr im Array gibt. Ein `for`-Loop
-    > über `cells` oder eine passende Array-Methode hilft.
+    Schreibe `isDraw(cells)` so, dass es `true` zurückgibt, wenn **alle** Zellen belegt
+    sind, und sonst `false`.
   </script>
 
   <script id="isvictory-md" type="text/markdown">
@@ -152,9 +149,11 @@
     ```js
     endIf: function endIf(endIf) {
       // falls Spieler 0 gewonnen hat:
-      // return { winner: 0 };
+      // return { winner: 0 }
       // falls das Spiel unentschieden ist:
-      // return { draw: true };
+      // return { draw: true }
+      // falls das spiel nicht zu ende ist:
+      // return null
     },
     ```
 
