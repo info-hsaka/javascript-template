@@ -421,6 +421,12 @@ export function createGameUI({ html }) {
       root.appendChild(resetBtn);
     }
 
+    // The real boardgame.io debug panel mutates client state directly — its
+    // Reset button (and undo/redo, log time-travel) bypasses our own click
+    // handlers, so those changes would never reach `render()`. Subscribing to
+    // the client makes any external state change re-render our board too.
+    client.subscribe(() => render());
+
     render();
     return root;
   }
