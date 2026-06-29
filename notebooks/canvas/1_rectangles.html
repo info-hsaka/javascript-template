@@ -10,7 +10,7 @@
     import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
-    const { codeEditor, canvasOutput } = createUI({ html });
+    const { codeEditor, canvasOutput, canvasTest, canvasTestReport } = createUI({ html });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -131,6 +131,21 @@ ctx.fillRect(100, 50, 200, 100)`
   <script id="ex1-out" type="module">
     display(canvasOutput(code_ex1, { width: 500, height: 440 }));
   </script>
+  <script id="ex1-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex1, {
+      width: 500, height: 440,
+      checks: [
+        { name: "Rechteck 400 × 300 an Position (50, 100)", run: ({ base }) => {
+            const hit = base.callsTo("fillRect").some(c => {
+              const [x, y, w, h] = c.args;
+              return Math.abs(x - 50) <= 2 && Math.abs(y - 100) <= 2 &&
+                     Math.abs(w - 400) <= 2 && Math.abs(h - 300) <= 2;
+            });
+            return { passed: hit, detail: hit ? null : "erwartet: ctx.fillRect(50, 100, 400, 300)" };
+        } }
+      ]
+    }), "Übung 1"));
+  </script>
 
   <script id="ex2-md" type="text/markdown">
     ## Übung 2 🎯 — Mehrere Rechtecke
@@ -149,13 +164,26 @@ ctx.fillRect(100, 50, 200, 100)`
   <script id="ex2-out" type="module">
     display(canvasOutput(code_ex2, { width: 500, height: 320 }));
   </script>
+  <script id="ex2-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex2, {
+      width: 500, height: 320,
+      checks: [
+        { name: "Mindestens drei Rechtecke", run: ({ base }) => {
+            const n = base.callsTo("fillRect").length + base.callsTo("strokeRect").length;
+            return { passed: n >= 3, detail: `${n} Rechteck-Befehle gefunden` };
+        } }
+      ]
+    }), "Übung 2"));
+  </script>
 
   <script id="ex3-md" type="text/markdown">
     ## Übung 3 🎯 — Ausgefüllt vs. Umriss
 
-    Versuche, ein versetztes Schachbrett-Muster mit ausgeschnittenen Löchern zu
-    bauen. Was ist die **geringste Anzahl** an Rechteck-Kommandos, die du dafür
-    brauchst? Kombiniere `fillRect`, `strokeRect` und `clearRect`.
+    Versuche, das nachfolgende Bild möglichst genau zu replizieren. Was ist die
+    **geringste Anzahl** an Rechteck-Kommandos, die du dafür brauchst? Kombiniere
+    `fillRect`, `strokeRect` und `clearRect`.
+
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcQAAAHECAYAAACnX1ofAAAVSUlEQVR4Xu3VQY7dOJAE0D5aHa0P5ftppgS6MeBslFyIwdR7QLoA7wjFj/jnn3/+uZxzzjn3v/8AwJcZRAC4DCIA3AwiAFwGEQBuBhEALoMIADeDCACXQQSAm0EEgMsgAsDNIALAZRAB4GYQAeAyiABwM4gAcBlEALgZRAC4DCIA3AwiAFwGEQBuBhEALoMIADeDCACXQQSAm0EEgMsgAsDNIALAZRAB4GYQAeAyiABwM4gAcBlEALgZRAC4DCIA3AwiAFwGEQBuBhEALoMIADeDCACXQQSAm0EEgMsgAsDNIALAZRAB4GYQAeAyiABwM4gAcBlEALgZRAC4DCIA3AwiAFwGEQBuBhEALoMIADeDCACXQQSAm0EEgMsgAsDNIALAZRAB4GYQAeAyiABwM4gAcBlEALgZRAC4DCIA3AwiAFwGEQBuBhEALoMIADeDCACXQQSAm0EEgMsgAsDNIC74+fm5/v33X+eci77fruI5g7jgN2gA6XRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGTACXRVjUFcIGQ5/vz5c38Pl3O/34QMv9+D5wziAiHL8fstfn5+/l8puz3391uQwbeoMYgLhCzH3yImg++RxbeoMYgLhCyHAs7ie2TxLWoM4gIhy6GAs/geWXyLGoO4QMhyKOAsvkcW36LGIC4QshwKOIvvkcW3qDGIC4QshwLO4ntk8S1qDOICIcuhgLP4Hll8ixqDuEDIcijgLL5HFt+ixiAuELIcCjiL75HFt6gxiAuELIcCzuJ7ZPEtagziAiHLoYCz+B5ZfIsag7hAyHIo4Cy+RxbfosYgLhCyHAo4i++RxbeoMYgLhCyHAs7ie2TxLWoM4gIhy6GAs/geWXyLGoO4QMhyKOAsvkcW36LGIC4QshwKOIvvkcW3qDGIC4QshwLO4ntk8S1qDOICIcuhgLP4Hll8ixqDuEDIcijgLL5HFt+ixiAuELIcCjiL75HFt6gxiAuELIcCzuJ7ZPEtagziAiHLoYCz+B5ZfIsag7hAyHIo4Cy+RxbfosYgLhCyHAo4i++RxbeoMYgLhCyHAs7ie2TxLWoM4gIhy6GAs/geWXyLGoO4QMhyKOAsvkcW36LGIC4QshwKOIvvkcW3qDGIC4QshwLO4ntk8S1qDOICIcuhgLP4Hll8ixqDuEDIcijgLL5HFt+ixiAuELIcCjiL75HFt6gxiAuELIcCzuJ7ZPEtagziAiHLoYCz+B5ZfIsag7hAyHIo4Cy+RxbfosYgLhCyHAo4i++RxbeoMYgLhCyHAs7ie2TxLWoM4gIhy6GAs/geWXyLGoO4QMhyKOAsvkcW36LGIC4QshwKOIvvkcW3qDGIC4QshwLO4ntk8S1qDOICIcuhgLP4Hll8ixqDuEDIcijgLL5HFt+ixiAuELIcCjiL75HFt6gxiAuELIcCzuJ7ZPEtagziAiHLoYCz+B5ZfIsag7hAyHIo4Cy+RxbfosYgLhCyHF0K+M+fP/+95eT7+fm5b/7/E+/3m5zu9x08ZxAXCFmOv+V1ut83dBiSLoP49w2n6/CGNxnEBUKW42+Bnc47snR6B88ZxAVClqNTcXlHjk7v4DmDuEDIcnQqLu/I0ekdPGcQFwhZjk7F5R05Or2D5wziAiHL0am4vCNHp3fwnEFcIGQ5OhWXd+To9A6eM4gLhCxHp+Lyjhyd3sFzBnGBkOXoVFzekaPTO3jOIC4Qshydiss7cnR6B88ZxAVClqNTcXlHjk7v4DmDuEDIcnQqLu/I0ekdPGcQFwhZjk7F5R05Or2D5wziAiHL0am4vCNHp3fwnEFcIGQ5OhWXd+To9A6eM4gLhCxHp+Lyjhyd3sFzBnGBkOXoVFzekaPTO3jOIC4Qshydiss7cnR6B88ZxAVClqNTcXlHjk7v4DmDuEDIcnQqLu/I0ekdPGcQFwhZjk7F5R05Or2D5wziAiHL0am4vCNHp3fwnEFcIGQ5OhWXd+To9A6eM4gLhCxHp+Lyjhyd3sFzBnGBkOXoVFzekaPTO3jOIC4Qshydiss7cnR6B88ZxAVClqNTcXlHjk7v4DmDuEDIcnQqLu/I0ekdPGcQFwhZjk7F5R05Or2D5wziAiHL0am4vCNHp3fwnEFcIGQ5OhWXd+To9A6eM4gLhCxHp+Lyjhyd3sFzBnGBkOXoVFzekaPTO3jOIC4Qshydiss7cnR6B88ZxAVClqNTcXlHjk7v4DmDuEDIcnQqLu/I0ekdPGcQFwhZjk7F5R05Or2D5wziAiHL0am4vCNHp3fwnEFcIGQ5OhWXd+To9A6eM4gLhCxHp+Lyjhyd3sFzBnGBkOXoVFzekaPTO3jOIC4Qshydiss7cnR6B88ZxAVClqNTcXlHjk7v4DmDuEDIcnQqLu/I0ekdPGcQFwhZjk7F5R05Or2D5wziAiHL0am4vCNHp3fwnEFcIGQ5OhWXd+To9A6eM4gLhCxHp+Lyjhyd3sFzBnGBkOXoVFzekaPTO3jOIC4Qshy/3+Ln5+e/Ajv1ft/Q5R2/f0/39z2n6/CGNxnEBV1CNj6+C7kOg/h7f/78maN2nL9vOV2HN7xp/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7PZel1x1YBC/afwWDWJFl5DNhez2XpdcdWAQv2n8Fg1iRZeQzYXs9l6XXHVgEL9p/BYNYkWXkM2F7Pbez8/Pf0Xs9t7fb3G6Dm940/gtGsSKLiGbC/nU62J+16k3j8up9+fPn/kTHef3HTw3MtynVN7QJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVXUI2F9mp18X8rlOPHF266i0jw0Jc0SVkc5Gdel3M7zr1yNGlq94yMizEFV1CNhfZqdfF/K5TjxxduuotI8NCXNElZHORnXpdzO869cjRpaveMjIsxBVdQjYX2anXxfyuU48cXbrqLSPDQlzRJWRzkZ16XczvOvXI0aWr3jIyLMQVQpZlLmS398ihq2pGhoW4QsiyzIXs9h45dFXNyLAQVwhZlrmQ3d4jh66qGRkW4gohyzIXstt75NBVNSPDQlwhZFnmQnZ7jxy6qmZkWIgrhCzLXMhu75FDV9WMDAtxhZBlmQvZ7T1y6KqakWEhrhCyLHMhu71HDl1VMzIsxBVClmUuZLf3yKGrakaGhbhCyLLMhez2Hjl0Vc3IsBBXCFmWuZDd3iOHrqoZGRbiCiHLMhey23vk0FU1I8NCXCFkWeZCdnuPHLqqZmRYiCuELMtcyG7vkUNX1YwMC3GFkGWZC9ntPXLoqpqRYSGuELIscyG7vUcOXVUzMizEFUKWZS5kt/fIoatqRoaFuELIssyF7PYeOXRVzciwEFcIWZa5kN3eI4euqhkZFuIKIcsyF7Lbe+TQVTUjw0JcIWRZ5kJ2e48cuqpmZFiIK4Qsy1zIbu+RQ1fVjAwLcYWQZZkL2e09cuiqmpFhIa4QsixzIbu9Rw5dVTMyLMQVQpZlLmS398ihq2pGhoW4QsiyzIXs9h45dFXNyLAQVwhZlrmQ3d4jh66qGRkW4gohyzIXstt75NBVNSPDQlwhZFnmQnZ7jxy6qmZkWIgrhCzLXMhu75FDV9WMDAtxhZBlmQvZ7T1y6KqakWEhrhCyLHMhu71HDl1VMzIsxBVClmUuZLf3yKGrakaGhbhCyLLMhez2Hjl0Vc3IsBBXCFmWuZDd3iOHrqoZGRbiCiHLMhey23vk0FU1I8NCXCFkWeZCdnuPHLqqZmRYiCuELMtcyG7vkUNX1YwMC3GFkGWZC9ntPXLoqpqRYSGuELIscyG7vUcOXVUzMizEFUKWZS5kt/fIoatqRoaFuELIssyF7PYeOXRVzciwEFcIWZa5kN3eI4euqhkZFuIKIcsyF7Lbe+TQVTUjw0JcIWRZ5kJ2e48cuqpmZFiIK4Qsy1zIbu+RQ1fVjAwLcYWQZZkL2e09cuiqmpFhIa4QsixzIbu9Rw5dVTMyLMQVQpZlLmS398ihq2pGhoW4QsiyzIXs9h45dFXNyLAQVwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQFwgZcAJdVWMQF/z8/NxBc8655PvtKp4ziABwGUQAuBlEALgMIgDcDCIAXAYRAG4GEQAugwgAN4MIAJdBBICbQQSAyyACwM0gAsBlEAHgZhAB4DKIAHAziABwGUQAuBlEALgMIgDcDCIAXAYRAG4GEQAugwgAN4MIAJdBBICbQQSAyyACwM0gAsBlEAHgZhAB4DKIAHAziABwGUQAuBlEALgMIgDcDCIAXAYRAG4GEQAugwgAN4MIAJdBBICbQQSAyyACwM0gAsBlEAHgZhAB4DKIAHAziABwGUQAuBlEALgMIgDcDCIAXAYRAG4GEQAugwgAN4MIAJdBBICbQQSAyyACwM0gAsBlEAHgZhAB4DKIAHAziABwGUQAuBlEALgMIgDcDCIAXAYRAG4GEQAugwgAN4MIAJdBBICbQQSA6/8MonPOOff1+x/Beu9kDH+V+wAAAABJRU5ErkJggg==" alt="Zwei überlappende Umriss-Quadrate oben, darunter schwarze Felder mit einem ausgeschnittenen weißen Loch" style="max-width:300px;border:1px solid var(--theme-foreground-faintest);border-radius:.3em">
   </script>
 
   <script id="ex3-demo" type="module">
@@ -166,6 +194,16 @@ ctx.fillRect(100, 50, 200, 100)`
   </script>
   <script id="ex3-out" type="module">
     display(canvasOutput(code_ex3, { width: 400, height: 400 }));
+  </script>
+  <script id="ex3-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex3, {
+      width: 400, height: 400,
+      checks: [
+        { name: "`fillRect` benutzt", run: ({ base }) => base.callsTo("fillRect").length > 0 },
+        { name: "`strokeRect` benutzt", run: ({ base }) => base.callsTo("strokeRect").length > 0 },
+        { name: "`clearRect` benutzt", run: ({ base }) => base.callsTo("clearRect").length > 0 }
+      ]
+    }), "Übung 3"));
   </script>
 
   <script id="outro" type="text/markdown">

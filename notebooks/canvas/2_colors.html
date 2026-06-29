@@ -10,7 +10,7 @@
     import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
-    const { codeEditor, canvasOutput } = createUI({ html });
+    const { codeEditor, canvasOutput, canvasTest, canvasTestReport } = createUI({ html });
   </script>
 
   <script id="intro" type="text/markdown">
@@ -168,6 +168,33 @@ ctx.fillRect(100, 100, 150, 150)          // überlappt das rote`
   <script id="ex1-out" type="module">
     display(canvasOutput(code_ex1, { width: 360, height: 320 }));
   </script>
+  <script id="ex1-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex1, {
+      width: 360, height: 320,
+      checks: [
+        { name: "Drei Rechtecke gezeichnet", run: ({ base }) => {
+            const n = base.callsTo("fillRect").length;
+            return { passed: n >= 3, detail: `${n} gezeichnet` };
+        } },
+        { name: "Mit Transparenz (rgba, Alpha < 1)", run: ({ base }) => {
+            const hit = base.setsOf("fillStyle").map(String).some(s => {
+              const m = s.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/i);
+              return m && parseFloat(m[1]) < 1;
+            });
+            return { passed: hit, detail: hit ? null : "nutze rgba(R, G, B, 0.7)" };
+        } },
+        { name: "Quadrate überlappen sich", run: ({ base }) => {
+            const r = base.callsTo("fillRect").map(c => c.args);
+            const ov = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] &&
+                                 a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+            for (let i = 0; i < r.length; i++)
+              for (let j = i + 1; j < r.length; j++)
+                if (ov(r[i], r[j])) return true;
+            return false;
+        } }
+      ]
+    }), "Übung 1"));
+  </script>
 
   <script id="ex2-md" type="text/markdown">
     ## Übung 2 🎯 — Schachbrett
@@ -191,27 +218,54 @@ ctx.fillRect(100, 100, 150, 150)          // überlappt das rote`
 
   <script id="ex2-demo" type="module">
     const code_ex2 = view(codeEditor("canvas:colors-ex2", {
-      value: `const größe = 40
-
-for (let zeile = 0; zeile < 8; zeile++) {
-  for (let spalte = 0; spalte < 8; spalte++) {
-    // welche Farbe?
-    // ctx.fillStyle = ...
-    // ctx.fillRect(...)
-  }
-}`
+      value: ``
     }));
   </script>
   <script id="ex2-out" type="module">
     display(canvasOutput(code_ex2, { width: 320, height: 320 }));
   </script>
+  <script id="ex2-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex2, {
+      width: 320, height: 320,
+      checks: [
+        { name: "Dunkles Feld unten links", run: ({ base }) => {
+            const p = base.pixel(20, 300);
+            const lum = (p[0] + p[1] + p[2]) / 3;
+            return { passed: lum < 150, detail: `Helligkeit ${Math.round(lum)}` };
+        } },
+        { name: "Lückenloses 8 × 8 Schachbrett", run: ({ base }) => {
+            const size = 40;   // 320 / 8 — die Felder müssen das Brett ohne Lücken füllen
+            const lum = (x, y) => { const p = base.pixel(x, y); return (p[0] + p[1] + p[2]) / 3; };
+            // Unten links muss dunkel sein → das legt fest, welche Parität dunkel ist.
+            if (lum(20, 7 * size + 20) >= 128) return { passed: false, detail: "unten links ist nicht dunkel" };
+            const darkParity = (0 + 7) % 2;
+            let bad = 0, checked = 0;
+            for (let col = 0; col < 8; col++) for (let row = 0; row < 8; row++) {
+              const expectDark = ((col + row) % 2) === darkParity;
+              // Mitte UND Nähe der Feldkante prüfen — so fallen zu kleine Felder
+              // (z. B. fillRect(x, y, 40, 30)) durch ihre Lücken auf.
+              for (const [ox, oy] of [[20, 20], [32, 34]]) {
+                const isDark = lum(col * size + ox, row * size + oy) < 128;
+                checked++;
+                if (isDark !== expectDark) bad++;
+              }
+            }
+            return { passed: bad === 0, detail: bad ? `${bad}/${checked} Stellen falsch — Lücken oder falsche Feldgröße?` : null };
+        } }
+      ]
+    }), "Übung 2"));
+  </script>
 
   <script id="ex3-md" type="text/markdown">
     ## Übung 3 🎯 — Füllung und Rand
 
-    Schreib eine **Funktion**, die ein Quadrat mit Rand zeichnet. Position,
-    Größe, Randdicke sowie Füll- und Randfarbe sollen jeweils **Parameter** sein.
-    Zeichne damit vier verschiedene Quadrate.
+    Schreib eine **Funktion** `quadratMitRand(x, y, größe, rand, füllFarbe, randFarbe)`,
+    die ein Quadrat mit Rand zeichnet — Position, Größe, Randdicke sowie Füll- und
+    Randfarbe sind jeweils **Parameter**. Reproduziere damit das folgende Bild: vier
+    **100 × 100** große Quadrate — **rot** (oben links) und **blau** (unten links)
+    mit schwarzem Rand, **grün** (oben rechts) und **gelb** (unten rechts) ohne Rand.
+
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcQAAAHECAYAAACnX1ofAAAZ10lEQVR4Xu3VQQrsSpIEQB3tH+3fXN2qycUQQiDlexAetBl4LbTNKPfjOI5TRERE/vsDAP/LDCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4MIgCcBhEAfgwiAJwGEQB+DCIAnAYRAH4M4oZ//vnn/Pfff0VEonN1Fe8ZxA3XoQGk01XfGMQNjgyYQFd9YxA3ODJgAl31jUHc4MiACXTVNwZxgyMDJtBV3xjEDY4MmEBXfWMQNzgyYAJd9Y1B3ODIgAl01TcGcYMjAybQVd8YxA2ODJhAV31jEDc4MmACXfWNQdzgyIAJdNU3BnGDIwMm0FXfGMQNjgyYQFd9YxA3ODJgAl31jUHc4MiACXTVNwZxgyMDJtBV3xjEDY4MmEBXfWMQNzgyYAJd9Y1B3ODIgAl01TcGcYMjAybQVd8YxA2ODJhAV31jEDc4MmACXfWNQdzgyIAJdNU3BnGDIwMm0FXfGMQNjgyYQFd9YxA3ODJgAl31jUHc4MiACXTVNwZxgyMDJtBV3xjEDY4MmEBXfWMQNzgyYAJd9Y1B3ODIgAl01TcGcYMjAybQVd8YxA2ODJhAV31jEDc4MmACXfWNQdzgyIAJdNU3BnGDIwMm0FXfGMQNjgyYQFd9YxA3ODJgAl31jUHckH5k61FlWOBvS++qNOu/6M/4RfqR1aKVGYG/Lb2r0qz/oj/jF+lHVotWZgT+tvSuSrP+i/6MX6QfWS1amRH429K7Ks36L/ozfpF+ZLVoZUbgb0vvqjTrv+jP+EX6kdWilRmBvy29q9Ks/6I/4xfpR1aLVmYE/rb0rkqz/ov+jF+kH1ktWpkR+NvSuyrN+i/6M36RfmS1aGVG4G9L76o067/oz/hF+pHVopUZgb8tvavSrP+iP+MX6UdWi/Ypp2TlpePfQ4KSLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelHVofvKbdClt68VAtZepMsvavSGMQN6UdWh+8pt0KW3rxUC1l6kyy9q9IYxA3pR1aH7ym3QpbevFQLWXqTLL2r0hjEDelH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4pHVojWIianvc9RnXK7vkpNcE7uqk0HcMPHIatEaxMTU9znqMy7Xd8lJrold1ckgbph4ZLVoDWJi6vsc9RmX67vkJNfErupkEDdMPLJatAYxMfV9jvqMy/VdcpJrYld1MogbJh5ZLVqDmJj6Pkd9xuX6LjnJNbGrOhnEDROPrBatQUxMfZ+jPuNyfZec5JrYVZ0M4oaJR1aL1iAmpr7PUZ9xub5LTnJN7KpOBnHDxCOrRWsQE1Pf56jPuFzfJSe5JnZVJ4O4YeKR1aI1iImp73PUZ1yu75KTXBO7qpNB3DDxyGrRGsTE1Pc56jMu13fJSa6JXdXJIG6YeGS1aA1iYur7HPUZl+u75CTXxK7qZBA3TDyyWrQGMTH1fY76jMv1XXKSa2JXdTKIGyYeWS1ag5iY+j5Hfcbl+i45yTWxqzoZxA0Tj6wWrUFMTH2foz7jcn2XnOSa2FWdDOKGiUdWi9YgJqa+z1Gfcbm+S05yTeyqTgZxw8Qjq0VrEBNT3+eoz7hc3yUnuSZ2VSeDuGHikdWiNYiJqe9z1Gdcru+Sk1wTu6qTQdww8chq0RrExNT3OeozLtd3yUmuiV3VySBumHhktWgNYmLq+xz1GZfru+Qk18Su6mQQN0w8slq0BjEx9X2O+ozL9V1ykmtiV3UyiBsmHlktWoOYmPo+R33G5fouOck1sas6GcQNE4+sFq3MCPyJiV3Vaf3v/PG+mHhktWhlRuBPTOyqTut/54/3xcQjq0UrMwJ/YmJXdVr/O3+8LyYeWS1amRH4ExO7qtP63/njfTHxyGrRyozAn5jYVZ3W/84f7wtHBkygq74xiBscGTCBrvrGIG5wZMAEuuobg7jBkQET6KpvDOIGRwZMoKu+MYgbHBkwga76xiBucGTABLrqG4O4wZEBE+iqbwziBkcGTKCrvjGIGxwZMIGu+sYgbnBkwAS66huDuMGRARPoqm8M4gZHBkygq74xiBscGTCBrvrGIG5wZMAEuuobg7jBkQET6KpvDOIGRwZMoKu+MYgbHBkwga76xiBucGTABLrqG4O4wZEBE+iqbwziBkcGTKCrvjGIGxwZMIGu+sYgbnBkwAS66huDuMGRARPoqm8M4gZHBkygq74xiBscGTCBrvrGIG5wZMAEuuobg7jBkQET6KpvDOIGRwZMoKu+MYgbHBkwga76xiBucGTABLrqG4O4wZEBE+iqbwziBkcGTKCrvjGIGxwZMIGu+sYgbvjnn39+hyYikpyrq3jPIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsBpEAHgxyACwGkQAeDHIALAaRAB4McgAsD5/wZRRETkfz3/AeZ26apXz19YAAAAAElFTkSuQmCC" alt="Vier Quadrate im Fenster-Muster: rot oben links und blau unten links mit schwarzem Rand, grün oben rechts und gelb unten rechts ohne Rand" style="max-width:280px;border:1px solid var(--theme-foreground-faintest);border-radius:.3em">
 
     <details><summary>💡 Tipp anzeigen</summary>
 
@@ -224,17 +278,50 @@ for (let zeile = 0; zeile < 8; zeile++) {
 
   <script id="ex3-demo" type="module">
     const code_ex3 = view(codeEditor("canvas:colors-ex3", {
-      value: `function quadratMitRand(x, y, größe, rand, füllFarbe, randFarbe) {
-  // erst die Randfarbe ...
-  // dann eingerückt die Füllfarbe ...
-}
-
-quadratMitRand(20, 20, 100, 5, "red", "black")
-quadratMitRand(150, 20, 100, 10, "green", "black")`
+      value: ``
     }));
   </script>
   <script id="ex3-out" type="module">
     display(canvasOutput(code_ex3, { width: 300, height: 300 }));
+  </script>
+  <script id="ex3-test" type="module">
+    // Findet den Schwerpunkt aller Pixel, die ein Farbkriterium erfüllen.
+    const find3 = (base, pred) => {
+      let n = 0, sx = 0, sy = 0;
+      for (let y = 0; y < base.height; y += 4) for (let x = 0; x < base.width; x += 4) {
+        const [r, g, b] = base.pixel(x, y);
+        if (pred(r, g, b)) { n++; sx += x; sy += y; }
+      }
+      return { count: n, cx: n ? sx / n : 0, cy: n ? sy / n : 0 };
+    };
+    // qx/qy: -1 = linke/obere Hälfte, +1 = rechte/untere Hälfte.
+    const quadrant = (base, pred, qx, qy, label) => {
+      const r = find3(base, pred);
+      if (r.count <= 20) return { passed: false, detail: `kein ${label} gefunden` };
+      const okX = qx < 0 ? r.cx < base.width / 2 : r.cx > base.width / 2;
+      const okY = qy < 0 ? r.cy < base.height / 2 : r.cy > base.height / 2;
+      return { passed: okX && okY, detail: okX && okY ? null : `${label} an der falschen Position` };
+    };
+    const isRed = (r, g, b) => r > 150 && g < 90 && b < 90;
+    const isGreen = (r, g, b) => g > 90 && r < 120 && b < 120;
+    const isBlue = (r, g, b) => b > 150 && r < 90 && g < 90;
+    const isYellow = (r, g, b) => r > 150 && g > 150 && b < 90;
+    const isBlack = (r, g, b) => r < 60 && g < 60 && b < 60;
+    display(canvasTestReport(canvasTest(code_ex3, {
+      width: 300, height: 300, extract: "quadratMitRand",
+      checks: [
+        { name: "Funktion `quadratMitRand` existiert", run: ({ base }) =>
+            ({ passed: base.fnFound, detail: base.fnFound ? null : "Funktion `quadratMitRand` nicht gefunden" }) },
+        { name: "Rotes Quadrat oben links", run: ({ base }) => quadrant(base, isRed, -1, -1, "rotes Quadrat") },
+        { name: "Grünes Quadrat oben rechts", run: ({ base }) => quadrant(base, isGreen, 1, -1, "grünes Quadrat") },
+        { name: "Blaues Quadrat unten links", run: ({ base }) => quadrant(base, isBlue, -1, 1, "blaues Quadrat") },
+        { name: "Gelbes Quadrat unten rechts", run: ({ base }) => quadrant(base, isYellow, 1, 1, "gelbes Quadrat") },
+        { name: "Schwarze Ränder (rot & blau)", run: ({ base }) => {
+            const blk = find3(base, isBlack);
+            return { passed: blk.count > 20, detail: blk.count > 20 ? null : "die schwarzen Ränder fehlen" };
+        } }
+      ]
+    }), "Übung 3"));
   </script>
 
   <script id="outro" type="text/markdown">
