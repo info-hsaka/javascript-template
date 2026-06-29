@@ -80,16 +80,16 @@ ctx.strokeRect(200, 50, 100, 100)     // Grüner Umriss`
 
   <script id="brush-demo" type="module">
     const code_brush = view(codeEditor("canvas:colors-brush", {
-      value: `ctx.fillStyle = "rgb(255, 0, 0)"   // Pinsel in Rot tauchen
-ctx.fillRect(50, 50, 100, 100)       // Rotes Rechteck
-ctx.fillRect(200, 50, 100, 100)      // Noch ein rotes Rechteck!
+      value: `ctx.fillStyle = "rgb(255, 0, 0)";   // Pinsel in Rot tauchen
+ctx.fillRect(50, 50, 100, 100);      // Rotes Rechteck
+ctx.fillRect(200, 50, 100, 100);     // Noch ein rotes Rechteck!
 
-ctx.fillStyle = "rgb(0, 0, 255)"   // Pinsel in Blau tauchen
-ctx.fillRect(350, 50, 100, 100)      // Blaues Rechteck`
+ctx.fillStyle = "rgb(0, 0, 255)";   // Pinsel in Blau tauchen
+ctx.fillRect(125, 125, 100, 100);     // Blaues Rechteck`
     }));
   </script>
   <script id="brush-out" type="module">
-    display(canvasOutput(code_brush, { width: 500, height: 220 }));
+    display(canvasOutput(code_brush, { width: 350, height: 350 }));
   </script>
 
   <script id="notation-md" type="text/markdown">
