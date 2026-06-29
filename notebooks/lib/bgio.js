@@ -18,6 +18,9 @@
 import { Client } from "boardgame.io/client";
 import { INVALID_MOVE } from "boardgame.io/core";
 import { MCTSBot, Step } from "boardgame.io/ai";
+// The canvas chapters' `drawPicture` helper, so the board-rendering finale can
+// offer the exact same drawing tools the canvas track taught.
+import { makeDrawPicture } from "./helpers.js";
 // The real boardgame.io debug panel (the Svelte UI shipped with the package —
 // the same one you normally get on localhost:3000). We pass it explicitly as
 // `debug: { impl: Debug }` rather than `debug: true`: the bundled default is
@@ -138,6 +141,72 @@ export function prepareGameFile(chapter) {
   }
   // Reset target / fallback for a fresh visit: a clean skeleton for this chapter.
   return growSkeleton(BASE_SKELETON, chapter);
+}
+
+/**
+ * Read the student's stored `TicTacToe.js` (the file they built across the
+ * boardgame chapters), or `null` if there is none. The board-rendering finale
+ * uses it as the live game logic behind the canvas.
+ */
+export function readStoredGame() {
+  try { return localStorage.getItem(STORAGE_KEY); } catch { return null; }
+}
+
+// A complete, correct Tic-Tac-Toe used as a fallback in the board-rendering
+// finale: if the student's own `TicTacToe.js` isn't finished (or doesn't load),
+// the canvas should still be playable so they can focus on the drawing. The move
+// shape matches what the chapters teach — a `move` object with `G`/`playerID`,
+// mutating `G` in place.
+const REF_LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6],
+];
+function refVictory(cells) {
+  for (const [a, b, c] of REF_LINES) {
+    if (cells[a] != null && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a];
+  }
+  return null;
+}
+export const REFERENCE_GAME = {
+  setup: () => ({ cells: Array(9).fill(null) }),
+  turn: { minMoves: 1, maxMoves: 1 },
+  moves: {
+    clickCell: (move, cellIndex) => {
+      if (move.G.cells[cellIndex] != null) return INVALID_MOVE;
+      move.G.cells[cellIndex] = move.playerID;
+    },
+  },
+  endIf: (endIf) => {
+    const winner = refVictory(endIf.G.cells);
+    if (winner != null) return { winner };
+    if (endIf.G.cells.every((c) => c != null)) return { draw: true };
+  },
+  ai: {
+    enumerate: (G) =>
+      G.cells.map((c, i) => (c == null ? { move: "clickCell", args: [i] } : null)).filter(Boolean),
+  },
+};
+
+// Try to use the student's own game; fall back to the reference if it can't be
+// loaded or doesn't behave like a Tic-Tac-Toe (so the finale never breaks).
+export function resolveGame(gameCode) {
+  if (gameCode) {
+    try {
+      const game = loadGame(gameCode);
+      const client = makeClient(game);
+      const st = client.getState();
+      const cells = st && st.G && st.G.cells;
+      let ok = Array.isArray(cells) && cells.length === 9;
+      if (ok) {
+        client.moves.clickCell(0);
+        ok = client.getState().G.cells[0] != null;
+      }
+      try { client.stop(); } catch { /* ignore */ }
+      if (ok) return game;
+    } catch { /* fall through to reference */ }
+  }
+  return REFERENCE_GAME;
 }
 
 // boardgame.io move/setup/endIf code uses `import { INVALID_MOVE } from
@@ -431,6 +500,220 @@ export function createGameUI({ html }) {
     return root;
   }
 
+  // Strip the `export` keyword so the student's board file can be run inside a
+  // `new Function` sandbox (same trick as the canvas chapters).
+  function stripExport(code) {
+    return code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+  }
+
+  // Like `gameBoard`, but the board is drawn by the STUDENT's own
+  // `draw(G)` function on a real, clickable <canvas> — the finale of the course.
+  // The game logic comes from their `TicTacToe.js` (or the reference fallback)
+  // running through a real boardgame.io client; the rendering is entirely theirs.
+  //
+  // The student's code gets the canvas tools they already know — `ctx`, `canvas`,
+  // `drawPicture`, `onClick`, `resetOnClicks` — plus `clickCell(i)`, which fires
+  // the real `clickCell` move on the client. Every accepted move updates `G` and
+  // re-runs `draw(G)`: the same redraw loop as the canvas "Klicks" chapter, only
+  // the state now lives in boardgame.io instead of a local variable.
+  let liveCanvasClient = null;
+
+  function gameCanvas(boardCode, opts = {}) {
+    const { gameCode = null, width = 300, height = 300, background = "white" } = opts;
+    const root = html`<div class="bg-game"></div>`;
+
+    if (liveCanvasClient) {
+      try { liveCanvasClient.stop(); } catch { /* ignore */ }
+      liveCanvasClient = null;
+    }
+
+    let client;
+    try {
+      client = makeClient(resolveGame(gameCode));
+      liveCanvasClient = client;
+    } catch (e) {
+      root.appendChild(html`<div class="feedback feedback-err">❌ ${e.message}</div>`);
+      return root;
+    }
+
+    const canvas = html`<canvas class="canvas-surface" style="cursor:pointer" width="${width}" height="${height}"></canvas>`;
+    const ctx = canvas.getContext("2d");
+    if (background) { ctx.fillStyle = background; ctx.fillRect(0, 0, width, height); }
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+
+    let handlers = [];
+    const onClick = (x, y, w, h, handler) => { handlers.push({ x, y, width: w, height: h, handler }); };
+    const resetOnClicks = () => { handlers = []; };
+    const drawPicture = makeDrawPicture();
+    const clickCell = (i) => {
+      try { client.moves.clickCell(i); }
+      catch (e) { flash(html`<div class="feedback feedback-err">❌ Fehler im Move: ${e.message}</div>`); }
+    };
+
+    // Pull the student's draw(G) out of their file.
+    let drawFn = null, loadError = null;
+    const cleaned = stripExport(boardCode);
+    try {
+      const body = `"use strict";\n${cleaned}\n;\nreturn typeof draw === "function" ? draw : undefined;`;
+      drawFn = new Function("ctx", "canvas", "drawPicture", "onClick", "resetOnClicks", "clickCell", body)(
+        ctx, canvas, drawPicture, onClick, resetOnClicks, clickCell
+      );
+    } catch (e) { loadError = e.message; }
+
+    const statusSlot = html`<div></div>`;
+    const errSlot = html`<div></div>`;
+    const notice = html`<div class="bg-notice"></div>`;
+    function flash(node) { notice.innerHTML = ""; if (node) notice.appendChild(node); }
+
+    function render() {
+      statusSlot.replaceChildren(statusLine(client.getState()));
+      errSlot.innerHTML = "";
+      if (loadError) {
+        errSlot.appendChild(html`<div class="canvas-error">⚠ ${loadError}</div>`);
+        return;
+      }
+      if (typeof drawFn !== "function") {
+        errSlot.appendChild(html`<div class="feedback feedback-hint">⏳ Exportiere eine Funktion <code>draw(G)</code> — dann zeichne ich dein Spielbrett.</div>`);
+        return;
+      }
+      try { drawFn(client.getState().G); }
+      catch (e) { errSlot.appendChild(html`<div class="canvas-error">⚠ Fehler in <code>draw</code>: ${e.message}</div>`); }
+    }
+
+    // A real click on the surface runs every handler whose rectangle contains
+    // the point — which calls clickCell, advances the client, and (via the
+    // subscription below) redraws the board.
+    canvas.addEventListener("click", (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+      for (const h of handlers.slice()) {
+        if (x >= h.x && x <= h.x + h.width && y >= h.y && y <= h.y + h.height) h.handler();
+      }
+    });
+
+    const frame = html`<div class="canvas-frame"></div>`;
+    frame.appendChild(canvas);
+
+    const resetBtn = html`<button class="reset-button" type="button" style="margin-top:.5em">↺ Spiel zurücksetzen</button>`;
+    resetBtn.addEventListener("click", () => {
+      try { client.reset(); } catch { /* ignore */ }
+      flash(null);
+      render();
+    });
+
+    root.append(statusSlot, frame, errSlot, notice);
+    if (opts.hint) root.appendChild(html`<div class="feedback feedback-hint">⏳ ${opts.hint}</div>`);
+    root.appendChild(resetBtn);
+
+    // Any state change (our clicks, reset, …) redraws the student's board.
+    client.subscribe(() => render());
+    render();
+    return root;
+  }
+
+  // Grades a student's board file by running their `draw(G)` against synthetic
+  // game states on an offscreen canvas, recording every ctx call + onClick area,
+  // and spying on `clickCell`. Mirrors `canvasTest` from helpers.js but calls
+  // `draw(G)` (not `draw(ctx)`) and provides a `clickCell` spy instead of a real
+  // client. Returns `{ error, results }` for `canvasTestReport`.
+  function gameCanvasTest(boardCode, { width = 300, height = 300, background = "white", checks = [] } = {}) {
+    const cleaned = stripExport(boardCode);
+    const bg = [255, 255, 255];
+    const colorEq = (px, rgb, tol = 30) =>
+      Math.abs(px[0] - rgb[0]) <= tol && Math.abs(px[1] - rgb[1]) <= tol && Math.abs(px[2] - rgb[2]) <= tol;
+
+    function probe({ cells = Array(9).fill(null) } = {}) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const real = canvas.getContext("2d", { willReadFrequently: true });
+      if (background) { real.fillStyle = background; real.fillRect(0, 0, width, height); }
+      real.fillStyle = "black";
+      real.strokeStyle = "black";
+      real.lineWidth = 1;
+
+      const calls = [];
+      const ctx = new Proxy(real, {
+        get(t, p) {
+          const v = t[p];
+          if (typeof v === "function") return (...a) => { calls.push({ name: String(p), args: a }); return v.apply(t, a); };
+          return v;
+        },
+        set(t, p, val) { calls.push({ name: String(p), set: true, value: val }); t[p] = val; return true; },
+      });
+
+      const drawPicture = makeDrawPicture();
+      let clickHandlers = [], resetCount = 0;
+      const moves = [];
+      const onClick = (x, y, w, h, handler) => { clickHandlers.push({ x, y, width: w, height: h, handler }); };
+      const resetOnClicks = () => { resetCount++; clickHandlers = []; };
+      const clickCell = (i) => { moves.push(i); };
+
+      let error = null, drawFn;
+      try {
+        const body = `"use strict";\n${cleaned}\n;\nreturn typeof draw === "function" ? draw : undefined;`;
+        drawFn = new Function("ctx", "canvas", "drawPicture", "onClick", "resetOnClicks", "clickCell", body)(
+          ctx, canvas, drawPicture, onClick, resetOnClicks, clickCell
+        );
+        if (typeof drawFn !== "function") error = "Die Funktion `draw` wurde nicht gefunden — exportiere `function draw(G)`.";
+        else drawFn({ cells });
+      } catch (e) { error = e.message; }
+
+      const img = real.getImageData(0, 0, width, height);
+      const pixel = (x, y) => {
+        const i = (Math.round(y) * width + Math.round(x)) * 4;
+        return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
+      };
+      // Count non-background pixels in the INNER area of cell `i` (inset to skip
+      // the grid lines), so a marked cell stands out from an empty one no matter
+      // how the mark is drawn (✕ lines, ◯ ring, text, sprite…).
+      const cellInk = (i, feld = 100, inset = 20) => {
+        const col = i % 3, rowi = Math.floor(i / 3);
+        let count = 0;
+        for (let y = rowi * feld + inset; y < rowi * feld + feld - inset; y++) {
+          for (let x = col * feld + inset; x < col * feld + feld - inset; x++) {
+            if (!colorEq(pixel(x, y), bg, 12)) count++;
+          }
+        }
+        return count;
+      };
+      const nonBg = () => {
+        let count = 0;
+        for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+          if (!colorEq(pixel(x, y), bg, 12)) count++;
+        }
+        return count;
+      };
+      return {
+        calls, error, width, height, pixel, cellInk, nonBg,
+        clickHandlers, resetCount, moves, drawFound: typeof drawFn === "function",
+        clickAt: (x, y) => {
+          for (const h of clickHandlers.slice()) {
+            if (x >= h.x && x <= h.x + h.width && y >= h.y && y <= h.y + h.height) h.handler();
+          }
+        },
+        callsTo: (name) => calls.filter((c) => c.name === name && !c.set),
+      };
+    }
+
+    const base = probe();
+    if (base.error) return { error: base.error, results: [] };
+    const results = [];
+    for (const chk of checks) {
+      try {
+        const r = chk.run({ base, probe });
+        const passed = r === true ? true : r === false ? false : !!r.passed;
+        results.push({ name: chk.name, passed, detail: (r && r.detail) || null });
+      } catch (e) {
+        results.push({ name: chk.name, passed: false, detail: "Test-Fehler: " + e.message });
+      }
+    }
+    return { error: null, results };
+  }
+
   // Small helper to label a section inside the panel.
   function sectionLabel(text) {
     return html`<div class="bg-panel-section-label">${text}</div>`;
@@ -530,5 +813,5 @@ export function createGameUI({ html }) {
     return { expand, collapse, el: section };
   }
 
-  return { gameBoard, mountEditor, mountGameSection, sectionLabel };
+  return { gameBoard, gameCanvas, gameCanvasTest, mountEditor, mountGameSection, sectionLabel };
 }
