@@ -4,6 +4,7 @@
 
   <script id="styles" type="text/html">
     <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   </script>
 
   <script id="setup" type="module">
@@ -57,7 +58,7 @@
         showDebug: true,
         showBot: true,
         showState: true,
-        hint: "Mit korrektem enumerate spielt der Bot richtig gut. Drück ⏩ simulate für ein Bot-gegen-Bot-Spiel."
+        hint: "Mit korrektem enumerate spielt der Bot richtig gut. Drücke ⏩ simulate für ein Bot-gegen-Bot-Spiel."
       }));
       feedbackSlot.replaceChildren(check(code));
     }
@@ -93,14 +94,6 @@
     { move: 'clickCell', args: [0] }   // bedeutet: clickCell(0)
     ```
 
-    Bei Tic-Tac-Toe ist jeder `clickCell`-Zug auf eine **leere** Zelle möglich. Du
-    sollst also durch `G.cells` gehen und für jedes Feld, das `null` ist, ein solches
-    Zug-Objekt ins Ergebnis-Array packen.
-
-    > 💡 Leg dir ein leeres Array an, geh mit einem `for`-Loop über `G.cells`, und bei
-    > jeder Zelle, die `null` ist, häng `{ move: 'clickCell', args: [i] }` an (mit `i`
-    > als Index). Am Ende gib das Array zurück.
-
     > 📌 **So spielt der Bot** — boardgame.io durchsucht mit einem Verfahren namens
     > [MCTS](https://nicolodavis.com/blog/tic-tac-toe/) den Spielbaum und wählt **gute**
     > Züge. Standardmäßig macht er 1000 Iterationen pro Zug; das lässt sich anpassen,
@@ -109,7 +102,7 @@
     > eine Feld spielen.
 
     Im Moment macht `enumerate` genau das: Es gibt immer nur die Zelle oben links (`0`)
-    zurück. Drück **▶ Ausführen** und klick im Bot-Bereich auf **play** — der Bot spielt
+    zurück. Drücke **▶ Ausführen** und klick im Bot-Bereich auf **play** — der Bot spielt
     nur Feld `0` und kommt dann nicht weiter. Das beheben wir jetzt.
 
     👉 **Deine Aufgabe:** Fülle das `TODO Kapitel 4` in `enumerate` aus.
@@ -142,8 +135,8 @@
 
     ## Geschafft — und was jetzt? 🎓
 
-    Herzlichen Glückwunsch! Du hast mit dem **echten** boardgame.io ein vollständiges
-    Tic-Tac-Toe gebaut — in **einer Datei**, die du Kapitel für Kapitel selbst
+    Herzlichen Glückwunsch! Du hast mit boardgame.io ein vollständiges
+    Tic-Tac-Toe gebaut, die du Kapitel für Kapitel selbst
     geschrieben hast. Damit kennst du die **Kernkonzepte** des Frameworks:
 
     - **`setup`** & **`G`** — der Spielzustand
@@ -153,14 +146,12 @@
     - **`ai.enumerate`** — ein Computer-Gegner
 
     > 🧐 Das Einzige, was wir dir hier abgenommen haben, ist das **Zeichnen** des
-    > Spielfelds. Im echten Projekt machst du das z. B. mit React; in einem späteren
-    > Tutorial lernst du, wie. Die **Spiellogik**, die du hier geschrieben hast, ist
-    > exakt dieselbe wie im echten Projekt — du kannst deine `TicTacToe.js` direkt
-    > übernehmen.
+    > Spielfelds. Im echten Projekt machst du das selbst; im nächsten
+    > Tutorial lernst du, wie.
 
     Spiel ruhig noch weiter herum und überleg dir, wie sich andere Spiele auf diese
     Konzepte übertragen lassen. 🚀
 
-    ← [Zurück zur Übersicht](./boardgame) · [Zum JavaScript-Kurs](./)
+    ← [Zurück zur Übersicht](./)
   </script>
 </notebook>

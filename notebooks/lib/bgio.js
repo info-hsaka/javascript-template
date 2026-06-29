@@ -188,10 +188,30 @@ export function createGameUI({ html }) {
     return { lines, console: { log: push(""), error: push("⚠ "), warn: push("⚠ ") } };
   }
 
+  // boardgame.io's debug panel toggles its visibility on the bare "." key via
+  // window key listeners we can't configure off (its `disableHotkeys` store is
+  // internal). It registers TWO of them — one on "keydown" and one on "keypress"
+  // — and the visibility toggle fires on the "keypress" one, so blocking keydown
+  // alone isn't enough. These fire while students type "." in the code editor and
+  // keep popping the panel open, so we silence the shortcut for all three key
+  // events: a capture-phase window listener runs before the panel's own
+  // bubble-phase listeners and stops the "." event from ever reaching them. We
+  // don't preventDefault, and character input in CodeMirror/<input> is driven by
+  // beforeinput (not these listeners), so typing "." everywhere still works —
+  // only the toggle is gone.
+  if (!window.__bgioDotHotkeyDisabled) {
+    window.__bgioDotHotkeyDisabled = true;
+    const swallowDot = (e) => {
+      if (e.key === "." && !e.ctrlKey && !e.metaKey && !e.altKey) e.stopImmediatePropagation();
+    };
+    for (const type of ["keydown", "keypress", "keyup"]) {
+      window.addEventListener(type, swallowDot, true);
+    }
+  }
+
   // boardgame.io's debug panel exposes no public toggle API, but it mounts a
   // ".visibility-toggle" button (which we hide with CSS) that flips its `visible`
-  // state; .click() drives it reliably even while hidden. As a fallback it also
-  // toggles on the "." key (a window keydown listener). When expanded the button
+  // state; .click() drives it reliably even while hidden. When expanded the button
   // carries the ".closer" class, collapsed it's ".opener" — that's how we read
   // the current state to remember it across rebuilds.
   function isDebugPanelOpen() {
@@ -200,7 +220,6 @@ export function createGameUI({ html }) {
   function toggleDebugPanel() {
     const toggle = document.querySelector(".debug-panel .visibility-toggle");
     if (toggle) toggle.click();
-    else window.dispatchEvent(new KeyboardEvent("keydown", { key: "." }));
   }
 
   // playerID is the string "0" / "1" in boardgame.io.
@@ -248,8 +267,7 @@ export function createGameUI({ html }) {
 
     if (liveClient) {
       // Capture the panel's current open/closed state before tearing it down,
-      // so toggles via our button, the panel's own arrow, or the "." key all
-      // survive the rebuild.
+      // so toggles via our button or the panel's own arrow survive the rebuild.
       if (showDebug) debugCollapsed = !isDebugPanelOpen();
       try { liveClient.stop(); } catch { /* ignore */ }
       liveClient = null;
@@ -285,10 +303,15 @@ export function createGameUI({ html }) {
       const cs = cells();
       if (!cs) return;
       const before = JSON.stringify(cs);
+      const stateIdBefore = client.getState()._stateID;
       try { client.moves.clickCell(i); }
       catch (e) { flash(html`<div class="feedback feedback-err">❌ Fehler im Move: ${e.message}</div>`); render(); return; }
       const after = JSON.stringify(cells());
-      if (before === after && !client.getState().ctx.gameover) {
+      // A move that returns INVALID_MOVE is rejected and leaves _stateID
+      // unchanged — that is expected behavior, so we only warn when the move
+      // was actually applied (stateID advanced) but did not touch `cells`.
+      const accepted = client.getState()._stateID !== stateIdBefore;
+      if (accepted && before === after && !client.getState().ctx.gameover) {
         flash(html`<div class="feedback feedback-err">❌ Der Zug hat nichts verändert — vielleicht ist das Feld schon belegt (<code>INVALID_MOVE</code>) oder <code>clickCell</code> trägt noch nichts in <code>cells</code> ein.</div>`);
       } else {
         flash(null);
@@ -373,9 +396,9 @@ export function createGameUI({ html }) {
 
         // When the real boardgame.io debug panel is mounted, give the state
         // display a button to show/hide it (the panel also has its own arrow
-        // tab + the "." hotkey; this is just a discoverable entry point).
+        // tab; this is just a discoverable entry point).
         if (showDebug) {
-          const dbgBtn = html`<button class="reset-button bg-debug-toggle" type="button">🛠️ Debug-Menü toggle</button>`;
+          const dbgBtn = html`<button class="reset-button bg-debug-toggle" type="button">🛠️ Debug-Menü öffnen/schließen</button>`;
           dbgBtn.addEventListener("click", () => {
             toggleDebugPanel();
             debugCollapsed = !isDebugPanelOpen();
@@ -397,6 +420,12 @@ export function createGameUI({ html }) {
       });
       root.appendChild(resetBtn);
     }
+
+    // The real boardgame.io debug panel mutates client state directly — its
+    // Reset button (and undo/redo, log time-travel) bypasses our own click
+    // handlers, so those changes would never reach `render()`. Subscribing to
+    // the client makes any external state change re-render our board too.
+    client.subscribe(() => render());
 
     render();
     return root;

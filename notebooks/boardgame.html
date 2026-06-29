@@ -4,6 +4,7 @@
 
   <script id="styles" type="text/html">
     <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   </script>
 
   <script id="setup" type="module">
@@ -13,7 +14,7 @@
   </script>
 
   <script id="welcome-md" type="text/markdown">
-    # boardgame.io-Tutorial 🎲
+    # boardgame.io 🎲
 
     In diesem Tutorial baust du Schritt für Schritt ein **Tic-Tac-Toe-Spiel** mit
     [boardgame.io](https://boardgame.io). Du lernst die grundlegenden Konzepte des
@@ -29,19 +30,8 @@
   </script>
 
   <script id="online-md" type="text/markdown">
-    ## Kein Setup nötig 🚀
-
-    In der „klassischen“ Variante dieses Tutorials musstest du ein Template-Repository
-    klonen, mit `npm i` jede Menge Programme installieren und einen Entwicklungsserver
-    auf `http://localhost:3000` starten, um dein Spiel zu sehen.
-
-    **Das brauchst du hier nicht.** Es läuft das **echte boardgame.io** direkt im
-    Browser — dieselbe Bibliothek wie im echten Projekt, nur ohne Server und ohne
-    Installation. Du schreibst genau denselben Code, und statt `localhost:3000`
-    erscheint hier direkt ein **klickbares Spielfeld**, auf dem dein Code läuft.
-
     > 📌 **Info** — Das Einzige, was wir dir abnehmen, ist das **Zeichnen** des
-    > Spielfelds (das macht man im echten Projekt z. B. mit React). Die **Spiellogik**,
+    > Spielfelds (das kommt später). Die **Spiellogik**,
     > um die es in diesem Tutorial geht, schreibst du komplett selbst — und sie ist
     > exakt dieselbe wie im echten Projekt.
 
@@ -52,18 +42,6 @@
     nächsten Teil **selbst** aus. Deine Datei wird automatisch gespeichert und wandert
     mit dir von Kapitel zu Kapitel — am Ende hast du das vollständige Spiel selbst
     geschrieben.
-  </script>
-
-  <script id="toc-md" type="text/markdown">
-    ## Die Kapitel
-
-    1. [Ein Spiel definieren](./bg_1_game) 🧩 — `setup` und `moves`: der Spielzustand
-       `G` und wie Spieler ihn verändern
-    2. [Spielverbesserungen](./bg_2_improvements) 🛠️ — ungültige Züge verhindern
-       (`INVALID_MOVE`) und Züge verwalten (`turn`)
-    3. [Siegbedingung](./bg_3_victory) 🏆 — `isVictory`, `isDraw` und `endIf`: wann ist
-       das Spiel gewonnen oder unentschieden?
-    4. [Bots](./bg_4_bots) 🤖 — `ai.enumerate`: einen Computer-Gegner hinzufügen
   </script>
 
   <script id="concepts-md" type="text/markdown">
