@@ -1,4 +1,0 @@
-Finale: alles sollte ein File sein
-Schülis sollten game end handeln müssen
-schülis sollten das wiring sehen irgendwie
-probleme mit capturing bei onClick in loops => wie verhindern?

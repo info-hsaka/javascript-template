@@ -191,22 +191,155 @@ export const REFERENCE_GAME = {
 // Try to use the student's own game; fall back to the reference if it can't be
 // loaded or doesn't behave like a Tic-Tac-Toe (so the finale never breaks).
 export function resolveGame(gameCode) {
-  if (gameCode) {
-    try {
-      const game = loadGame(gameCode);
-      const client = makeClient(game);
-      const st = client.getState();
-      const cells = st && st.G && st.G.cells;
-      let ok = Array.isArray(cells) && cells.length === 9;
-      if (ok) {
-        client.moves.clickCell(0);
-        ok = client.getState().G.cells[0] != null;
-      }
-      try { client.stop(); } catch { /* ignore */ }
-      if (ok) return game;
-    } catch { /* fall through to reference */ }
-  }
+  if (gameCode && gameSourceWorks(gameCode)) return loadGame(gameCode);
   return REFERENCE_GAME;
+}
+
+// Does this source load and behave like a Tic-Tac-Toe? (setup gives 9 cells and
+// clickCell(0) fills a cell). Used both to decide the finale's fallback and to
+// pick the starting source for the merged finale file.
+function gameSourceWorks(code) {
+  try {
+    const game = loadGame(code);
+    const client = makeClient(game);
+    const st = client.getState();
+    const cells = st && st.G && st.G.cells;
+    let ok = Array.isArray(cells) && cells.length === 9;
+    if (ok) {
+      client.moves.clickCell(0);
+      ok = client.getState().G.cells[0] != null;
+    }
+    try { client.stop(); } catch { /* ignore */ }
+    return ok;
+  } catch { return false; }
+}
+
+// A complete Tic-Tac-Toe *as source code*, written in the same style the
+// chapters teach (named functions inside the object, plain `for` loops, no
+// destructuring). The finale shows EVERYTHING in one file; if the student
+// hasn't finished the logic chapters, this steps in as the visible starting
+// point so the file is self-contained and runnable while they focus on drawing.
+export const REFERENCE_GAME_SOURCE = `import { INVALID_MOVE } from 'boardgame.io/core';
+
+// === Hilfsfunktionen (Kapitel 3) ===========================================
+
+function isVictory(cells) {
+  const linien = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6],
+  ];
+  for (const linie of linien) {
+    const a = cells[linie[0]];
+    const b = cells[linie[1]];
+    const c = cells[linie[2]];
+    if (a !== null && a === b && a === c) {
+      return a;
+    }
+  }
+  return null;
+}
+
+function isDraw(cells) {
+  for (const zelle of cells) {
+    if (zelle === null) return false;
+  }
+  return true;
+}
+
+export const TicTacToe = {
+  setup: function setup() {
+    return { cells: [null, null, null, null, null, null, null, null, null] };
+  },
+
+  turn: {
+    minMoves: 1,
+    maxMoves: 1,
+  },
+
+  moves: {
+    clickCell: function clickCell(move, cellIndex) {
+      if (move.G.cells[cellIndex] !== null) {
+        return INVALID_MOVE;
+      }
+      move.G.cells[cellIndex] = move.playerID;
+    },
+  },
+
+  endIf: function endIf(endIf) {
+    const gewinner = isVictory(endIf.G.cells);
+    if (gewinner !== null) {
+      return { winner: gewinner };
+    }
+    if (isDraw(endIf.G.cells)) {
+      return { draw: true };
+    }
+  },
+
+  ai: {
+    enumerate: function enumerate(G) {
+      const zuege = [];
+      for (let i = 0; i < G.cells.length; i++) {
+        if (G.cells[i] === null) {
+          zuege.push({ move: 'clickCell', args: [i] });
+        }
+      }
+      return zuege;
+    },
+  },
+};
+`;
+
+// The drawing half of the finale's single file: the \`draw(G, gameover)\`
+// skeleton the student fills in. Lines (not a template string) so the notebook
+// keeps the indentation.
+export const DRAW_STARTER = [
+  "",
+  "// === Das Spielbrett zeichnen (Finale) ===================================",
+  "// Oben steht deine Spiellogik. Hier unten zeichnest du das Brett -- mit",
+  "// genau den Canvas-Bausteinen aus dem Zeichnen-Kurs.",
+  "",
+  "const feld = 100   // jede Zelle ist 100 x 100 Pixel gross",
+  "",
+  "export function draw(G, gameover) {",
+  "  resetOnClicks()",
+  "",
+  "  // Hintergrund weiss uebermalen (wie in der Klicks-Uebung)",
+  "  ctx.fillStyle = \"white\"",
+  "  ctx.fillRect(0, 0, canvas.width, canvas.height)",
+  "",
+  "  // TODO 1: Zeichne das 3x3-Gitter.",
+  "",
+  "  // TODO 2: Zeichne fuer jede belegte Zelle in G.cells die",
+  "  //         passende Markierung (X fuer \"0\", O fuer \"1\").",
+  "",
+  "  // Die Zelle oben links (Index 0) ist schon anklickbar:",
+  "  // ein Klick darauf ruft deinen Move clickCell(0) auf.",
+  "  onClick(0, 0, feld, feld, () => {",
+  "    clickCell(0)",
+  "  })",
+  "",
+  "  // TODO 3: Mach AUCH alle anderen Zellen anklickbar -- jede mit dem",
+  "  //         richtigen Index fuer clickCell. (Denk an die let-Falle aus",
+  "  //         dem Klicks-Kapitel, wenn du onClick in einer Schleife anlegst!)",
+  "",
+  "  // TODO 4: Wenn das Spiel vorbei ist, ist gameover gesetzt (sonst null).",
+  "  //         Zeige dann das Ergebnis an: gameover.winner ist der Gewinner",
+  "  //         (\"0\" oder \"1\"), gameover.draw ist true bei einem Unentschieden.",
+  "}",
+  "",
+].join("\n");
+
+/**
+ * The starting content for the finale's ONE file: the student's own game logic
+ * (from the boardgame chapters) if it works, otherwise the reference source —
+ * with the `draw(G, gameover)` skeleton appended. So everything the game needs
+ * lives in a single file the student edits.
+ */
+export function finaleStarter() {
+  const stored = readStoredGame();
+  const logic = (stored && gameSourceWorks(stored)) ? stored.replace(/\s+$/, "") : REFERENCE_GAME_SOURCE.replace(/\s+$/, "");
+  return logic + "\n" + DRAW_STARTER;
 }
 
 // boardgame.io move/setup/endIf code uses `import { INVALID_MOVE } from
@@ -500,26 +633,30 @@ export function createGameUI({ html }) {
     return root;
   }
 
-  // Strip the `export` keyword so the student's board file can be run inside a
-  // `new Function` sandbox (same trick as the canvas chapters).
+  // Strip `export` and the boardgame.io `import` line so the student's single
+  // finale file (game logic + draw) can be run inside a `new Function` sandbox
+  // (same trick as the canvas chapters). The file now holds BOTH the TicTacToe
+  // object and `draw`, so we strip module syntax exactly as `loadGame` does.
   function stripExport(code) {
-    return code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+    return stripModuleSyntax(code).replace(/\bexport\s+(function|const|let|async)/g, "$1");
   }
 
   // Like `gameBoard`, but the board is drawn by the STUDENT's own
-  // `draw(G)` function on a real, clickable <canvas> — the finale of the course.
-  // The game logic comes from their `TicTacToe.js` (or the reference fallback)
-  // running through a real boardgame.io client; the rendering is entirely theirs.
+  // `draw(G, gameover)` function on a real, clickable <canvas> — the finale of
+  // the course. Logic AND rendering live in ONE file now: the same `code` holds
+  // their `TicTacToe` object (run through a real boardgame.io client) and their
+  // `draw` (which renders the board). If the logic half doesn't work yet, a
+  // reference game steps in (see `resolveGame`) so the canvas stays playable.
   //
-  // The student's code gets the canvas tools they already know — `ctx`, `canvas`,
-  // `drawPicture`, `onClick`, `resetOnClicks` — plus `clickCell(i)`, which fires
-  // the real `clickCell` move on the client. Every accepted move updates `G` and
-  // re-runs `draw(G)`: the same redraw loop as the canvas "Klicks" chapter, only
-  // the state now lives in boardgame.io instead of a local variable.
+  // The student's `draw` gets the canvas tools they already know — `ctx`,
+  // `canvas`, `drawPicture`, `onClick`, `resetOnClicks` — plus `clickCell(i)`,
+  // which fires the real `clickCell` move on the client. Every accepted move
+  // updates `G` and re-runs `draw(G, gameover)`: the same redraw loop as the
+  // canvas "Klicks" chapter, only the state now lives in boardgame.io.
   let liveCanvasClient = null;
 
-  function gameCanvas(boardCode, opts = {}) {
-    const { gameCode = null, width = 300, height = 300, background = "white" } = opts;
+  function gameCanvas(code, opts = {}) {
+    const { width = 300, height = 300, background = "white" } = opts;
     const root = html`<div class="bg-game"></div>`;
 
     if (liveCanvasClient) {
@@ -529,7 +666,7 @@ export function createGameUI({ html }) {
 
     let client;
     try {
-      client = makeClient(resolveGame(gameCode));
+      client = makeClient(resolveGame(code));
       liveCanvasClient = client;
     } catch (e) {
       root.appendChild(html`<div class="feedback feedback-err">❌ ${e.message}</div>`);
@@ -552,9 +689,9 @@ export function createGameUI({ html }) {
       catch (e) { flash(html`<div class="feedback feedback-err">❌ Fehler im Move: ${e.message}</div>`); }
     };
 
-    // Pull the student's draw(G) out of their file.
+    // Pull the student's draw(G, gameover) out of the same file.
     let drawFn = null, loadError = null;
-    const cleaned = stripExport(boardCode);
+    const cleaned = stripExport(code);
     try {
       const body = `"use strict";\n${cleaned}\n;\nreturn typeof draw === "function" ? draw : undefined;`;
       drawFn = new Function("ctx", "canvas", "drawPicture", "onClick", "resetOnClicks", "clickCell", body)(
@@ -562,23 +699,24 @@ export function createGameUI({ html }) {
       );
     } catch (e) { loadError = e.message; }
 
-    const statusSlot = html`<div></div>`;
     const errSlot = html`<div></div>`;
     const notice = html`<div class="bg-notice"></div>`;
     function flash(node) { notice.innerHTML = ""; if (node) notice.appendChild(node); }
 
     function render() {
-      statusSlot.replaceChildren(statusLine(client.getState()));
       errSlot.innerHTML = "";
       if (loadError) {
         errSlot.appendChild(html`<div class="canvas-error">⚠ ${loadError}</div>`);
         return;
       }
       if (typeof drawFn !== "function") {
-        errSlot.appendChild(html`<div class="feedback feedback-hint">⏳ Exportiere eine Funktion <code>draw(G)</code> — dann zeichne ich dein Spielbrett.</div>`);
+        errSlot.appendChild(html`<div class="feedback feedback-hint">⏳ Exportiere eine Funktion <code>draw(G, gameover)</code> — dann zeichne ich dein Spielbrett.</div>`);
         return;
       }
-      try { drawFn(client.getState().G); }
+      // boardgame.io keeps the result of `endIf` in ctx.gameover (null while the
+      // game runs). We hand it to the student's draw so THEY render the result.
+      const state = client.getState();
+      try { drawFn(state.G, state.ctx.gameover || null); }
       catch (e) { errSlot.appendChild(html`<div class="canvas-error">⚠ Fehler in <code>draw</code>: ${e.message}</div>`); }
     }
 
@@ -604,7 +742,7 @@ export function createGameUI({ html }) {
       render();
     });
 
-    root.append(statusSlot, frame, errSlot, notice);
+    root.append(frame, errSlot, notice);
     if (opts.hint) root.appendChild(html`<div class="feedback feedback-hint">⏳ ${opts.hint}</div>`);
     root.appendChild(resetBtn);
 
@@ -619,13 +757,13 @@ export function createGameUI({ html }) {
   // and spying on `clickCell`. Mirrors `canvasTest` from helpers.js but calls
   // `draw(G)` (not `draw(ctx)`) and provides a `clickCell` spy instead of a real
   // client. Returns `{ error, results }` for `canvasTestReport`.
-  function gameCanvasTest(boardCode, { width = 300, height = 300, background = "white", checks = [] } = {}) {
-    const cleaned = stripExport(boardCode);
+  function gameCanvasTest(code, { width = 300, height = 300, background = "white", checks = [] } = {}) {
+    const cleaned = stripExport(code);
     const bg = [255, 255, 255];
     const colorEq = (px, rgb, tol = 30) =>
       Math.abs(px[0] - rgb[0]) <= tol && Math.abs(px[1] - rgb[1]) <= tol && Math.abs(px[2] - rgb[2]) <= tol;
 
-    function probe({ cells = Array(9).fill(null) } = {}) {
+    function probe({ cells = Array(9).fill(null), gameover = null } = {}) {
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
@@ -658,8 +796,8 @@ export function createGameUI({ html }) {
         drawFn = new Function("ctx", "canvas", "drawPicture", "onClick", "resetOnClicks", "clickCell", body)(
           ctx, canvas, drawPicture, onClick, resetOnClicks, clickCell
         );
-        if (typeof drawFn !== "function") error = "Die Funktion `draw` wurde nicht gefunden — exportiere `function draw(G)`.";
-        else drawFn({ cells });
+        if (typeof drawFn !== "function") error = "Die Funktion `draw` wurde nicht gefunden — exportiere `function draw(G, gameover)`.";
+        else drawFn({ cells }, gameover);
       } catch (e) { error = e.message; }
 
       const img = real.getImageData(0, 0, width, height);

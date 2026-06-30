@@ -9,52 +9,25 @@
 
   <script id="setup" type="module">
     import { createUI, installThemeToggle, installHashImportBanner } from "./lib/helpers.js";
-    import { createGameUI, readStoredGame } from "./lib/bgio.js";
+    import { createGameUI, finaleStarter } from "./lib/bgio.js";
     installThemeToggle({ html, display });
     installHashImportBanner({ html, display });
     const { codeEditor, canvasTestReport } = createUI({ html });
     const { gameCanvas, gameCanvasTest, mountEditor, mountGameSection, sectionLabel } = createGameUI({ html });
-    // Die Spiellogik kommt aus der TicTacToe.js, die du in den vorigen Kapiteln
-    // gebaut hast (oder, falls sie noch nicht fertig ist, aus einer Reserve-Version).
-    const gameCode = readStoredGame();
+    // Das Finale zeigt ALLES in einer Datei: deine Spiellogik (TicTacToe) aus den
+    // vorigen Kapiteln plus die neue draw-Funktion, die das Brett zeichnet. Wenn
+    // deine eigene TicTacToe.js laeuft, nehmen wir die als Startpunkt -- sonst
+    // eine funktionierende Reserve-Version -- und haengen das draw-Geruest an.
+    const starter = finaleStarter();
   </script>
 
   <script id="panel" type="module">
-    // Als Zeilen-Array (nicht als Template-String), damit das Notebook die
-    // führende Einrückung nicht entfernt.
-    const BOARD_STARTER = [
-      "const feld = 100   // jede Zelle ist 100 x 100 Pixel gross",
-      "",
-      "export function draw(G) {",
-      "  resetOnClicks()",
-      "",
-      "  // Hintergrund weiss uebermalen (wie in der Klicks-Uebung)",
-      "  ctx.fillStyle = \"white\"",
-      "  ctx.fillRect(0, 0, canvas.width, canvas.height)",
-      "",
-      "  // TODO 1: Zeichne das 3x3-Gitter.",
-      "",
-      "  // TODO 2: Zeichne fuer jede belegte Zelle in G.cells die",
-      "  //         passende Markierung (X fuer \"0\", O fuer \"1\").",
-      "",
-      "  // Die Zelle oben links (Index 0) ist schon anklickbar:",
-      "  // ein Klick darauf ruft deinen Move clickCell(0) auf.",
-      "  onClick(0, 0, feld, feld, () => {",
-      "    clickCell(0)",
-      "  })",
-      "",
-      "  // TODO 3: Mach AUCH alle anderen Zellen anklickbar -- jede",
-      "  //         mit dem richtigen Index fuer clickCell.",
-      "}",
-      "",
-    ].join("\n");
-
-    const editor = codeEditor("bgio:board", { value: BOARD_STARTER, label: "Deine Datei: Board.js" });
+    const editor = codeEditor("bgio:finale", { value: starter, label: "Deine Datei: TicTacToe.js" });
     const boardSlot = html`<div></div>`;
     const feedbackSlot = html`<div></div>`;
 
     const CHECKS = [
-      { name: "draw(G) beginnt mit resetOnClicks()", run: ({ base }) => ({
+      { name: "draw(G, gameover) beginnt mit resetOnClicks()", run: ({ base }) => ({
           passed: base.resetCount >= 1,
           detail: base.resetCount >= 1 ? "resetOnClicks() wird aufgerufen" : "resetOnClicks() fehlt am Anfang von draw"
       }) },
@@ -79,13 +52,31 @@
             passed: all,
             detail: `clickCell-Aufrufe: ${[...got].sort((x, y) => x - y).join(", ") || "keine"}`
           };
+      } },
+      { name: "Das Spielende wird auf dem Brett angezeigt", run: ({ probe }) => {
+          // Dieselbe Endstellung zweimal zeichnen: einmal ohne gameover (normales
+          // Brett) und einmal mit gameover. Wer das Ergebnis anzeigt, malt im
+          // zweiten Fall etwas Zusätzliches -- die Pixel unterscheiden sich dann.
+          const cells = ["0", "0", "0", null, "1", null, "1", null, null];
+          const ohne = probe({ cells, gameover: null });
+          const mit = probe({ cells, gameover: { winner: "0" } });
+          let diff = 0;
+          for (let y = 0; y < 300; y += 5) {
+            for (let x = 0; x < 300; x += 5) {
+              const a = ohne.pixel(x, y), b = mit.pixel(x, y);
+              if (Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) > 40) diff++;
+            }
+          }
+          return {
+            passed: diff > 12,
+            detail: diff > 12 ? `Bei gameover wird etwas Zusätzliches gezeichnet (${diff} Punkte)` : "draw zeichnet bei gameover nichts anderes — zeig Gewinner/Unentschieden an"
+          };
       } }
     ];
 
     function rerun() {
       const code = editor.value;
       boardSlot.replaceChildren(gameCanvas(code, {
-        gameCode,
         width: 300,
         height: 300,
         hint: "Sobald alle 9 Zellen anklickbar sind, spielst du dein Tic-Tac-Toe komplett auf deinem eigenen Spielbrett — mit deiner eigenen Spiellogik dahinter."
@@ -93,7 +84,7 @@
       feedbackSlot.replaceChildren(canvasTestReport(gameCanvasTest(code, { checks: CHECKS }), "Übung"));
     }
 
-    mountEditor({ editor, title: "Board.js" });
+    mountEditor({ editor, title: "TicTacToe.js" });
     const section = mountGameSection({
       nodes: [
         sectionLabel("Dein Spielbrett"), boardSlot,
@@ -106,21 +97,22 @@
   </script>
 
   <script id="intro" type="text/markdown">
-    # 5. Das Spielbrett zeichnen 🎮
+    # 5. Das große Finale: dein Spiel in einer Datei 🎮
 
-    Das ist das **große Finale**: Hier fließen die zwei Hälften des Kurses zusammen.
-    In den boardgame.io-Kapiteln hast du die komplette **Spiellogik** geschrieben —
-    `setup`, `moves`, `turn`, `endIf` und sogar einen Bot. Im Canvas-Kurs hast du
-    gelernt, **zu zeichnen** und auf **Klicks** zu reagieren. Das Einzige, was wir dir
-    bisher abgenommen haben, war das **Zeichnen des Spielfelds**. Genau das holst du
-    jetzt nach — und dann läuft dein Spiel vollständig auf deinem eigenen Brett.
+    Jetzt fließt alles zusammen. In den boardgame.io-Kapiteln hast du die komplette
+    **Spiellogik** geschrieben — `setup`, `moves`, `turn`, `endIf` und sogar einen
+    Bot. Im Canvas-Kurs hast du gelernt, **zu zeichnen** und auf **Klicks** zu
+    reagieren. Hier kommt beides in **einer einzigen Datei** zusammen — und dann
+    läuft dein Spiel vollständig auf deinem eigenen Brett.
 
-    > 📌 **Eine neue Datei: `Board.js`.** **Rechts** im Editor schreibst du diesmal
-    > nicht die Spielregeln, sondern die **Darstellung**. Deine `TicTacToe.js` aus den
-    > vorigen Kapiteln läuft unverändert dahinter weiter und liefert den Spielzustand.
-    > (Falls du die Logik-Kapitel noch nicht fertig hast, springt automatisch eine
-    > funktionierende Reserve-Version ein, damit du dich hier ganz aufs Zeichnen
-    > konzentrieren kannst.)
+    > 📌 **Alles in einer Datei.** **Rechts** im Editor siehst du diesmal die ganze
+    > Datei: **oben** deine Spiellogik (`TicTacToe`) aus den vorigen Kapiteln,
+    > **unten** die neue Funktion `draw`, die das Brett zeichnet. So hast du beide
+    > Hälften deines Spiels an einem Ort vor Augen.
+    >
+    > Läuft deine Logik aus den Kapiteln 1–4 schon, steht hier **dein** Code. Hast
+    > du sie noch nicht fertig, springt eine funktionierende Reserve-Version ein,
+    > damit du dich hier ganz aufs Zeichnen konzentrieren kannst.
 
     > 💡 Du brauchst die **Canvas-Kapitel** als Grundlage: Rechtecke, Text, und vor
     > allem [Klicks](./canvas/6_clicks) mit `onClick` und `resetOnClicks`. Wir bauen
@@ -128,16 +120,16 @@
   </script>
 
   <script id="draw-md" type="text/markdown">
-    ## Die `draw(G)`-Funktion
+    ## Die `draw(G, gameover)`-Funktion
 
-    Im echten boardgame.io-Projekt schreibst du eine Funktion, die das Spielfeld malt.
-    Im Editor steht dafür schon das Gerüst: eine Funktion namens `draw`, die du
-    **exportierst** und die einen Parameter `G` — den **Spielzustand** — bekommt. Deine
-    Aufgabe ist, ihren Körper zu füllen.
+    Ganz unten in der Datei steht das Gerüst für die Funktion, die das Spielfeld
+    malt: `draw`. Sie wird **exportiert** und bekommt zwei Dinge — den
+    **Spielzustand** `G` und, sobald das Spiel vorbei ist, die **Spielende-Info**
+    `gameover`. Deine Aufgabe ist, ihren Körper zu füllen.
 
-    Den Zustand `G` kennst du längst: Bei Tic-Tac-Toe ist das ein Objekt mit dem Array
-    `cells` und seinen **9 Feldern**. `draw` liest also nur `G.cells` und malt daraus das
-    Brett — mehr macht die Funktion nicht.
+    Den Zustand `G` kennst du längst: Bei Tic-Tac-Toe ist das ein Objekt mit dem
+    Array `cells` und seinen **9 Feldern**. `draw` liest `G.cells` und malt daraus
+    das Brett.
 
     > 📌 **So spielen die Konzepte zusammen** — In der Canvas-[Klicks](./canvas/6_clicks)-Übung
     > hattest du eine eigene `draw()`-Funktion, die du nach jeder Änderung neu aufgerufen
@@ -145,8 +137,8 @@
     >
     > - der Zustand steckt nicht mehr in einer eigenen Variablen, sondern in **`G`** —
     >   und der gehört boardgame.io;
-    > - **du** rufst `draw` nicht selbst auf — das Framework ruft `draw(G)` nach **jedem
-    >   Zug** automatisch mit dem neuen Zustand auf.
+    > - **du** rufst `draw` nicht selbst auf — das Framework ruft `draw(G, gameover)` nach
+    >   **jedem Zug** automatisch mit dem neuen Zustand auf.
 
     Deshalb beginnt `draw` — wie in der Klicks-Übung — mit **`resetOnClicks()`**: Da `draw`
     bei jedem Zug erneut läuft und dabei neue Klick-Bereiche anlegt, müssen die alten vorher
@@ -208,7 +200,7 @@
     > **`clickCell(index)`** auf — und das ist **genau der Move**, den du in
     > [Kapitel 1](./bg_1_game) geschrieben hast! Klickt jemand auf die Zelle, führt
     > boardgame.io den Move aus, aktualisiert `G`, wechselt mit deiner `turn`-Regel den
-    > Spieler und prüft mit `endIf`, ob das Spiel vorbei ist. Danach ruft es **`draw(G)`
+    > Spieler und prüft mit `endIf`, ob das Spiel vorbei ist. Danach ruft es **`draw(G, gameover)`
     > neu auf** — und dein Bild aktualisiert sich von selbst.
 
     Im Startcode ist die Zelle **oben links** (Index `0`) schon verdrahtet: ein
@@ -221,6 +213,84 @@
     Markierungen zeichnest — die obere linke Ecke und den Index der Zelle hast du dort ja
     schon ausgerechnet. Achte darauf, im Handler wirklich den Index *dieser* Zelle zu
     verwenden.
+
+    > 💡 Weil du `onClick` hier in einer **Schleife** anlegst, deklariere die
+    > Zählvariable mit **`let` direkt in der Schleife** (oder nimm `for ... of`) —
+    > sonst klicken am Ende alle Zellen denselben Index. Das ist genau die Falle aus
+    > dem [Klicks-Kapitel](./canvas/6_clicks).
+  </script>
+
+  <script id="gameend-md" type="text/markdown">
+    ## Schritt 4: Das Spielende anzeigen 🏆
+
+    Dein `endIf` aus dem [Siegbedingungs-Kapitel](./bg_3_victory) entscheidet, wann
+    Schluss ist. Sein Ergebnis bekommt `draw` als zweiten Parameter **`gameover`**:
+
+    - Solange gespielt wird, ist `gameover` **`null`** — dann zeichnest du das Brett
+      ganz normal.
+    - Ist das Spiel vorbei, steht in `gameover` das Ergebnis: **`gameover.winner`**
+      ist der Gewinner (`"0"` oder `"1"`), und bei einem Unentschieden ist
+      **`gameover.draw`** gleich `true`.
+
+    **Deine Aufgabe:** Zeig das Ergebnis auf dem Brett an, sobald `gameover` gesetzt
+    ist — zum Beispiel mit einem großen `fillText` über dem Spielfeld. Wie du es
+    gestaltest, ist dir überlassen; Hauptsache, man erkennt, **wer gewonnen** hat (oder
+    dass es unentschieden steht).
+
+    ```javascript
+    if (gameover) {
+      // ... Ergebnis anzeigen, z. B. mit ctx.fillText(...)
+    }
+    ```
+
+    > 💡 `gameover` ist nur dann „wahr", wenn das Spiel vorbei ist — während des Spiels
+    > ist es `null`. Deshalb passt ein einfaches `if (gameover) { ... }` am Ende deiner
+    > `draw`-Funktion perfekt.
+  </script>
+
+  <script id="wiring-md" type="text/markdown">
+    ## Was dahinter passiert — die Verdrahtung 🔌
+
+    Eine Frage bleibt: Woher weiß dein `draw`, *wann* es laufen soll? Und wie wird aus
+    einem Klick aufs Canvas ein echter Spielzug? Das erledigt ein kleines Stück
+    **Verdrahtung**, das wir dir abnehmen. Du schreibst es nicht selbst — aber es lohnt
+    sich, einmal zu sehen, wie deine beiden Hälften zusammengesteckt werden:
+
+    ```javascript
+    // 1) boardgame.io bekommt deine Spiellogik und verwaltet ab jetzt den Zustand.
+    const client = Client({ game: TicTacToe })
+    client.start()
+
+    // 2) Nach jeder Änderung zeichnen wir dein Brett neu -- mit dem AKTUELLEN
+    //    Zustand G und der Spielende-Info gameover.
+    function render() {
+      const zustand = client.getState()
+      draw(zustand.G, zustand.ctx.gameover)
+    }
+    client.subscribe(render)   // "ruf render auf, sobald sich etwas ändert"
+
+    // 3) Ein echter Klick aufs Canvas sucht den passenden onClick-Bereich
+    //    und ruft dessen handler auf.
+    canvas.addEventListener("click", (event) => {
+      // (Maus-Position in Canvas-Koordinaten umrechnen ...)
+      for (const bereich of klickBereiche) {
+        if (liegtInnerhalb(event, bereich)) {
+          bereich.handler()
+        }
+      }
+    })
+
+    // 4) clickCell ist die Brücke: Es löst deinen Move in boardgame.io aus.
+    //    Der Move ändert G, endIf prüft auf Sieg -- und durch (2) zeichnet
+    //    sich dein Brett von selbst neu.
+    function clickCell(i) {
+      client.moves.clickCell(i)
+    }
+    ```
+
+    > 💡 Das ist **derselbe Kreislauf** wie in der Klicks-Übung — „Zustand ändern,
+    > dann neu zeichnen" — nur dass der Zustand jetzt in boardgame.io lebt und das
+    > Neuzeichnen automatisch nach jedem Zug passiert.
   </script>
 
   <script id="uebung-md" type="text/markdown">
@@ -228,14 +298,15 @@
 
     ## Übung 🎯 — Dein eigenes Spielbrett
 
-    Vervollständige `draw(G)` in `Board.js`, bis du ein vollständiges, spielbares
-    Tic-Tac-Toe auf deinem eigenen Brett hast. Die Auswertung (in der Spiel-Sektion oben)
-    prüft automatisch:
+    Vervollständige `draw(G, gameover)` in deiner Datei, bis du ein vollständiges,
+    spielbares Tic-Tac-Toe auf deinem eigenen Brett hast. Die Auswertung (in der
+    Spiel-Sektion oben) prüft automatisch:
 
-    1. `draw(G)` beginnt mit `resetOnClicks()`.
+    1. `draw(G, gameover)` beginnt mit `resetOnClicks()`.
     2. Das 3×3-**Gitter** ist zu sehen.
     3. Die **Markierungen** kommen aus `G.cells` (richtiger Spieler in der richtigen Zelle).
     4. **Jede** Zelle ist anklickbar und ruft `clickCell` mit dem **richtigen Index** auf.
+    5. Das **Spielende** wird angezeigt (Gewinner oder Unentschieden), sobald `gameover` gesetzt ist.
 
     Wenn alles passt, spiel ein paar Runden gegen dich selbst — und denk dran: dahinter
     läuft die Spiellogik, die du selbst geschrieben hast.
@@ -253,11 +324,11 @@
     ## Geschafft — du hast das ganze Spiel gebaut! 🎉
 
     Halt kurz inne, was hier gerade passiert ist: **Jede Zeile** dieses Spiels stammt von
-    dir.
+    dir — und steht jetzt in **einer** Datei.
 
     - Die **Spiellogik** (`setup`, `moves`, `turn`, `endIf`, `ai`) — aus den boardgame.io-Kapiteln.
     - Das **Zeichnen** und die **Interaktion** (`draw`, das Gitter, die Markierungen,
-      `onClick` → `clickCell`) — aus dem Canvas-Kurs, hier zusammengeführt.
+      `onClick` → `clickCell`, das Spielende) — aus dem Canvas-Kurs, hier zusammengeführt.
 
     Damit hast du genau das gebaut, was im echten boardgame.io-Projekt entsteht: ein Spiel,
     bei dem die Logik vom Framework verwaltet und das Brett von dir gezeichnet wird. Dieselbe

@@ -114,6 +114,65 @@ onClick(150, 70, 200, 90, () => {
     > wir ab jetzt aber meistens die kurze Pfeil-Schreibweise `() => { ... }`.
   </script>
 
+  <script id="capture-md" type="text/markdown">
+    ## Was sich ein Callback merkt — Vorsicht in Schleifen ⚠️
+
+    Ein Callback wird ja **erst später** aufgerufen — beim Klick. Bis dahin
+    **merkt** er sich die Variablen aus seiner Umgebung und schaut **im Moment des
+    Klicks** nach, welchen Wert sie *gerade* haben. Das ist meistens praktisch —
+    in einer **Schleife** kann es aber zur Falle werden.
+
+    Stell dir vor, du legst in einer Schleife mehrere Klick-Bereiche an und gibst
+    jedem einen Callback, der sich die Nummer `i` merken soll. Entscheidend ist,
+    **wo** du `i` deklarierst. Wenn `i` **außerhalb** der Schleife steht, gibt es
+    nur **eine einzige** Variable, die sich alle Durchläufe teilen:
+
+    ```javascript
+    // ⚠️ FALSCH — eine gemeinsame Variable außerhalb der Schleife
+    let i = 0
+    for (i = 0; i < 3; i++) {
+      onClick(0, i * 60, 100, 50, () => {
+        console.log("Knopf " + i)   // gibt IMMER "Knopf 3" aus!
+      })
+    }
+    ```
+
+    Alle drei Callbacks geben `Knopf 3` aus — nicht `0`, `1`, `2`. Wenn die
+    Schleife fertig ist, steht in `i` der Wert `3` — und genau **den** finden alle
+    Callbacks vor, wenn man später klickt, weil sie sich alle **dieselbe**
+    Variable gemerkt haben.
+
+    Die Lösung ist einfach: Deklariere die Zählvariable mit **`let` direkt in der
+    Schleife**. Dann bekommt **jeder Durchlauf sein eigenes `i`**, das der Callback
+    sich merkt:
+
+    ```javascript
+    // ✅ RICHTIG — let direkt in der Schleife
+    for (let i = 0; i < 3; i++) {
+      onClick(0, i * 60, 100, 50, () => {
+        console.log("Knopf " + i)   // 0, 1, 2 — richtig!
+      })
+    }
+    ```
+
+    Genauso sicher ist eine `for ... of`-Schleife oder eine **eigene Variable im
+    Schleifen-Körper**, die du mit `const` festhältst:
+
+    ```javascript
+    for (let i = 0; i < 3; i++) {
+      const nummer = i   // eigene Kopie für genau diesen Durchlauf
+      onClick(0, i * 60, 100, 50, () => {
+        console.log("Knopf " + nummer)
+      })
+    }
+    ```
+
+    > 📌 **Merke:** Wenn du in einer Schleife Callbacks anlegst, die sich die
+    > Schleifen-Variable merken sollen, deklariere sie mit **`let` direkt in der
+    > Schleife** (oder nimm `for ... of`). Eine **gemeinsam** genutzte Variable von
+    > außerhalb zeigt am Ende für alle Callbacks auf denselben letzten Wert.
+  </script>
+
   <script id="redraw-md" type="text/markdown">
     ## Etwas verändern: neu zeichnen
 
