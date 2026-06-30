@@ -1,0 +1,92 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 1 — Koordinatensystem</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Koordinatensystem 📐
+
+    Bevor wir anfangen zu zeichnen, müssen wir verstehen, wie Computer Positionen
+    auf dem Bildschirm beschreiben. Computer arbeiten mit einem **Koordinatensystem**
+    — ähnlich wie du es aus der Mathematik kennst.
+
+    Computer denken zweidimensional in zwei Achsen:
+
+    - **x-Achse**: horizontal (von links nach rechts)
+    - **y-Achse**: vertikal (von oben nach unten)
+
+    > ⚠️ **Vorsicht:** In der Mathematik liegt der Nullpunkt `(0, 0)` meist **unten
+    > links** und die y-Achse zeigt nach oben. Bei Computern ist es andersherum:
+    > der **Nullpunkt `(0, 0)`** ist in der **oberen linken Ecke**, und die
+    > **y-Achse zeigt nach unten**.
+  </script>
+
+  <script id="examples-md" type="text/markdown">
+    ## Beispiele
+
+    Schauen wir uns ein paar Positionen an:
+
+    | Name | Koordinaten  | Position auf dem Canvas                 |
+    | ---- | ------------ | --------------------------------------- |
+    | A    | `(0, 0)`     | Ganz oben links                         |
+    | B    | `(100, 0)`   | 100 Pixel von links, ganz oben          |
+    | C    | `(0, 100)`   | Ganz links, 100 Pixel von oben          |
+    | D    | `(200, 150)` | 200 Pixel von links, 150 Pixel von oben |
+    | E    | `(275, 280)` | 275 Pixel von links, 280 Pixel von oben |
+
+    Hier siehst du diese fünf Punkte direkt auf dem Canvas eingezeichnet. Spiel mit
+    den Koordinaten in der `points`-Liste herum und beobachte, wie sich die Punkte
+    verschieben:
+  </script>
+
+  <script id="points-demo" type="module">
+    const code_points = view(codeEditor("canvas:coords-points", {
+      value: `// Jeder Punkt: [name, x, y]
+const points = [
+  ["A", 0, 0],
+  ["B", 100, 0],
+  ["C", 0, 100],
+  ["D", 200, 150],
+  ["E", 275, 280],
+]
+
+ctx.font = "16px Arial"
+for (const [name, x, y] of points) {
+  // Der Punkt selbst (roter Kreis)
+  ctx.fillStyle = "red"
+  ctx.beginPath()
+  ctx.arc(x, y, 5, 0, 2 * Math.PI)
+  ctx.fill()
+
+  // Die Beschriftung daneben
+  ctx.fillStyle = "black"
+  ctx.fillText(name + " (" + x + ", " + y + ")", x + 10, y + 20)
+}`
+    }));
+  </script>
+
+  <script id="points-out" type="module">
+    display(canvasOutput(code_points, { width: 500, height: 360 }));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    Jetzt, wo du weißt, wo `(0, 0)` liegt und in welche Richtung die Achsen
+    zeigen, können wir anfangen zu zeichnen.
+
+    Weiter geht's mit der einfachsten Form: **[Rechtecke →](./1_rectangles)**
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>

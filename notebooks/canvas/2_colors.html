@@ -1,0 +1,402 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 3 — Farben</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput, canvasTest, canvasTestReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Farben 🌈
+
+    Bis jetzt haben wir nur schwarze Rechtecke gezeichnet. Zeit für etwas Farbe!
+
+    ## Wie Computer Farben darstellen
+
+    Das gängigste System ist **RGB** — **R**ot **G**rün **B**lau. Eine Farbe
+    besteht aus drei Zahlen, jeweils zwischen **0 und 255**:
+
+    - **R** (Rot): wie viel Rot? (0 = kein Rot, 255 = maximales Rot)
+    - **G** (Grün): wie viel Grün?
+    - **B** (Blau): wie viel Blau?
+
+    > 📌 RGB ist **additive Farbmischung** — wir mischen Licht, nicht Farbe! Alle
+    > Werte auf `0` → **Schwarz** (kein Licht). Alle Werte auf `255` → **Weiß**.
+
+    | Farbe   | RGB-Notation         |
+    | ------- | -------------------- |
+    | Rot     | `rgb(255, 0, 0)`     |
+    | Grün    | `rgb(0, 255, 0)`     |
+    | Blau    | `rgb(0, 0, 255)`     |
+    | Gelb    | `rgb(255, 255, 0)`   |
+    | Cyan    | `rgb(0, 255, 255)`   |
+    | Magenta | `rgb(255, 0, 255)`   |
+    | Weiß    | `rgb(255, 255, 255)` |
+    | Schwarz | `rgb(0, 0, 0)`       |
+    | Grau    | `rgb(128, 128, 128)` |
+  </script>
+
+  <script id="setcolors-md" type="text/markdown">
+    ## Farben in Canvas setzen
+
+    In Canvas funktionieren Farben wie bei einem echten Pinsel:
+
+    1. Du **wählst eine Farbe** (tauchst den Pinsel ein)
+    2. Du **malst** mit dieser Farbe
+    3. Die Farbe bleibt aktiv, **bis du sie wechselst**
+
+    - **`ctx.fillStyle`** — Farbe für **ausgefüllte** Formen
+    - **`ctx.strokeStyle`** — Farbe für **Umrisse**
+  </script>
+
+  <script id="setcolors-demo" type="module">
+    const code_set = view(codeEditor("canvas:colors-set", {
+      value: `ctx.fillStyle = "rgb(255, 0, 0)"    // Rot wählen
+ctx.fillRect(50, 50, 100, 100)        // Rotes Rechteck
+
+ctx.strokeStyle = "rgb(0, 128, 0)"  // Grün wählen
+ctx.lineWidth = 4
+ctx.strokeRect(200, 50, 100, 100)     // Grüner Umriss`
+    }));
+  </script>
+  <script id="setcolors-out" type="module">
+    display(canvasOutput(code_set, { width: 400, height: 220 }));
+  </script>
+
+  <script id="brush-md" type="text/markdown">
+    ### Das Pinsel-Prinzip
+
+    Einmal gewählt, bleibt die Farbe für **alle folgenden** Formen aktiv — bis du
+    sie wechselst. Beide ersten Rechtecke unten sind rot, obwohl `fillStyle` nur
+    einmal gesetzt wurde:
+  </script>
+
+  <script id="brush-demo" type="module">
+    const code_brush = view(codeEditor("canvas:colors-brush", {
+      value: `ctx.fillStyle = "rgb(255, 0, 0)";   // Pinsel in Rot tauchen
+ctx.fillRect(50, 50, 100, 100);      // Rotes Rechteck
+ctx.fillRect(200, 50, 100, 100);     // Noch ein rotes Rechteck!
+
+ctx.fillStyle = "rgb(0, 0, 255)";   // Pinsel in Blau tauchen
+ctx.fillRect(125, 125, 100, 100);     // Blaues Rechteck`
+    }));
+  </script>
+  <script id="brush-out" type="module">
+    display(canvasOutput(code_brush, { width: 350, height: 350 }));
+  </script>
+
+  <script id="notation-md" type="text/markdown">
+    ## Verschiedene Farbnotationen
+
+    Canvas akzeptiert mehrere Schreibweisen für dieselbe Farbe:
+
+    ```javascript
+    ctx.fillStyle = "rgb(255, 100, 50)"  // 1. RGB
+    ctx.fillStyle = "#FF6432"            // 2. Hex (gleiche Farbe)
+    ctx.fillStyle = "#F00"               // Kurzform für #FF0000
+    ctx.fillStyle = "red"                // 3. Farbname
+    ```
+
+    > 💡 RGB gibt dir die meiste Kontrolle, Farbnamen sind am einfachsten für
+    > Standardfarben. Eine vollständige Liste aller Namen findest du im
+    > [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color).
+  </script>
+
+  <script id="notation-demo" type="module">
+    const code_notation = view(codeEditor("canvas:colors-notation", {
+      value: `ctx.fillStyle = "rgb(255, 100, 50)"
+ctx.fillRect(20, 50, 100, 100)
+
+ctx.fillStyle = "#FF6432"
+ctx.fillRect(150, 50, 100, 100)
+
+ctx.fillStyle = "tomato"
+ctx.fillRect(280, 50, 100, 100)`
+    }));
+  </script>
+  <script id="notation-out" type="module">
+    display(canvasOutput(code_notation, { width: 420, height: 220 }));
+  </script>
+
+  <script id="rgba-md" type="text/markdown">
+    ## RGBA — Transparenz
+
+    Mit **RGBA** kannst du Farben halbtransparent machen. Der vierte Wert
+    (**Alpha**) liegt zwischen `0` (komplett transparent) und `1` (komplett
+    undurchsichtig):
+
+    ```javascript
+    ctx.fillStyle = "rgba(255, 0, 0, 0.5)"  // 50 % transparentes Rot
+    ```
+  </script>
+
+  <script id="rgba-demo" type="module">
+    const code_rgba = view(codeEditor("canvas:colors-rgba", {
+      value: `ctx.fillStyle = "rgb(255, 0, 0)"
+ctx.fillRect(50, 50, 150, 150)
+
+ctx.fillStyle = "rgba(0, 0, 255, 0.5)"  // 50 % transparentes Blau
+ctx.fillRect(100, 100, 150, 150)          // überlappt das rote`
+    }));
+  </script>
+  <script id="rgba-out" type="module">
+    display(canvasOutput(code_rgba, { width: 320, height: 300 }));
+  </script>
+
+  <script id="ex1-md" type="text/markdown">
+    ---
+
+    ## Übung 1 🎯 — Bunte Rechtecke
+
+    Male **drei überlappende Quadrate** in Rot, Grün und Blau mit jeweils
+    **70 % Transparenz** (Alpha `0.7`).
+  </script>
+
+  <script id="ex1-demo" type="module">
+    const code_ex1 = view(codeEditor("canvas:colors-ex1", {
+      value: `// Tipp: rgba(R, G, B, 0.7)
+`
+    }));
+  </script>
+  <script id="ex1-out" type="module">
+    display(canvasOutput(code_ex1, { width: 360, height: 320 }));
+  </script>
+  <script id="ex1-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex1, {
+      width: 360, height: 320,
+      checks: [
+        { name: "Drei Rechtecke gezeichnet", run: ({ base }) => {
+            const n = base.callsTo("fillRect").length;
+            return { passed: n >= 3, detail: `${n} gezeichnet` };
+        } },
+        { name: "Mit Transparenz (rgba, Alpha < 1)", run: ({ base }) => {
+            const hit = base.setsOf("fillStyle").map(String).some(s => {
+              const m = s.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/i);
+              return m && parseFloat(m[1]) < 1;
+            });
+            return { passed: hit, detail: hit ? null : "nutze rgba(R, G, B, 0.7)" };
+        } },
+        { name: "Quadrate überlappen sich", run: ({ base }) => {
+            const r = base.callsTo("fillRect").map(c => c.args);
+            const ov = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] &&
+                                 a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
+            for (let i = 0; i < r.length; i++)
+              for (let j = i + 1; j < r.length; j++)
+                if (ov(r[i], r[j])) return true;
+            return false;
+        } }
+      ]
+    }), "Übung 1"));
+  </script>
+
+  <script id="ex2-md" type="text/markdown">
+    ## Übung 2 🎯 — Schachbrett
+
+    Denk an die Loops aus dem JS-Tutorial zurück und male **möglichst effizient**
+    ein Schachbrett: **8 × 8** Quadrate, alternierende Farben, dunkles Feld in
+    der linken unteren Ecke.
+
+    > ⚠️ 64-mal `ctx.fillRect` zu kopieren zählt **nicht** als Lösung — benutze
+    > verschachtelte `for`-Loops!
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    - Verschachtle zwei Schleifen: eine äußere für die acht Zeilen und eine
+      innere für die acht Spalten.
+    - Ob ein Feld hell oder dunkel ist, kannst du daran festmachen, ob die Summe
+      aus Zeilen- und Spaltennummer gerade oder ungerade ist. Welche der beiden
+      Möglichkeiten dunkel ist, hängt davon ab, wo das dunkle Feld liegen soll.
+    - Die Position eines Feldes berechnest du aus seiner Spalten- bzw.
+      Zeilennummer mal der Feldgröße.
+
+    </details>
+  </script>
+
+  <script id="ex2-demo" type="module">
+    const code_ex2 = view(codeEditor("canvas:colors-ex2", {
+      value: ``
+    }));
+  </script>
+  <script id="ex2-out" type="module">
+    display(canvasOutput(code_ex2, { width: 320, height: 320 }));
+  </script>
+  <script id="ex2-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex2, {
+      width: 320, height: 320,
+      checks: [
+        { name: "Dunkles Feld unten links", run: ({ base }) => {
+            const p = base.pixel(20, 300);
+            const lum = (p[0] + p[1] + p[2]) / 3;
+            return { passed: lum < 150, detail: `Helligkeit ${Math.round(lum)}` };
+        } },
+        { name: "Lückenloses 8 × 8 Schachbrett", run: ({ base }) => {
+            const size = 40;   // 320 / 8 — die Felder müssen das Brett ohne Lücken füllen
+            const lum = (x, y) => { const p = base.pixel(x, y); return (p[0] + p[1] + p[2]) / 3; };
+            // Unten links muss dunkel sein → das legt fest, welche Parität dunkel ist.
+            if (lum(20, 7 * size + 20) >= 128) return { passed: false, detail: "unten links ist nicht dunkel" };
+            const darkParity = (0 + 7) % 2;
+            let bad = 0, checked = 0;
+            for (let col = 0; col < 8; col++) for (let row = 0; row < 8; row++) {
+              const expectDark = ((col + row) % 2) === darkParity;
+              // Mitte UND Nähe der Feldkante prüfen — so fallen zu kleine Felder
+              // (z. B. fillRect(x, y, 40, 30)) durch ihre Lücken auf.
+              for (const [ox, oy] of [[20, 20], [32, 34]]) {
+                const isDark = lum(col * size + ox, row * size + oy) < 128;
+                checked++;
+                if (isDark !== expectDark) bad++;
+              }
+            }
+            return { passed: bad === 0, detail: bad ? `${bad}/${checked} Stellen falsch — Lücken oder falsche Feldgröße?` : null };
+        } }
+      ]
+    }), "Übung 2"));
+  </script>
+
+  <script id="ex3-md" type="text/markdown">
+    ## Übung 3 🎯 — Füllung und Rand
+
+    Schreib eine **Funktion** `drawSquareWithBorder(x, y, width, height, strokeSize, fillColor, strokeColor)`,
+    die ein Rechteck mit Rand zeichnet — Position, Breite, Höhe, Randdicke sowie
+    Füll- und Randfarbe sind jeweils **Parameter**.
+
+    <details><summary>💡 Tipp anzeigen</summary>
+
+    Zwei übereinanderliegende Rechtecke ergeben den Eindruck eines Randes: erst
+    ein großes in der Randfarbe, dann ein kleineres (um die Randdicke eingerückt)
+    in der Füllfarbe.
+
+    </details>
+
+    Ruf deine Funktion dann **viermal** auf und reproduziere damit das **Zielbild**
+    unten — und zwar **genau** mit diesen Werten:
+
+    1. **rot**, Rand **schwarz** — Position **(10, 10)**, **100 × 100**, Randdicke **10**
+    2. **grün**, Rand **weiß** — Position **(100, 10)**, **100 × 100**, Randdicke **10**
+    3. **blau**, Rand **rot** — Position **(10, 110)**, **90 × 90**, Randdicke **4**
+    4. **gelb**, **ohne** Rand — Position **(100, 100)**, **100 × 100**, Randdicke **0**
+
+    > 📌 Beim **grünen** Quadrat ist der Rand **weiß** — auf weißem Hintergrund also
+    > unsichtbar. Beim **gelben** Quadrat ist die Randdicke **0**, es hat also gar
+    > keinen Rand.
+
+    **Zielbild:**
+  </script>
+
+  <script id="ex3-target" type="module">
+    display(canvasOutput(`function drawSquareWithBorder(x, y, width, height, strokeSize, fillColor, strokeColor) {
+  ctx.fillStyle = strokeColor
+  ctx.fillRect(x, y, width, height)
+  ctx.fillStyle = fillColor
+  ctx.fillRect(x + strokeSize, y + strokeSize, width - strokeSize * 2, height - strokeSize * 2)
+}
+
+drawSquareWithBorder(10, 10, 100, 100, 10, "red", "black")
+drawSquareWithBorder(100, 10, 100, 100, 10, "green", "white")
+drawSquareWithBorder(10, 110, 90, 90, 4, "blue", "red")
+drawSquareWithBorder(100, 100, 100, 100, 0, "yellow", "black")`, { width: 300, height: 300 }));
+  </script>
+
+  <script id="ex3-demo" type="module">
+    const code_ex3 = view(codeEditor("canvas:colors-ex3", {
+      value: ``
+    }));
+  </script>
+  <script id="ex3-out" type="module">
+    display(canvasOutput(code_ex3, { width: 300, height: 300 }));
+  </script>
+  <script id="ex3-test" type="module">
+    const isRed = (r, g, b) => r > 150 && g < 90 && b < 90;
+    const isGreen = (r, g, b) => g > 90 && r < 120 && b < 120;
+    const isBlue = (r, g, b) => b > 150 && r < 90 && g < 90;
+    const isYellow = (r, g, b) => r > 150 && g > 150 && b < 90;
+    const isBlack = (r, g, b) => r < 60 && g < 60 && b < 60;
+    // Liest einen Pixel aus einem Probe-Ergebnis als [r, g, b].
+    const px3 = (p, x, y) => { const [r, g, b] = p.pixel(x, y); return [r, g, b]; };
+    // Ruft die Funktion mit Test-Parametern auf einem frischen Canvas auf. Da der
+    // Aufruf NACH dem Code des Schülers passiert, „gewinnt“ unser Quadrat überall,
+    // wo wir hineinschauen — deshalb prüfen wir nur Pixel innerhalb des Quadrats.
+    display(canvasTestReport(canvasTest(code_ex3, {
+      width: 300, height: 300, extract: "drawSquareWithBorder",
+      checks: [
+        { name: "Funktion `drawSquareWithBorder` existiert", run: ({ base }) =>
+            ({ passed: base.fnFound, detail: base.fnFound ? null : "Funktion `drawSquareWithBorder` nicht gefunden" }) },
+
+        // --- Das Zielbild aus genau vier Aufrufen (exakte Positionen) ---
+        { name: "Rotes Quadrat mit schwarzem Rand bei (10, 10)", run: ({ base }) => {
+            const ok = isRed(...px3(base, 60, 60)) && isBlack(...px3(base, 14, 14));
+            return { passed: ok, detail: ok ? null : "rotes Quadrat oder sein schwarzer Rand fehlt / falsch platziert" };
+        } },
+        { name: "Grünes Quadrat mit weißem Rand bei (100, 10)", run: ({ base }) => {
+            const ok = isGreen(...px3(base, 150, 60));
+            return { passed: ok, detail: ok ? null : "grünes Quadrat fehlt / falsch platziert" };
+        } },
+        { name: "Blaues Quadrat (90 × 90) mit rotem Rand bei (10, 110)", run: ({ base }) => {
+            const ok = isBlue(...px3(base, 55, 155)) && isRed(...px3(base, 12, 150));
+            return { passed: ok, detail: ok ? null : "blaues Quadrat oder sein roter Rand fehlt / falsch platziert" };
+        } },
+        { name: "Gelbes Quadrat ohne Rand bei (100, 100)", run: ({ base }) => {
+            const ok = isYellow(...px3(base, 150, 150)) && isYellow(...px3(base, 103, 103));
+            return { passed: ok, detail: ok ? null : "gelbes Quadrat fehlt, falsch platziert oder hat einen Rand" };
+        } },
+
+        // --- Die Funktion direkt mit Parametern testen ---
+        { name: "füllt das Innere mit `fillColor`", run: ({ probe }) => {
+            const p = probe({ callArgs: [40, 40, 120, 120, 15, "red", "black"] });
+            const [r, g, b] = px3(p, 100, 100);   // Mitte
+            return { passed: isRed(r, g, b), detail: isRed(r, g, b) ? null : "die Mitte ist nicht in der Füllfarbe" };
+        } },
+        { name: "zeichnet den Rand in `strokeColor`", run: ({ probe }) => {
+            const p = probe({ callArgs: [40, 40, 120, 120, 15, "red", "black"] });
+            const [r, g, b] = px3(p, 43, 100);    // im Randband (x 40..55)
+            return { passed: isBlack(r, g, b), detail: isBlack(r, g, b) ? null : "der Rand ist nicht in der Randfarbe" };
+        } },
+        { name: "beachtet die Randdicke `strokeSize`", run: ({ probe }) => {
+            const p = probe({ callArgs: [40, 40, 120, 120, 15, "red", "black"] });
+            const band = px3(p, 43, 100);    // innerhalb des 15px-Randes → Randfarbe
+            const inner = px3(p, 70, 100);   // klar in der Füllung → Füllfarbe
+            const ok = isBlack(...band) && isRed(...inner);
+            return { passed: ok, detail: ok ? null : "Rand und Füllung passen nicht zur Randdicke" };
+        } },
+        { name: "ohne Rand (`strokeSize = 0`) keine Randfarbe", run: ({ probe }) => {
+            const p = probe({ callArgs: [40, 40, 120, 120, 0, "green", "black"] });
+            const [r, g, b] = px3(p, 42, 100);    // direkt am Quadratrand
+            return { passed: isGreen(r, g, b), detail: isGreen(r, g, b) ? null : "auch mit strokeSize = 0 erscheint ein Rand" };
+        } },
+        { name: "beachtet die Position `x`, `y`", run: ({ probe }) => {
+            const p = probe({ callArgs: [170, 30, 80, 80, 8, "blue", "black"] });
+            const [r, g, b] = px3(p, 210, 70);    // Mitte von (170, 30) + 80/2
+            return { passed: isBlue(r, g, b), detail: isBlue(r, g, b) ? null : "das Quadrat sitzt nicht an (x, y)" };
+        } },
+        { name: "beachtet `width` und `height` getrennt", run: ({ probe }) => {
+            // breites, flaches Rechteck: x 40..200, y 40..120
+            const p = probe({ callArgs: [40, 40, 160, 80, 10, "red", "black"] });
+            const center = px3(p, 120, 80);       // Mitte → Füllung
+            const rightEdge = px3(p, 196, 80);    // rechter Rand bei x≈200 (width = 160)
+            const bottomEdge = px3(p, 120, 116);  // unterer Rand bei y≈120 (height = 80)
+            const ok = isRed(...center) && isBlack(...rightEdge) && isBlack(...bottomEdge);
+            return { passed: ok, detail: ok ? null : "Breite und/oder Höhe werden nicht korrekt verwendet" };
+        } }
+      ]
+    }), "Übung 3"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du beherrschst jetzt **`fillStyle`** / **`strokeStyle`**, das **Pinsel-Prinzip**,
+    **RGB / Hex / Farbnamen** und **Transparenz mit RGBA**.
+
+    Weiter geht's mit **[anderen Formen →](./3_shapes)**
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>

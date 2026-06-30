@@ -1,0 +1,46 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas — Übersicht</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+  </script>
+
+  <script id="welcome" type="text/markdown">
+    # Canvas zeichnen 🎨
+
+    Mit dem **Canvas** kannst du direkt im Browser zeichnen — Rechtecke, Kreise,
+    Linien, Text und ganze Bilder. Du gibst dem Computer Anweisungen, *was* er
+    *wo* malen soll, und siehst das Ergebnis sofort auf der Seite.
+
+    Du brauchst **nichts zu installieren** — alle Beispiele laufen direkt im
+    Browser und das gezeichnete Canvas erscheint direkt unter dem Code. Ändere
+    den Code, klick auf **▶ Ausführen** (oder `⌘`/`Strg`+`Enter`) und schau zu,
+    wie sich das Bild verändert.
+
+    > 💡 In allen Beispielen steht dir bereits eine Variable `ctx` zur Verfügung —
+    > das ist der „Pinsel“, mit dem du auf das Canvas malst. Du kannst auch eine
+    > Funktion `draw(ctx)` schreiben; sie wird automatisch aufgerufen.
+
+    ## Kapitel
+
+    1. [Koordinatensystem](./0_coordinates) 📐 — wie der Computer Positionen versteht
+    2. [Rechtecke](./1_rectangles) ▭ — `fillRect`, `strokeRect`, `clearRect`
+    3. [Farben](./2_colors) 🌈 — RGB, Hex, Transparenz, das Pinsel-Prinzip
+    4. [Andere Formen](./3_shapes) ⚪ — Pfade, Kreise, Linien, Dreiecke
+    5. [Text](./4_text) 🔤 — `fillText`, Schriftarten, Ausrichtung
+    6. [Bilder](./5_images) 🖼️ — `drawPicture`, Position, Größe, Ausschnitte
+    7. [Klicks](./6_clicks) 🖱️ — `onClick`, `resetOnClicks`, interaktive Felder
+  </script>
+
+  <script id="back" type="text/markdown">
+    ---
+
+    ← [Zurück zur Kurs-Übersicht](../)
+  </script>
+</notebook>

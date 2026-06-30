@@ -1,0 +1,292 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 2 — Rechtecke</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput, canvasTest, canvasTestReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Rechtecke ▭
+
+    Rechtecke sind die einfachsten Formen, die wir mit der Canvas-API zeichnen
+    können. Es gibt drei Funktionen dafür — alle drei nehmen die gleichen vier
+    Werte entgegen:
+
+    ```javascript
+    ctx.fillRect(x, y, breite, höhe)
+    ```
+
+    - `x`: x-Koordinate der **oberen linken Ecke**
+    - `y`: y-Koordinate der **oberen linken Ecke**
+    - `breite`: Breite des Rechtecks in Pixeln
+    - `höhe`: Höhe des Rechtecks in Pixeln
+  </script>
+
+  <script id="fill-md" type="text/markdown">
+    ## `fillRect()` — ausgefülltes Rechteck
+
+    Zeichnet ein **ausgefülltes** Rechteck. Um Farben kümmern wir uns im nächsten
+    Kapitel — ohne weitere Angaben wird in Schwarz gezeichnet.
+  </script>
+
+  <script id="fill-demo" type="module">
+    const code_fill = view(codeEditor("canvas:rect-fill", {
+      value: `// Obere linke Ecke bei (50, 100), 200 breit, 150 hoch
+ctx.fillRect(50, 100, 200, 150)`
+    }));
+  </script>
+  <script id="fill-out" type="module">
+    display(canvasOutput(code_fill, { width: 500, height: 320 }));
+  </script>
+
+  <script id="stroke-md" type="text/markdown">
+    ## `strokeRect()` — nur der Umriss
+
+    Zeichnet **nur die Umrandung** eines Rechtecks (nicht ausgefüllt).
+  </script>
+
+  <script id="stroke-demo" type="module">
+    const code_stroke = view(codeEditor("canvas:rect-stroke", {
+      value: `ctx.strokeRect(50, 100, 200, 150)`
+    }));
+  </script>
+  <script id="stroke-out" type="module">
+    display(canvasOutput(code_stroke, { width: 500, height: 320 }));
+  </script>
+
+  <script id="clear-md" type="text/markdown">
+    ## `clearRect()` — löschen
+
+    **Löscht** einen rechteckigen Bereich (macht ihn wieder transparent).
+
+    > 📌 Canvas funktioniert anders als Photoshop nicht mit Ebenen, sondern
+    > speichert immer nur die obersten sichtbaren Pixel. Deshalb legt `clearRect`
+    > zuvor gemalte Pixel **nicht** wieder frei, sondern setzt den Bereich in
+    > seinen Ursprungszustand zurück (im Beispiel: das Schachbrett-Muster
+    > dahinter wird sichtbar).
+  </script>
+
+  <script id="clear-demo" type="module">
+    const code_clear = view(codeEditor("canvas:rect-clear", {
+      value: `ctx.fillRect(50, 50, 200, 200)        // Großes Rechteck zeichnen
+ctx.fillStyle = "red"                 // Fill-Farbe wechseln
+ctx.fillRect(75, 75, 150, 150)        // Zweites Rechteck darüber
+ctx.clearRect(100, 100, 100, 100)     // Loch in die Mitte schneiden`
+    }));
+  </script>
+  <script id="clear-out" type="module">
+    display(canvasOutput(code_clear, { width: 400, height: 320 }));
+  </script>
+
+  <script id="possize-md" type="text/markdown">
+    ## Position vs. Größe verstehen
+
+    - **Position** (`x`, `y`): wo das Rechteck startet (obere linke Ecke)
+    - **Größe** (`breite`, `höhe`): wie groß das Rechteck ist
+
+    Das Rechteck unten startet bei `x = 100` und endet bei `x = 100 + 200 = 300`;
+    es startet bei `y = 50` und endet bei `y = 50 + 100 = 150`.
+  </script>
+
+  <script id="possize-demo" type="module">
+    const code_possize = view(codeEditor("canvas:rect-possize", {
+      value: `// Position: (100, 50)  ·  Größe: 200 x 100
+ctx.fillRect(100, 50, 200, 100)`
+    }));
+  </script>
+  <script id="possize-out" type="module">
+    display(canvasOutput(code_possize, { width: 400, height: 220 }));
+  </script>
+
+  <script id="ex1-md" type="text/markdown">
+    ---
+
+    ## Übung 1 🎯 — Dein erstes Rechteck
+
+    Male ein Rechteck, **400 × 300** groß, an Position **(50, 100)**.
+  </script>
+
+  <script id="ex1-demo" type="module">
+    const code_ex1 = view(codeEditor("canvas:rect-ex1", {
+      value: `// Dein Code hier:
+`
+    }));
+  </script>
+  <script id="ex1-out" type="module">
+    display(canvasOutput(code_ex1, { width: 500, height: 440 }));
+  </script>
+  <script id="ex1-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex1, {
+      width: 500, height: 440,
+      checks: [
+        { name: "Rechteck 400 × 300 an Position (50, 100)", run: ({ base }) => {
+            const hit = base.callsTo("fillRect").some(c => {
+              const [x, y, w, h] = c.args;
+              return Math.abs(x - 50) <= 2 && Math.abs(y - 100) <= 2 &&
+                     Math.abs(w - 400) <= 2 && Math.abs(h - 300) <= 2;
+            });
+            return { passed: hit };
+        } }
+      ]
+    }), "Übung 1"));
+  </script>
+
+  <script id="ex2-md" type="text/markdown">
+    ## Übung 2 🎯 — Mehrere Rechtecke
+
+    Male **drei Rechtecke** unterschiedlicher Größe auf das Canvas.
+    Experimentiere mit verschiedenen Positionen!
+  </script>
+
+  <script id="ex2-demo" type="module">
+    const code_ex2 = view(codeEditor("canvas:rect-ex2", {
+      value: `ctx.fillRect(20, 20, 120, 80)
+// zwei weitere Rechtecke ...
+`
+    }));
+  </script>
+  <script id="ex2-out" type="module">
+    display(canvasOutput(code_ex2, { width: 500, height: 320 }));
+  </script>
+  <script id="ex2-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex2, {
+      width: 500, height: 320,
+      checks: [
+        { name: "Mindestens drei Rechtecke", run: ({ base }) => {
+            const n = base.callsTo("fillRect").length + base.callsTo("strokeRect").length;
+            return { passed: n >= 3, detail: `${n} Rechteck-Befehle gefunden` };
+        } }
+      ]
+    }), "Übung 2"));
+  </script>
+
+  <script id="ex3-md" type="text/markdown">
+    ## Übung 3 🎯 — Ein kleines Logik-Rätsel
+
+    Repliziere das **Zielbild** unten **exakt**. Es besteht aus **6 Befehlen**:
+
+    - ein **äußerer Rahmen** (`strokeRect`)
+    - zwei **ausgefüllte** Quadrate (`fillRect`)
+    - zwei **Umriss**-Quadrate (`strokeRect`)
+    - ein **Loch** (`clearRect`) — genau dort, wo sich die beiden **gefüllten**
+      Quadrate überlappen
+
+    Im Bild sind nur **wenige Maße** eingezeichnet — der Rest ist ein Rätsel, das
+    du dir **erschließen** musst:
+
+    - **Alle vier kleinen Quadrate sind gleich groß** (siehe die `100`-Markierung).
+    - Innerhalb jedes Paares ist das zweite Quadrat **diagonal um die Hälfte**
+      versetzt — die beiden überlappen sich also zu einem Viertel.
+    - Das **Loch** ist genau die **Überlappung der beiden gefüllten Quadrate**.
+    - Das **Schachbrett-Muster** zeigt, wo `clearRect` das Canvas wieder
+      **durchsichtig** gemacht hat.
+
+    > 📌 Du kannst nur ausschneiden, was vorher schon gezeichnet wurde — achte
+    > also auf die **Reihenfolge** deiner Befehle.
+
+    **Zielbild:**
+  </script>
+
+  <script id="ex3-target" type="module">
+    display(canvasOutput(`// Zielbild — 6 Befehle. Im Bild sind nur wenige Maße markiert.
+ctx.strokeRect(50, 50, 300, 300)
+ctx.fillRect(100, 175, 100, 100)
+ctx.fillRect(150, 225, 100, 100)
+ctx.clearRect(150, 225, 50, 50)
+ctx.strokeRect(150, 75, 100, 100)
+ctx.strokeRect(200, 125, 100, 100)
+
+// ---- wenige Maße (rot, NICHT Teil der Lösung) ----
+ctx.strokeStyle = "#dd1111"
+ctx.fillStyle = "#dd1111"
+ctx.lineWidth = 1
+ctx.font = "13px sans-serif"
+ctx.textBaseline = "middle"
+
+function punkt(px, py) {
+  ctx.beginPath()
+  ctx.arc(px, py, 2.5, 0, 7)
+  ctx.fill()
+}
+
+// Ecke des äußeren Rahmens
+punkt(50, 50)
+ctx.textAlign = "left"
+ctx.fillText("(50, 50)", 58, 40)
+
+// Größe eines kleinen Quadrats (obere Kante des oberen Umriss-Quadrats)
+ctx.beginPath()
+ctx.moveTo(150, 64); ctx.lineTo(250, 64)
+ctx.moveTo(150, 60); ctx.lineTo(150, 68)
+ctx.moveTo(250, 60); ctx.lineTo(250, 68)
+ctx.stroke()
+ctx.textAlign = "center"
+ctx.fillText("100", 200, 53)
+
+// Anker des oberen Umriss-Quadrats
+punkt(150, 75)
+ctx.textAlign = "right"
+ctx.fillText("(150, 75)", 146, 87)
+
+// Anker des oberen gefüllten Quadrats
+punkt(100, 175)
+ctx.textAlign = "right"
+ctx.fillText("(100, 175)", 96, 187)`, { width: 400, height: 400 }));
+  </script>
+
+  <script id="ex3-demo" type="module">
+    const code_ex3 = view(codeEditor("canvas:rect-ex3", {
+      value: `// Experimentiere hier:
+`
+    }));
+  </script>
+  <script id="ex3-out" type="module">
+    display(canvasOutput(code_ex3, { width: 400, height: 400 }));
+  </script>
+  <script id="ex3-test" type="module">
+    const hasRect = (base, name, ex, ey, ew, eh) => base.callsTo(name).some(c => {
+      const [x, y, w, h] = c.args;
+      return Math.abs(x - ex) <= 2 && Math.abs(y - ey) <= 2 &&
+             Math.abs(w - ew) <= 2 && Math.abs(h - eh) <= 2;
+    });
+    display(canvasTestReport(canvasTest(code_ex3, {
+      width: 400, height: 400,
+      checks: [
+        { name: "Äußerer Rahmen `strokeRect(50, 50, 300, 300)`", run: ({ base }) => hasRect(base, "strokeRect", 50, 50, 300, 300) },
+        { name: "Gefülltes Quadrat `fillRect(100, 175, 100, 100)`", run: ({ base }) => hasRect(base, "fillRect", 100, 175, 100, 100) },
+        { name: "Gefülltes Quadrat `fillRect(150, 225, 100, 100)`", run: ({ base }) => hasRect(base, "fillRect", 150, 225, 100, 100) },
+        { name: "Umriss-Quadrat `strokeRect(150, 75, 100, 100)`", run: ({ base }) => hasRect(base, "strokeRect", 150, 75, 100, 100) },
+        { name: "Umriss-Quadrat `strokeRect(200, 125, 100, 100)`", run: ({ base }) => hasRect(base, "strokeRect", 200, 125, 100, 100) },
+        { name: "Loch `clearRect(150, 225, 50, 50)`", run: ({ base }) => hasRect(base, "clearRect", 150, 225, 50, 50) },
+        { name: "Das Loch ist wirklich freigestellt (Reihenfolge!)", run: ({ base }) => {
+            const inHole = base.pixel(175, 250)[3];       // Mitte des Lochs → durchsichtig (Alpha 0)
+            const inFill = base.pixel(120, 250);          // gefüllt, aber außerhalb des Lochs → schwarz, deckend
+            const holeClear = inHole <= 20;
+            const fillSolid = inFill[3] >= 235 && inFill[0] <= 20 && inFill[1] <= 20 && inFill[2] <= 20;
+            return { passed: holeClear && fillSolid, detail: holeClear ? (fillSolid ? null : "die Füllung ist nicht deckend") : "im Loch ist es nicht durchsichtig" };
+        } }
+      ]
+    }), "Übung 3"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du kennst jetzt **`fillRect`**, **`strokeRect`** und **`clearRect`** und den
+    Unterschied zwischen **Position** und **Größe**.
+
+    Weiter geht's mit **[Farben →](./2_colors)**
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>

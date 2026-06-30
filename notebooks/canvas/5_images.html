@@ -1,0 +1,289 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 6 — Bilder</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput, canvasTest, canvasTestReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Bilder 🖼️
+
+    Bisher haben wir alles selbst gemalt — Rechtecke, Kreise, Text. Für ein Spiel
+    willst du aber oft fertige **Bilder** zeichnen: Spielfiguren, Karten, Symbole.
+    Genau dafür gibt es die Funktion `drawPicture`:
+
+    ```javascript
+    drawPicture(ctx, "smiley", 50, 50)
+    ```
+
+    `drawPicture` gehört zu den **Hilfsfunktionen**, die dir im Spiele-Template
+    schon mitgeliefert werden. Du musst sie nicht selbst schreiben — du benutzt
+    sie einfach. Der Aufbau ist immer:
+
+    ```javascript
+    drawPicture(ctx, name, ...position)
+    ```
+
+    - `ctx` — dein Pinsel (wie immer)
+    - `name` — *welches* Bild gezeichnet werden soll
+    - danach die **Position** (und optional die Größe) auf dem Canvas
+
+    > 💡 In diesem Kapitel stehen dir ein paar fertige Bilder zur Verfügung:
+    > `"smiley"`, `"herz"`, `"stern"`, `"baum"` und `"haus"`. Im echten Template
+    > kannst du auch eigene Bilddateien verwenden — der Aufruf bleibt gleich.
+  </script>
+
+  <script id="gallery-md" type="text/markdown">
+    ## Die verfügbaren Bilder
+
+    Schauen wir uns zuerst an, was es überhaupt gibt. Wir laufen mit einer
+    Schleife durch die Namen und zeichnen jedes Bild:
+  </script>
+
+  <script id="gallery-demo" type="module">
+    const code_gallery = view(codeEditor("canvas:img-gallery", {
+      value: `const namen = ["smiley", "herz", "stern", "baum", "haus"]
+
+ctx.font = "14px Arial"
+ctx.textAlign = "center"
+ctx.fillStyle = "black"
+
+let x = 20
+for (const name of namen) {
+  drawPicture(ctx, name, x, 15, 70, 70)
+  ctx.fillText(name, x + 35, 105)
+  x = x + 90
+}`
+    }));
+  </script>
+  <script id="gallery-out" type="module">
+    display(canvasOutput(code_gallery, { width: 470, height: 120 }));
+  </script>
+
+  <script id="pos-md" type="text/markdown">
+    ## Position: wohin kommt das Bild?
+
+    Die zwei Zahlen nach dem Namen sind die **obere linke Ecke** des Bildes —
+    genau wie bei `fillRect`:
+
+    ```javascript
+    drawPicture(ctx, "smiley", x, y)
+    ```
+
+    Ohne Größenangabe wird das Bild in seiner **Originalgröße** (hier 100 × 100)
+    gezeichnet. Die rote Markierung zeigt den Punkt `(x, y)`:
+  </script>
+
+  <script id="pos-demo" type="module">
+    const code_pos = view(codeEditor("canvas:img-pos", {
+      value: `const x = 80
+const y = 40
+
+drawPicture(ctx, "smiley", x, y)
+
+// rote Markierung auf der oberen linken Ecke (x, y)
+ctx.fillStyle = "red"
+ctx.beginPath()
+ctx.arc(x, y, 5, 0, 2 * Math.PI)
+ctx.fill()`
+    }));
+  </script>
+  <script id="pos-out" type="module">
+    display(canvasOutput(code_pos, { width: 300, height: 200 }));
+  </script>
+
+  <script id="size-md" type="text/markdown">
+    ## Größe: zwei weitere Zahlen
+
+    Hängst du **zwei weitere Zahlen** an, bestimmst du Breite und Höhe — das Bild
+    wird passend gestreckt oder gestaucht:
+
+    ```javascript
+    drawPicture(ctx, "stern", x, y, breite, höhe)
+    ```
+
+    Dreimal derselbe Stern, nur in unterschiedlichen Größen:
+  </script>
+
+  <script id="size-demo" type="module">
+    const code_size = view(codeEditor("canvas:img-size", {
+      value: `drawPicture(ctx, "stern", 20, 20, 40, 40)
+drawPicture(ctx, "stern", 80, 20, 80, 80)
+drawPicture(ctx, "stern", 190, 20, 150, 150)`
+    }));
+  </script>
+  <script id="size-out" type="module">
+    display(canvasOutput(code_size, { width: 360, height: 190 }));
+  </script>
+
+  <script id="loop-md" type="text/markdown">
+    ## Bilder in einer Schleife
+
+    Richtig praktisch wird es, wenn du Bilder mit einer **Schleife** wiederholst.
+    So zeichnest du z. B. einen ganzen Wald aus einem einzigen `baum`-Bild:
+  </script>
+
+  <script id="loop-demo" type="module">
+    const code_loop = view(codeEditor("canvas:img-loop", {
+      value: `// Wiese
+ctx.fillStyle = "#a8e063"
+ctx.fillRect(0, 150, 500, 50)
+
+// eine Reihe Bäume in zufälliger ... nein: in wachsender Größe
+for (let i = 0; i < 6; i++) {
+  const größe = 40 + i * 12
+  const x = 10 + i * 80
+  // unten ausrichten, damit alle Bäume auf der Wiese stehen
+  drawPicture(ctx, "baum", x, 170 - größe, größe, größe)
+}`
+    }));
+  </script>
+  <script id="loop-out" type="module">
+    display(canvasOutput(code_loop, { width: 500, height: 200 }));
+  </script>
+
+  <script id="crop-md" type="text/markdown">
+    ## Profi-Trick: einen Ausschnitt zeichnen 🔬
+
+    Es gibt noch eine längere Form mit **acht** Zahlen. Damit schneidest du einen
+    rechteckigen **Ausschnitt** aus dem Bild aus und zeichnest nur diesen:
+
+    ```javascript
+    drawPicture(ctx, name, sx, sy, sBreite, sHöhe, x, y, breite, höhe)
+    //                      └─ Ausschnitt im Bild ─┘  └─ Ziel auf dem Canvas ─┘
+    ```
+
+    Die ersten vier Zahlen sagen „nimm diesen Teil des Bildes", die letzten vier
+    „und male ihn hierhin". So kannst du z. B. nur das **Gesicht** des Smileys
+    (die obere Hälfte) groß herauszoomen:
+  </script>
+
+  <script id="crop-demo" type="module">
+    const code_crop = view(codeEditor("canvas:img-crop", {
+      value: `// ganzer Smiley links (Originalgröße 100x100)
+drawPicture(ctx, "smiley", 10, 20, 100, 100)
+
+// nur der obere linke Viertel-Ausschnitt, groß gezogen
+drawPicture(ctx, "smiley",
+  0, 0, 50, 50,        // Ausschnitt: obere linke Ecke des Bildes
+  150, 20, 120, 120)   // Ziel: rechts, groß`
+    }));
+  </script>
+  <script id="crop-out" type="module">
+    display(canvasOutput(code_crop, { width: 300, height: 160 }));
+  </script>
+
+  <script id="ex1-md" type="text/markdown">
+    ---
+
+    ## Übung 1 🎯 — Ein kleiner Garten
+
+    Zeichne eine kleine Szene mit `drawPicture`:
+
+    - **mindestens 3 Bäume** (`"baum"`)
+    - **ein Haus** (`"haus"`)
+
+    Wo genau du sie platzierst und wie groß sie sind, ist dir überlassen —
+    Hauptsache, es sieht nach einem Garten aus. 🌳🏠🌳
+  </script>
+
+  <script id="ex1-demo" type="module">
+    const code_ex1 = view(codeEditor("canvas:img-ex1", {
+      value: `// Tipp: drawPicture(ctx, "baum", x, y, breite, höhe)
+`
+    }));
+  </script>
+  <script id="ex1-out" type="module">
+    display(canvasOutput(code_ex1, { width: 460, height: 260 }));
+  </script>
+  <script id="ex1-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex1, {
+      width: 460, height: 260,
+      checks: [
+        { name: "Mindestens 4 Bilder gezeichnet", run: ({ base }) => {
+            const n = base.callsTo("drawImage").length;
+            return { passed: n >= 4, detail: `${n} Bilder` };
+        } },
+        { name: "Bäume sind zu sehen (grün)", run: ({ base }) => {
+            const r = base.region([46, 139, 87]);
+            return { passed: r.count > 20, detail: `${r.count} grüne Punkte` };
+        } },
+        { name: "Ein Haus ist zu sehen", run: ({ base }) => {
+            const r = base.region([244, 162, 89]);
+            return { passed: r.count > 15, detail: `${r.count} Haus-Punkte` };
+        } }
+      ]
+    }), "Übung 1"));
+  </script>
+
+  <script id="ex2-md" type="text/markdown">
+    ## Übung 2 🎯 — Derselbe Stern in drei Größen
+
+    Zeichne **denselben Stern** (`"stern"`) **dreimal** nebeneinander — jedes Mal
+    deutlich größer als das vorige (z. B. 40, 80 und 120 Pixel breit). Nutze für
+    jeden Stern die Form `drawPicture(ctx, "stern", x, y, breite, höhe)`.
+  </script>
+
+  <script id="ex2-demo" type="module">
+    const code_ex2 = view(codeEditor("canvas:img-ex2", {
+      value: `// drei Sterne in wachsender Größe nebeneinander
+`
+    }));
+  </script>
+  <script id="ex2-out" type="module">
+    display(canvasOutput(code_ex2, { width: 320, height: 140 }));
+  </script>
+  <script id="ex2-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex2, {
+      width: 320, height: 140,
+      checks: [
+        { name: "Drei Bilder mit Größenangabe", run: ({ base }) => {
+            const dws = base.callsTo("drawImage").map(c => c.args[3]).filter(v => typeof v === "number");
+            return { passed: dws.length >= 3, detail: `${dws.length} Bilder mit Breite/Höhe` };
+        } },
+        { name: "Die Sterne sind verschieden groß", run: ({ base }) => {
+            const dws = base.callsTo("drawImage").map(c => c.args[3]).filter(v => typeof v === "number");
+            if (dws.length < 3) return { passed: false, detail: "zu wenige Sterne mit Größe" };
+            const span = Math.max(...dws) - Math.min(...dws);
+            return { passed: span >= 40, detail: `Größenunterschied ${Math.round(span)} px` };
+        } },
+        { name: "Sterne sind zu sehen (gelb)", run: ({ base }) => {
+            const r = base.region([255, 193, 7]);
+            return { passed: r.count > 20, detail: `${r.count} gelbe Punkte` };
+        } }
+      ]
+    }), "Übung 2"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🎉
+
+    Du kannst jetzt mit `drawPicture` **fertige Bilder** auf das Canvas zeichnen —
+    an einer beliebigen **Position**, in jeder **Größe**, und sogar nur einen
+    **Ausschnitt**. Damit wird aus deinen Grafiken im Handumdrehen ein echtes
+    Spielbrett.
+
+    Im nächsten Kapitel machen wir das Canvas **interaktiv**: Wir lassen den
+    Spieler darauf **klicken**.
+
+    1. [Koordinatensystem](./0_coordinates) 📐
+    2. [Rechtecke](./1_rectangles) ▭
+    3. [Farben](./2_colors) 🌈
+    4. [Andere Formen](./3_shapes) ⚪
+    5. [Text](./4_text) 🔤
+    6. **Bilder** 🖼️ — du bist hier
+    7. [Klicks](./6_clicks) 🖱️ — als Nächstes →
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>
