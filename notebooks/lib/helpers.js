@@ -304,13 +304,27 @@ export function createUI({ html }) {
     return wrap;
   }
 
-  // Like canvasOutput, but the canvas is actually CLICKABLE. The student's code
-  // gets `onClick(x, y, width, height, handler)` and `resetOnClicks()` (the same
-  // helpers as the boardgame template) plus `ctx`, `canvas` and `drawPicture`.
-  // A real click on the surface runs every handler whose rectangle contains the
-  // click point. Handlers redraw via their own closures (the usual pattern is to
-  // change some state and call `draw()` again), so the picture updates live.
-  function clickableCanvas(code, { width = 500, height = 400, background = "white" } = {}) {
+  // A fresh, independent copy of an example's initial state, so re-running the
+  // code always starts from the same place (and nested objects like `markiert`
+  // aren't shared between runs).
+  function cloneState(s) {
+    if (s == null) return {};
+    try { return typeof structuredClone === "function" ? structuredClone(s) : JSON.parse(JSON.stringify(s)); }
+    catch { return { ...s }; }
+  }
+
+  // Like canvasOutput, but the canvas is actually CLICKABLE — and it mirrors the
+  // boardgame.io finale: the student only writes `export function draw(state)`
+  // and registers clickable areas with `onClick(...)`. The HARNESS owns the
+  // state and the redraw loop, exactly like boardgame.io owns `G`:
+  //   • `initialState` is the starting state object,
+  //   • `moves` are named reducers `(state, ...args) => { ...mutate state... }`;
+  //     each is injected as a global the student calls from a handler (e.g.
+  //     `onClick(x, y, w, h, () => makeBigger())` — just like `clickCell(i)`),
+  //   • after any move the harness calls `resetOnClicks()` and re-runs
+  //     `draw(state)`, so the picture updates live. Students never call
+  //     `resetOnClicks()` or `draw()` themselves.
+  function clickableCanvas(code, { width = 500, height = 400, background = "white", initialState = {}, moves = {} } = {}) {
     const canvas = html`<canvas class="canvas-surface" style="cursor:pointer" width="${width}" height="${height}"></canvas>`;
     const ctx = canvas.getContext("2d");
 
@@ -319,6 +333,8 @@ export function createUI({ html }) {
     ctx.strokeStyle = "black";
     ctx.lineWidth = 1;
 
+    // The harness-owned state and click areas — the student sees neither directly.
+    let state = cloneState(initialState);
     let handlers = [];
     const onClick = (x, y, w, h, handler) => { handlers.push({ x, y, width: w, height: h, handler }); };
     const resetOnClicks = () => { handlers = []; };
@@ -331,21 +347,46 @@ export function createUI({ html }) {
     const frame = html`<div class="canvas-frame"></div>`;
     frame.appendChild(canvas);
     wrap.appendChild(frame);
+    const errSlot = html`<div></div>`;
+    wrap.appendChild(errSlot);
     let logBox = html`<div></div>`;
     wrap.appendChild(logBox);
 
     const logs = [];
-    function render() {
+    function renderLogs() {
       const next = html`<div></div>`;
       for (const l of logs) next.appendChild(html`<div class="console-line" style="font-family:var(--monospace);font-size:13px">${l}</div>`);
       logBox.replaceWith(next);
       logBox = next;
     }
     const fakeConsole = {
-      log: (...a) => { logs.push(a.map(fmtVal).join(" ")); render(); },
-      error: (...a) => { logs.push("⚠ " + a.map(fmtVal).join(" ")); render(); },
-      warn: (...a) => { logs.push("⚠ " + a.map(fmtVal).join(" ")); render(); }
+      log: (...a) => { logs.push(a.map(fmtVal).join(" ")); renderLogs(); },
+      error: (...a) => { logs.push("⚠ " + a.map(fmtVal).join(" ")); renderLogs(); },
+      warn: (...a) => { logs.push("⚠ " + a.map(fmtVal).join(" ")); renderLogs(); }
     };
+
+    // The redraw loop we take off the student's hands: clear the old click areas,
+    // then let their draw(state) repaint and register fresh ones.
+    let drawFn = null;
+    function render() {
+      errSlot.innerHTML = "";
+      resetOnClicks();
+      if (typeof drawFn !== "function") {
+        errSlot.appendChild(html`<div class="feedback feedback-hint">⏳ Exportiere eine Funktion <code>draw(state)</code> — dann zeichne ich dein Canvas.</div>`);
+        return;
+      }
+      try { drawFn(state); }
+      catch (e) { errSlot.appendChild(html`<div class="canvas-error">⚠ Fehler in <code>draw</code>: ${e.message}</div>`); }
+    }
+
+    // Each move becomes a global the student calls from a handler: it updates the
+    // harness state (reducers may mutate `state` or return a new one) and redraws.
+    const moveNames = Object.keys(moves);
+    const moveImpls = moveNames.map((name) => (...args) => {
+      const next = moves[name](state, ...args);
+      if (next !== undefined) state = next;
+      render();
+    });
 
     canvas.addEventListener("click", (event) => {
       const rect = canvas.getBoundingClientRect();
@@ -354,8 +395,8 @@ export function createUI({ html }) {
       // intrinsic width/height).
       const x = (event.clientX - rect.left) * (canvas.width / rect.width);
       const y = (event.clientY - rect.top) * (canvas.height / rect.height);
-      // Iterate over a copy: a handler may call resetOnClicks()/onClick() and
-      // rebuild the list while we're still notifying the current click.
+      // Iterate over a copy: a handler triggers a move → render() rebuilds the
+      // list while we're still notifying the current click.
       for (const h of handlers.slice()) {
         if (x >= h.x && x <= h.x + h.width && y >= h.y && y <= h.y + h.height) h.handler();
       }
@@ -364,15 +405,16 @@ export function createUI({ html }) {
     let error = null;
     const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
     try {
-      const body = `"use strict";\n${cleaned}\n;\nif (typeof draw === "function") draw(ctx);`;
-      new Function("ctx", "canvas", "console", "drawPicture", "onClick", "resetOnClicks", body)(
-        ctx, canvas, fakeConsole, drawPicture, onClick, resetOnClicks
-      );
+      const body = `"use strict";\n${cleaned}\n;\nreturn typeof draw === "function" ? draw : undefined;`;
+      const params = ["ctx", "canvas", "console", "drawPicture", "onClick", "resetOnClicks", ...moveNames];
+      const values = [ctx, canvas, fakeConsole, drawPicture, onClick, resetOnClicks, ...moveImpls];
+      drawFn = new Function(...params, body)(...values);
     } catch (e) {
       error = e.message;
     }
 
-    if (error) wrap.appendChild(html`<div class="canvas-error">⚠ ${error}</div>`);
+    if (error) errSlot.appendChild(html`<div class="canvas-error">⚠ ${error}</div>`);
+    else render();
     return wrap;
   }
 
@@ -385,8 +427,14 @@ export function createUI({ html }) {
   // or `{ passed, detail }`. `base` is the rendered API for the student's code
   // as-is; `probe({ callArgs })` re-runs the code and — when `extract` names a
   // function — calls that function with `callArgs` (for parametric exercises).
-  function canvasTest(code, { width = 300, height = 300, background = "white", checks = [], extract = null } = {}) {
+  function canvasTest(code, { width = 300, height = 300, background = "white", checks = [], extract = null, initialState = null, moves = null } = {}) {
     const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+    // Stateful mode mirrors clickableCanvas / the finale: grade an exported
+    // `draw(state)` where the harness owns the state + the redraw loop and
+    // provides named `moves`. Opt-in so the other canvas chapters (which run
+    // top-level code or use `extract`) keep working unchanged.
+    const stateful = !extract && (moves != null || initialState != null);
+    const moveNames = stateful && moves ? Object.keys(moves) : [];
 
     function colorEq(px, rgb, tol = 24) {
       return Math.abs(px[0] - rgb[0]) <= tol && Math.abs(px[1] - rgb[1]) <= tol && Math.abs(px[2] - rgb[2]) <= tol;
@@ -419,17 +467,32 @@ export function createUI({ html }) {
       const onClick = (x, y, w, h, handler) => { clickHandlers.push({ x, y, width: w, height: h, handler }); };
       const resetOnClicks = () => { clickHandlers = []; };
 
-      let error = null, fn;
+      // Stateful mode: own the state, redraw via resetOnClicks() + draw(state),
+      // and expose each move as a global that updates state and redraws.
+      let state = stateful ? cloneState(initialState) : null;
+      let fn;
+      const redraw = () => { resetOnClicks(); if (typeof fn === "function") fn(state); };
+      const moveImpls = moveNames.map((name) => (...args) => {
+        const next = moves[name](state, ...args);
+        if (next !== undefined) state = next;
+        redraw();
+      });
+
+      let error = null;
       try {
         let body = `"use strict";\n${cleaned}\n;`;
         if (extract) body += `\nreturn typeof ${extract} !== "undefined" ? ${extract} : undefined;`;
+        else if (stateful) body += `\nreturn typeof draw === "function" ? draw : undefined;`;
         else body += `\nif (typeof draw === "function") draw(ctx);`;
-        fn = new Function("ctx", "canvas", "console", "drawPicture", "onClick", "resetOnClicks", body)(
-          ctx, canvas, fakeConsole, drawPicture, onClick, resetOnClicks
-        );
+        const params = ["ctx", "canvas", "console", "drawPicture", "onClick", "resetOnClicks", ...moveNames];
+        const values = [ctx, canvas, fakeConsole, drawPicture, onClick, resetOnClicks, ...moveImpls];
+        fn = new Function(...params, body)(...values);
         if (extract && callArgs) {
           if (typeof fn !== "function") error = `Die Funktion \`${extract}\` wurde nicht gefunden.`;
           else fn(...callArgs);
+        } else if (stateful) {
+          if (typeof fn !== "function") error = "Die Funktion `draw` wurde nicht gefunden — exportiere `function draw(state)`.";
+          else redraw();
         }
       } catch (e) { error = e.message; }
 

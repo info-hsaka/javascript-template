@@ -92,39 +92,6 @@ ctx.fillRect(125, 125, 100, 100);     // Blaues Rechteck`
     display(canvasOutput(code_brush, { width: 350, height: 350 }));
   </script>
 
-  <script id="notation-md" type="text/markdown">
-    ## Verschiedene Farbnotationen
-
-    Canvas akzeptiert mehrere Schreibweisen für dieselbe Farbe:
-
-    ```javascript
-    ctx.fillStyle = "rgb(255, 100, 50)"  // 1. RGB
-    ctx.fillStyle = "#FF6432"            // 2. Hex (gleiche Farbe)
-    ctx.fillStyle = "#F00"               // Kurzform für #FF0000
-    ctx.fillStyle = "red"                // 3. Farbname
-    ```
-
-    > 💡 RGB gibt dir die meiste Kontrolle, Farbnamen sind am einfachsten für
-    > Standardfarben. Eine vollständige Liste aller Namen findest du im
-    > [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/named-color).
-  </script>
-
-  <script id="notation-demo" type="module">
-    const code_notation = view(codeEditor("canvas:colors-notation", {
-      value: `ctx.fillStyle = "rgb(255, 100, 50)"
-ctx.fillRect(20, 50, 100, 100)
-
-ctx.fillStyle = "#FF6432"
-ctx.fillRect(150, 50, 100, 100)
-
-ctx.fillStyle = "tomato"
-ctx.fillRect(280, 50, 100, 100)`
-    }));
-  </script>
-  <script id="notation-out" type="module">
-    display(canvasOutput(code_notation, { width: 420, height: 220 }));
-  </script>
-
   <script id="rgba-md" type="text/markdown">
     ## RGBA — Transparenz
 

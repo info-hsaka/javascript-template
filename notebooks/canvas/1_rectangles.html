@@ -24,8 +24,8 @@
     ctx.fillRect(x, y, breite, höhe)
     ```
 
-    - `x`: x-Koordinate der **oberen linken Ecke**
-    - `y`: y-Koordinate der **oberen linken Ecke**
+    - `x`: x-Koordinate der **oberen linken Ecke** des Rechtecks
+    - `y`: y-Koordinate der **oberen linken Ecke** des Rechtecks
     - `breite`: Breite des Rechtecks in Pixeln
     - `höhe`: Höhe des Rechtecks in Pixeln
   </script>
@@ -70,14 +70,12 @@ ctx.fillRect(50, 100, 200, 150)`
     > 📌 Canvas funktioniert anders als Photoshop nicht mit Ebenen, sondern
     > speichert immer nur die obersten sichtbaren Pixel. Deshalb legt `clearRect`
     > zuvor gemalte Pixel **nicht** wieder frei, sondern setzt den Bereich in
-    > seinen Ursprungszustand zurück (im Beispiel: das Schachbrett-Muster
-    > dahinter wird sichtbar).
+    > seinen Ursprungszustand zurück.
   </script>
 
   <script id="clear-demo" type="module">
     const code_clear = view(codeEditor("canvas:rect-clear", {
       value: `ctx.fillRect(50, 50, 200, 200)        // Großes Rechteck zeichnen
-ctx.fillStyle = "red"                 // Fill-Farbe wechseln
 ctx.fillRect(75, 75, 150, 150)        // Zweites Rechteck darüber
 ctx.clearRect(100, 100, 100, 100)     // Loch in die Mitte schneiden`
     }));

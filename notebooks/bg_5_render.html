@@ -27,10 +27,6 @@
     const feedbackSlot = html`<div></div>`;
 
     const CHECKS = [
-      { name: "draw(G, gameover) beginnt mit resetOnClicks()", run: ({ base }) => ({
-          passed: base.resetCount >= 1,
-          detail: base.resetCount >= 1 ? "resetOnClicks() wird aufgerufen" : "resetOnClicks() fehlt am Anfang von draw"
-      }) },
       { name: "Das 3×3-Gitter ist zu sehen", run: ({ base }) => {
           const n = base.nonBg();
           return { passed: n > 100, detail: `${n} gezeichnete Pixel` };
@@ -115,34 +111,36 @@
     > damit du dich hier ganz aufs Zeichnen konzentrieren kannst.
 
     > 💡 Du brauchst die **Canvas-Kapitel** als Grundlage: Rechtecke, Text, und vor
-    > allem [Klicks](./canvas/6_clicks) mit `onClick` und `resetOnClicks`. Wir bauen
+    > allem [Klicks](./canvas/6_clicks) mit `onClick` und den **Moves**. Wir bauen
     > hier genau auf diesem Muster auf.
   </script>
 
   <script id="draw-md" type="text/markdown">
-    ## Die `draw(G, gameover)`-Funktion
+    ## Die `draw(state)`-Funktion
 
     Ganz unten in der Datei steht das Gerüst für die Funktion, die das Spielfeld
-    malt: `draw`. Sie wird **exportiert** und bekommt zwei Dinge — den
-    **Spielzustand** `G` und, sobald das Spiel vorbei ist, die **Spielende-Info**
-    `gameover`. Deine Aufgabe ist, ihren Körper zu füllen.
+    malt: `draw`. Sie wird **exportiert** und bekommt **ein** Ding — den ganzen
+    **Spielzustand** `state`, so wie boardgame.io ihn führt. Deine Aufgabe ist,
+    ihren Körper zu füllen.
 
-    Den Zustand `G` kennst du längst: Bei Tic-Tac-Toe ist das ein Objekt mit dem
-    Array `cells` und seinen **9 Feldern**. `draw` liest `G.cells` und malt daraus
-    das Brett.
+    Zwei Sachen liest du daraus:
+
+    - **`state.G`** ist der Spielzustand, den du längst kennst — bei Tic-Tac-Toe
+      ein Objekt mit dem Array `cells` und seinen **9 Feldern**. Aus `state.G.cells`
+      malst du das Brett.
+    - **`state.ctx.gameover`** ist die **Spielende-Info**: `null`, solange gespielt
+      wird, sonst das Ergebnis.
+
+    Im Gerüst holen wir beide gleich in eigene Variablen (`const G = state.G` und
+    `const gameover = state.ctx.gameover`), damit der Rest kurz bleibt.
 
     > 📌 **So spielen die Konzepte zusammen** — In der Canvas-[Klicks](./canvas/6_clicks)-Übung
-    > hattest du eine eigene `draw()`-Funktion, die du nach jeder Änderung neu aufgerufen
-    > hast. Hier ist es **dasselbe Muster**, nur:
+    > hast du schon `draw(state)` geschrieben, den Zustand gelesen und Moves aufgerufen.
+    > Hier ist es **dasselbe Muster**, nur:
     >
-    > - der Zustand steckt nicht mehr in einer eigenen Variablen, sondern in **`G`** —
-    >   und der gehört boardgame.io;
-    > - **du** rufst `draw` nicht selbst auf — das Framework ruft `draw(G, gameover)` nach
-    >   **jedem Zug** automatisch mit dem neuen Zustand auf.
-
-    Deshalb beginnt `draw` — wie in der Klicks-Übung — mit **`resetOnClicks()`**: Da `draw`
-    bei jedem Zug erneut läuft und dabei neue Klick-Bereiche anlegt, müssen die alten vorher
-    weg, sonst stapeln sie sich.
+    > - der Zustand `state` kommt jetzt von **boardgame.io** — die Spieldaten liegen in **`state.G`**;
+    > - **du** rufst `draw` nicht selbst auf —
+    >   die Umgebung ruft nach **jedem Zug** automatisch `draw(state)` mit dem neuen Zustand auf.
   </script>
 
   <script id="grid-md" type="text/markdown">
@@ -151,11 +149,8 @@
     Fang mit dem **3×3-Gitter** an. Jede Zelle ist `feld` (= 100) Pixel groß, das Brett
     also 300 × 300.
 
-    Nutze **zwei verschachtelte Schleifen** — eine für die Zeile (0, 1, 2) und eine für
-    die Spalte (0, 1, 2). Die obere linke Ecke einer Zelle bekommst du, indem du Spalte
-    und Zeile jeweils mit `feld` multiplizierst. Für jede Zelle zeichnest du dann mit
-    `strokeRect` einen quadratischen Umriss der Größe `feld`. Das kennst du genau so aus
-    der Canvas-Klick-Übung mit dem Raster.
+    Für jede Zelle zeichnest du dann mit `strokeRect` einen quadratischen Umriss der Größe `feld`.
+    Das kennst du genau so aus der Canvas-Klick-Übung mit dem Raster.
 
     Drück **▶ Ausführen** — oben in der Spiel-Sektion sollte ein leeres Gitter erscheinen.
   </script>
@@ -177,12 +172,6 @@
     In `G.cells` steht an jeder Stelle entweder `null` (leer), `"0"` (Spieler ✕) oder
     `"1"` (Spieler ◯).
 
-    Geh mit einer Schleife durch `G.cells`. Aus dem **Index** `i` rechnest du die Position
-    der Zelle aus — genau wie beim Gitter: die **Spalte** ist der Rest von `i` geteilt
-    durch 3, die **Zeile** ist `i` ganzzahlig durch 3 geteilt; mal `feld` ergibt das die
-    obere linke Ecke. Steht an der Stelle `"0"`, zeichne ein **✕**, bei `"1"` ein **◯** —
-    jeweils mittig in die Zelle. Leere Felder (`null`) überspringst du.
-
     > 💡 Wie genau du ✕ und ◯ zeichnest, ist dir überlassen: mit `fillText` (denk an
     > zentrierte Ausrichtung über `textAlign`/`textBaseline`), mit Linien aus
     > `moveTo`/`lineTo`, einem Kreis aus `arc` oder sogar einem `drawPicture`. Hauptsache,
@@ -200,7 +189,7 @@
     > **`clickCell(index)`** auf — und das ist **genau der Move**, den du in
     > [Kapitel 1](./bg_1_game) geschrieben hast! Klickt jemand auf die Zelle, führt
     > boardgame.io den Move aus, aktualisiert `G`, wechselt mit deiner `turn`-Regel den
-    > Spieler und prüft mit `endIf`, ob das Spiel vorbei ist. Danach ruft es **`draw(G, gameover)`
+    > Spieler und prüft mit `endIf`, ob das Spiel vorbei ist. Danach ruft es **`draw(state)`
     > neu auf** — und dein Bild aktualisiert sich von selbst.
 
     Im Startcode ist die Zelle **oben links** (Index `0`) schon verdrahtet: ein
@@ -211,22 +200,20 @@
     einen `onClick`-Bereich an, dessen Handler `clickCell` mit dem **passenden Index**
     aufruft. Am elegantesten geht das in **derselben Schleife**, in der du auch die
     Markierungen zeichnest — die obere linke Ecke und den Index der Zelle hast du dort ja
-    schon ausgerechnet. Achte darauf, im Handler wirklich den Index *dieser* Zelle zu
-    verwenden.
+    schon ausgerechnet.
 
     > 💡 Weil du `onClick` hier in einer **Schleife** anlegst, deklariere die
     > Zählvariable mit **`let` direkt in der Schleife** (oder nimm `for ... of`) —
-    > sonst klicken am Ende alle Zellen denselben Index. Das ist genau die Falle aus
-    > dem [Klicks-Kapitel](./canvas/6_clicks).
+    > sonst klicken am Ende alle Zellen denselben Index.
   </script>
 
   <script id="gameend-md" type="text/markdown">
     ## Schritt 4: Das Spielende anzeigen 🏆
 
     Dein `endIf` aus dem [Siegbedingungs-Kapitel](./bg_3_victory) entscheidet, wann
-    Schluss ist. Sein Ergebnis bekommt `draw` als zweiten Parameter **`gameover`**:
+    Schluss ist. Sein Ergebnis bekommt `draw` in `state.ctx.gameover`:
 
-    - Solange gespielt wird, ist `gameover` **`null`** — dann zeichnest du das Brett
+    - Solange gespielt wird, ist `state.ctx.gameover` **`null`** — dann zeichnest du das Brett
       ganz normal.
     - Ist das Spiel vorbei, steht in `gameover` das Ergebnis: **`gameover.winner`**
       ist der Gewinner (`"0"` oder `"1"`), und bei einem Unentschieden ist
@@ -236,16 +223,6 @@
     ist — zum Beispiel mit einem großen `fillText` über dem Spielfeld. Wie du es
     gestaltest, ist dir überlassen; Hauptsache, man erkennt, **wer gewonnen** hat (oder
     dass es unentschieden steht).
-
-    ```javascript
-    if (gameover) {
-      // ... Ergebnis anzeigen, z. B. mit ctx.fillText(...)
-    }
-    ```
-
-    > 💡 `gameover` ist nur dann „wahr", wenn das Spiel vorbei ist — während des Spiels
-    > ist es `null`. Deshalb passt ein einfaches `if (gameover) { ... }` am Ende deiner
-    > `draw`-Funktion perfekt.
   </script>
 
   <script id="wiring-md" type="text/markdown">
@@ -261,11 +238,11 @@
     const client = Client({ game: TicTacToe })
     client.start()
 
-    // 2) Nach jeder Änderung zeichnen wir dein Brett neu -- mit dem AKTUELLEN
-    //    Zustand G und der Spielende-Info gameover.
+    // 2) Nach jeder Änderung räumen wir die alten Klick-Bereiche weg und
+    //    zeichnen dein Brett neu -- mit dem AKTUELLEN Zustand.
     function render() {
-      const zustand = client.getState()
-      draw(zustand.G, zustand.ctx.gameover)
+      resetOnClicks()
+      draw(client.getState())   // du bekommst den ganzen Zustand herein
     }
     client.subscribe(render)   // "ruf render auf, sobald sich etwas ändert"
 
@@ -298,15 +275,14 @@
 
     ## Übung 🎯 — Dein eigenes Spielbrett
 
-    Vervollständige `draw(G, gameover)` in deiner Datei, bis du ein vollständiges,
+    Vervollständige `draw(state)` in deiner Datei, bis du ein vollständiges,
     spielbares Tic-Tac-Toe auf deinem eigenen Brett hast. Die Auswertung (in der
     Spiel-Sektion oben) prüft automatisch:
 
-    1. `draw(G, gameover)` beginnt mit `resetOnClicks()`.
-    2. Das 3×3-**Gitter** ist zu sehen.
-    3. Die **Markierungen** kommen aus `G.cells` (richtiger Spieler in der richtigen Zelle).
-    4. **Jede** Zelle ist anklickbar und ruft `clickCell` mit dem **richtigen Index** auf.
-    5. Das **Spielende** wird angezeigt (Gewinner oder Unentschieden), sobald `gameover` gesetzt ist.
+    1. Das 3×3-**Gitter** ist zu sehen.
+    2. Die **Markierungen** kommen aus `state.G.cells` (richtiger Spieler in der richtigen Zelle).
+    3. **Jede** Zelle ist anklickbar und ruft `clickCell` mit dem **richtigen Index** auf.
+    4. Das **Spielende** wird angezeigt (Gewinner oder Unentschieden), sobald `state.ctx.gameover` gesetzt ist.
 
     Wenn alles passt, spiel ein paar Runden gegen dich selbst — und denk dran: dahinter
     läuft die Spiellogik, die du selbst geschrieben hast.
@@ -324,7 +300,7 @@
     ## Geschafft — du hast das ganze Spiel gebaut! 🎉
 
     Halt kurz inne, was hier gerade passiert ist: **Jede Zeile** dieses Spiels stammt von
-    dir — und steht jetzt in **einer** Datei.
+    dir.
 
     - Die **Spiellogik** (`setup`, `moves`, `turn`, `endIf`, `ai`) — aus den boardgame.io-Kapiteln.
     - Das **Zeichnen** und die **Interaktion** (`draw`, das Gitter, die Markierungen,
@@ -332,7 +308,7 @@
 
     Damit hast du genau das gebaut, was im echten boardgame.io-Projekt entsteht: ein Spiel,
     bei dem die Logik vom Framework verwaltet und das Brett von dir gezeichnet wird. Dieselbe
-    Idee — Zustand zeichnen, Klicks in Züge übersetzen — trägt dich durch fast **jedes**
+    Idee — Zustand zeichnen, Klicks in Züge übersetzen — trägt dich durch **jedes**
     Brettspiel, das du als Nächstes bauen willst. 🚀
 
     ← [Zurück zur Übersicht](./)

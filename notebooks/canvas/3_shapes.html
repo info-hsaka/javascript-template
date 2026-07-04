@@ -60,8 +60,8 @@
 
   <script id="circle-demo" type="module">
     const code_circle = view(codeEditor("canvas:shapes-circle", {
-      value: `ctx.fillStyle = "red"
-ctx.strokeStyle = "green"
+      value: `ctx.fillStyle = "red" // Man kann auch die Namen von Farben verwenden
+ctx.strokeStyle = "green" // statt RGB-Werte
 ctx.lineWidth = 40
 
 ctx.beginPath()
@@ -147,7 +147,9 @@ ctx.fill()`
     const code_lw = view(codeEditor("canvas:shapes-linewidth", {
       value: `ctx.strokeStyle = "black"
 
-for (const [y, breite] of [[40, 1], [90, 5], [140, 15], [190, 25]]) {
+for (const line of [[40, 1], [90, 5], [140, 15], [190, 25]]) {
+  const y = line[0]
+  const breite = line[1]
   ctx.lineWidth = breite
   ctx.beginPath()
   ctx.moveTo(50, y)
@@ -163,46 +165,47 @@ for (const [y, breite] of [[40, 1], [90, 5], [140, 15], [190, 25]]) {
   <script id="ex-md" type="text/markdown">
     ---
 
-    ## Übung 🎯 — Pacman
+    ## Übung 🎯 — Regenbogen
 
-    Nutze, was du in diesem Kapitel gelernt hast, um **Pacman** zu zeichnen: ein
-    gelber Kreis mit einem keilförmigen Mund und schwarzem Rand. Halte dich dabei
-    **genau** an diese Werte:
+    Ein `arc` muss **kein voller Kreis** sein! Du gibst Start- und Endwinkel an
+    und zeichnest so nur einen Teil davon — einen **Bogen**. Genau das nutzen wir
+    hier für einen Regenbogen aus mehreren farbigen Bögen.
 
-    - **Mittelpunkt:** `(160, 160)`
-    - **Radius:** `120`
-    - **Mund:** offen nach rechts — der gelbe Kreisbogen geht von **`0.2 * Math.PI`**
-      bis **`1.8 * Math.PI`** (im Uhrzeigersinn). Der Mund-Keil mit dem
-      Öffnungswinkel `0.4 * Math.PI` bleibt also frei.
+    Zeichne **fünf Bögen** übereinander, von außen nach innen:
 
-    > 💡 Du kannst Arcs und Lines kombinieren. Ein `arc` muss keinen vollen Kreis
-    > zeichnen — beginne in der Mitte (`moveTo`), zeichne den `arc` nur über den
-    > gelben Winkelbereich und schließe die Form mit `closePath`. Danach `fill`
-    > (gelb) und `stroke` (schwarz).
+    - **Mittelpunkt:** `(160, 210)`
+    - **Radien:** `130`, `112`, `94`, `76`, `58` (jeder Bogen `18` kleiner)
+    - **Farben:** rot, orange, gelb, grün, blau
+    - **Winkel:** jeder Bogen geht von **`Math.PI`** bis **`2 * Math.PI`** — das
+      ist genau der **obere** Halbkreis (von links über oben nach rechts)
+    - **Linienbreite:** `18`
+
+    > 💡 Du brauchst **kein** `fill` und **kein** `closePath` — jeder Bogen ist
+    > eine einzelne Linie mit `stroke()`. Tipp: eine Schleife über ein Array aus
+    > `[Farbe, Radius]` spart viel Tipparbeit (wie im `lineWidth`-Beispiel oben).
 
     **Zielbild:**
   </script>
 
   <script id="ex-target" type="module">
     display(canvasOutput(`const cx = 160
-const cy = 160
-const r = 120
+const cy = 210
+ctx.lineWidth = 18
 
-ctx.beginPath()
-ctx.moveTo(cx, cy)
-ctx.arc(cx, cy, r, 0.2 * Math.PI, 1.8 * Math.PI)
-ctx.closePath()
-
-ctx.fillStyle = "yellow"
-ctx.fill()
-ctx.lineWidth = 4
-ctx.strokeStyle = "black"
-ctx.stroke()`, { width: 320, height: 320 }));
+// [Farbe, Radius] — von außen nach innen
+const baender = [["red", 130], ["orange", 112], ["yellow", 94], ["green", 76], ["blue", 58]]
+for (const band of baender) {
+  ctx.strokeStyle = band[0]
+  const radius = band[1]
+  ctx.beginPath()
+  ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI)   // oberer Halbkreis
+  ctx.stroke()
+}`, { width: 320, height: 320 }));
   </script>
 
   <script id="ex-demo" type="module">
     const code_ex = view(codeEditor("canvas:shapes-pacman", {
-      value: `// Zeichne Pacman:
+      value: `// Zeichne einen Regenbogen:
 `
     }));
   </script>
@@ -213,28 +216,26 @@ ctx.stroke()`, { width: 320, height: 320 }));
     display(canvasTestReport(canvasTest(code_ex, {
       width: 320, height: 320,
       checks: [
-        { name: "Gelber Pacman-Körper um die Mitte (160, 160)", run: ({ base }) => {
-            const y = base.region([255, 255, 0], 50);
-            if (y.count < 150) return { passed: false, detail: `nur ${y.count} gelbe Bildpunkte` };
-            const ok = Math.abs(y.cx - 160) <= 40 && Math.abs(y.cy - 160) <= 40;
-            return { passed: ok, detail: ok ? null : `Schwerpunkt bei (${Math.round(y.cx)}, ${Math.round(y.cy)})` };
+        { name: "Mehrere bunte Bögen (rot, gelb, blau)", run: ({ base }) => {
+            const farben = [[255, 0, 0], [255, 255, 0], [0, 0, 255]];
+            const da = farben.filter(c => base.region(c, 40).count > 30).length;
+            return { passed: da >= 3, detail: da >= 3 ? null : `nur ${da} von 3 erwarteten Farben (rot/gelb/blau) gefunden` };
         } },
-        { name: "Radius ≈ 120 (Höhe ≈ 240)", run: ({ base }) => {
-            const y = base.region([255, 255, 0], 50);
-            if (y.count < 150) return { passed: false, detail: "kein gelber Körper gefunden" };
-            const h = y.maxY - y.minY;
-            const ok = Math.abs(h - 240) <= 50;
-            return { passed: ok, detail: ok ? null : `Durchmesser ≈ ${Math.round(h)} statt 240` };
+        { name: "Bögen zentriert um x = 160", run: ({ base }) => {
+            const r = base.region([255, 0, 0], 40);
+            if (r.count < 30) return { passed: false, detail: "kein roter Bogen gefunden" };
+            const ok = Math.abs(r.cx - 160) <= 40;
+            return { passed: ok, detail: ok ? null : `Mittelpunkt der Bögen bei x ≈ ${Math.round(r.cx)} statt 160` };
         } },
-        { name: "Mund offen nach rechts", run: ({ base }) => {
-            const y = base.region([255, 255, 0], 50);
-            if (y.count < 150) return { passed: false, detail: "kein gelber Körper gefunden" };
-            // Auf Höhe der Mitte muss rechts der Mund-Keil Hintergrund freilassen.
-            for (let xx = 165; xx <= 250; xx += 3)
-              if (base.isBackground(xx, 160, 12)) return true;
-            return { passed: false, detail: "voller Kreis? Lass rechts einen Keil für den Mund frei" };
+        { name: "Nur oberer Halbkreis (Bögen öffnen nach unten)", run: ({ base }) => {
+            const r = base.region([255, 0, 0], 40);
+            if (r.count < 30) return { passed: false, detail: "kein roter Bogen gefunden" };
+            const ok = r.cy < 195;
+            return { passed: ok, detail: ok ? null : `Bögen liegen nicht im oberen Halbkreis (Schwerpunkt y ≈ ${Math.round(r.cy)})` };
         } },
-        { name: "Schwarzer Rand", run: ({ base }) => base.region([0, 0, 0], 50).count > 8 }
+        { name: "Hohle Mitte (Bögen statt gefüllter Fläche)", run: ({ base }) =>
+            base.isBackground(160, 180, 20) || { passed: false, detail: "die Mitte ist gefüllt — zeichne nur Bögen mit stroke(), nicht fill()" }
+        }
       ]
     }), "Übung"));
   </script>

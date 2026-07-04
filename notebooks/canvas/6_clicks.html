@@ -27,13 +27,17 @@
     Funktion (`handler`) aus." Die ersten vier Zahlen beschreiben den klickbaren
     Bereich — **genau wie bei `fillRect`**: obere linke Ecke plus Breite und Höhe.
 
-    > 💡 Auch `onClick` und `resetOnClicks` sind fertige Hilfsfunktionen aus dem
-    > Spiele-Template. Die Canvas-Felder in diesem Kapitel sind **wirklich
-    > anklickbar** — probier es aus!
+    > 💡 `onClick` ist eine fertige Hilfsfunktion aus dem Spiele-Template. Die
+    > Canvas-Felder in diesem Kapitel sind **wirklich anklickbar** — probier es aus!
   </script>
 
   <script id="button-md" type="text/markdown">
     ## Der erste Knopf
+
+    Deinen Zeichen-Code schreibst du ab jetzt in eine Funktion namens **`draw`**
+    und **exportierst** sie. Die Umgebung ruft `draw` für dich auf — du musst das
+    nicht selbst tun. (Das `state` in den Klammern brauchen wir gleich; für den
+    ersten Knopf kannst du es noch ignorieren.)
 
     Wir zeichnen ein Rechteck und legen mit `onClick` einen klickbaren Bereich
     **auf dieselbe Stelle**. Der `handler` ist eine Funktion, die beim Klick
@@ -44,20 +48,22 @@
 
   <script id="button-demo" type="module">
     const code_button = view(codeEditor("canvas:click-button", {
-      value: `// Knopf zeichnen
-ctx.fillStyle = "#4f46e5"
-ctx.fillRect(150, 70, 200, 90)
+      value: `export function draw(state) {
+  // Knopf zeichnen
+  ctx.fillStyle = "#4f46e5"
+  ctx.fillRect(150, 70, 200, 90)
 
-ctx.fillStyle = "white"
-ctx.font = "24px Arial"
-ctx.textAlign = "center"
-ctx.textBaseline = "middle"
-ctx.fillText("Klick mich!", 250, 115)
+  ctx.fillStyle = "white"
+  ctx.font = "24px Arial"
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  ctx.fillText("Klick mich!", 250, 115)
 
-// klickbaren Bereich auf dieselbe Stelle legen
-onClick(150, 70, 200, 90, () => {
-  console.log("Der Knopf wurde geklickt! 🎉")
-})`
+  // klickbaren Bereich auf dieselbe Stelle legen
+  onClick(150, 70, 200, 90, () => {
+    console.log("Der Knopf wurde geklickt! 🎉")
+  })
+}`
     }));
   </script>
   <script id="button-out" type="module">
@@ -114,131 +120,94 @@ onClick(150, 70, 200, 90, () => {
     > wir ab jetzt aber meistens die kurze Pfeil-Schreibweise `() => { ... }`.
   </script>
 
-  <script id="capture-md" type="text/markdown">
-    ## Was sich ein Callback merkt — Vorsicht in Schleifen ⚠️
-
-    Ein Callback wird ja **erst später** aufgerufen — beim Klick. Bis dahin
-    **merkt** er sich die Variablen aus seiner Umgebung und schaut **im Moment des
-    Klicks** nach, welchen Wert sie *gerade* haben. Das ist meistens praktisch —
-    in einer **Schleife** kann es aber zur Falle werden.
-
-    Stell dir vor, du legst in einer Schleife mehrere Klick-Bereiche an und gibst
-    jedem einen Callback, der sich die Nummer `i` merken soll. Entscheidend ist,
-    **wo** du `i` deklarierst. Wenn `i` **außerhalb** der Schleife steht, gibt es
-    nur **eine einzige** Variable, die sich alle Durchläufe teilen:
-
-    ```javascript
-    // ⚠️ FALSCH — eine gemeinsame Variable außerhalb der Schleife
-    let i = 0
-    for (i = 0; i < 3; i++) {
-      onClick(0, i * 60, 100, 50, () => {
-        console.log("Knopf " + i)   // gibt IMMER "Knopf 3" aus!
-      })
-    }
-    ```
-
-    Alle drei Callbacks geben `Knopf 3` aus — nicht `0`, `1`, `2`. Wenn die
-    Schleife fertig ist, steht in `i` der Wert `3` — und genau **den** finden alle
-    Callbacks vor, wenn man später klickt, weil sie sich alle **dieselbe**
-    Variable gemerkt haben.
-
-    Die Lösung ist einfach: Deklariere die Zählvariable mit **`let` direkt in der
-    Schleife**. Dann bekommt **jeder Durchlauf sein eigenes `i`**, das der Callback
-    sich merkt:
-
-    ```javascript
-    // ✅ RICHTIG — let direkt in der Schleife
-    for (let i = 0; i < 3; i++) {
-      onClick(0, i * 60, 100, 50, () => {
-        console.log("Knopf " + i)   // 0, 1, 2 — richtig!
-      })
-    }
-    ```
-
-    Genauso sicher ist eine `for ... of`-Schleife oder eine **eigene Variable im
-    Schleifen-Körper**, die du mit `const` festhältst:
-
-    ```javascript
-    for (let i = 0; i < 3; i++) {
-      const nummer = i   // eigene Kopie für genau diesen Durchlauf
-      onClick(0, i * 60, 100, 50, () => {
-        console.log("Knopf " + nummer)
-      })
-    }
-    ```
-
-    > 📌 **Merke:** Wenn du in einer Schleife Callbacks anlegst, die sich die
-    > Schleifen-Variable merken sollen, deklariere sie mit **`let` direkt in der
-    > Schleife** (oder nimm `for ... of`). Eine **gemeinsam** genutzte Variable von
-    > außerhalb zeigt am Ende für alle Callbacks auf denselben letzten Wert.
-  </script>
-
   <script id="redraw-md" type="text/markdown">
-    ## Etwas verändern: neu zeichnen
+    ## Etwas verändern: der Zustand und die Moves
 
-    Meistens soll ein Klick das Bild **verändern**. Der Trick: Wir packen das
-    Zeichnen in eine Funktion `draw()`. Der `handler` ändert dann eine Variable
-    und ruft `draw()` erneut auf — und schon sieht man die Änderung.
+    Meistens soll ein Klick das Bild **verändern**. Um den „Zustand" (engl.
+    *state*) — also *was gerade gilt* — musst du dich aber **nicht selbst
+    kümmern**: Die Umgebung verwaltet ihn für dich und reicht ihn deiner Funktion
+    als Parameter **`state`** herein. In `draw(state)` **liest** du nur daraus,
+    was du zeichnen sollst.
 
-    Hier wächst ein **Quadrat** bei jedem Klick: Der `handler` vergrößert die
-    Variable `größe` und ruft `draw()` neu auf.
+    Ändern darfst du den Zustand nicht direkt — dafür gibt es fertige Funktionen,
+    die **Moves** heißen. Rufst du im `handler` einen Move auf, passiert zweierlei
+    automatisch:
+
+    1. der Move ändert den Zustand, und
+    2. die Umgebung ruft danach dein `draw(state)` mit dem **neuen** Zustand erneut auf.
+
+    Du rufst `draw` also **nie selbst** auf. Im nächsten Beispiel wächst ein
+    **Quadrat** bei jedem Klick: `draw(state)` zeichnet es in der Größe
+    `state.größe`, und der `handler` ruft den Move **`makeBigger()`** auf, der
+    `state.größe` vergrößert.
+
+    > 💡 Genau so funktioniert später auch dein richtiges Spiel mit
+    > **boardgame.io**: Du liest den Zustand und rufst Moves auf — den Rest
+    > erledigt die Umgebung.
   </script>
 
   <script id="grow-demo" type="module">
     const code_grow = view(codeEditor("canvas:click-grow", {
-      value: 'let größe = 40\n\nfunction draw() {\n  resetOnClicks()\n  ctx.fillStyle = "white"\n  ctx.fillRect(0, 0, canvas.width, canvas.height)\n\n  // ein Quadrat in der aktuellen Größe (zentriert)\n  ctx.fillStyle = "#16a34a"\n  ctx.fillRect(150 - größe / 2, 110 - größe / 2, größe, größe)\n\n  // Knopf\n  ctx.fillStyle = "#4f46e5"\n  ctx.fillRect(90, 190, 120, 40)\n  ctx.fillStyle = "white"\n  ctx.font = "20px Arial"\n  ctx.textAlign = "center"\n  ctx.textBaseline = "middle"\n  ctx.fillText("Größer!", 150, 210)\n\n  onClick(90, 190, 120, 40, () => {\n    größe = größe + 20\n    draw()\n  })\n}\n\ndraw()'
+      value: 'export function draw(state) {\n  // Hintergrund\n  ctx.fillStyle = "white"\n  ctx.fillRect(0, 0, canvas.width, canvas.height)\n\n  // ein Quadrat in der aktuellen Größe (zentriert)\n  ctx.fillStyle = "#16a34a"\n  ctx.fillRect(150 - state.größe / 2, 110 - state.größe / 2, state.größe, state.größe)\n\n  // Knopf\n  ctx.fillStyle = "#4f46e5"\n  ctx.fillRect(90, 190, 120, 40)\n  ctx.fillStyle = "white"\n  ctx.font = "20px Arial"\n  ctx.textAlign = "center"\n  ctx.textBaseline = "middle"\n  ctx.fillText("Größer!", 150, 210)\n\n  onClick(90, 190, 120, 40, () => {\n    makeBigger()\n  })\n}'
     }));
   </script>
   <script id="grow-out" type="module">
-    display(clickableCanvas(code_grow, { width: 300, height: 240 }));
-  </script>
-
-  <script id="reset-md" type="text/markdown">
-    ## Warum `resetOnClicks()`?
-
-    Jedes Mal, wenn `draw()` läuft, registriert es mit `onClick` einen neuen
-    klickbaren Bereich. Ohne `resetOnClicks()` würden sich diese Bereiche
-    **stapeln**: nach dem zweiten Zeichnen läge der Knopf doppelt da, beim
-    nächsten Klick würde der `handler` **zweimal** laufen — das Quadrat würde
-    also auf einen Schlag um zwei Schritte wachsen, dann um drei …
-
-    Deshalb gilt die Regel:
-
-    > 📌 Beginne `draw()` immer mit `resetOnClicks()`. Damit löschst du die alten
-    > Klick-Bereiche, bevor du sie frisch festlegst.
+    display(clickableCanvas(code_grow, {
+      width: 300, height: 240,
+      initialState: { größe: 40 },
+      moves: {
+        makeBigger: (state) => { state.größe = state.größe + 20 }
+      }
+    }));
   </script>
 
   <script id="multi-md" type="text/markdown">
     ## Mehrere Knöpfe
 
     Du kannst beliebig viele `onClick`-Bereiche festlegen — jeder mit eigenem
-    `handler`. Hier wählen drei Knöpfe die Farbe des großen Quadrats:
+    `handler`. Ein Move darf auch **Angaben entgegennehmen**: Hier rufen drei
+    Knöpfe denselben Move **`waehleFarbe(farbe)`** auf, jeder mit einer anderen
+    Farbe, und bestimmen so die Farbe des großen Quadrats:
   </script>
 
   <script id="multi-demo" type="module">
     const code_multi = view(codeEditor("canvas:click-multi", {
-      value: 'let farbe = "gray"\n\nfunction draw() {\n  resetOnClicks()\n  ctx.fillStyle = "white"\n  ctx.fillRect(0, 0, canvas.width, canvas.height)\n\n  // großes Quadrat in der aktuellen Farbe\n  ctx.fillStyle = farbe\n  ctx.fillRect(260, 30, 180, 180)\n\n  // drei Farbknöpfe\n  const knöpfe = ["red", "green", "blue"]\n  let y = 30\n  for (const f of knöpfe) {\n    ctx.fillStyle = f\n    ctx.fillRect(30, y, 180, 50)\n    onClick(30, y, 180, 50, () => {\n      farbe = f\n      draw()\n    })\n    y = y + 70\n  }\n}\n\ndraw()'
+      value: 'export function draw(state) {\n  // Hintergrund\n  ctx.fillStyle = "white"\n  ctx.fillRect(0, 0, canvas.width, canvas.height)\n\n  // großes Quadrat in der aktuellen Farbe\n  ctx.fillStyle = state.farbe\n  ctx.fillRect(260, 30, 180, 180)\n\n  // drei Farbknöpfe\n  const knöpfe = ["red", "green", "blue"]\n  let y = 30\n  for (const f of knöpfe) {\n    ctx.fillStyle = f\n    ctx.fillRect(30, y, 180, 50)\n    onClick(30, y, 180, 50, () => {\n      waehleFarbe(f)\n    })\n    y = y + 70\n  }\n}'
     }));
   </script>
   <script id="multi-out" type="module">
-    display(clickableCanvas(code_multi, { width: 470, height: 240 }));
+    display(clickableCanvas(code_multi, {
+      width: 470, height: 240,
+      initialState: { farbe: "gray" },
+      moves: {
+        waehleFarbe: (state, farbe) => { state.farbe = farbe }
+      }
+    }));
   </script>
 
   <script id="grid-md" type="text/markdown">
     ## Klick-Bereiche in einer Schleife
 
     Weil die Position eines `onClick`-Bereichs einfach **berechnet** werden kann,
-    lassen sich ganze Raster anlegen. Dieses 3×3-Feld merkt sich, welche Zellen
-    schon angeklickt wurden, und malt ein ✗ hinein:
+    lassen sich ganze Raster anlegen. Dieses 3×3-Feld merkt sich im Zustand,
+    welche Zellen schon angeklickt wurden: Der Move **`markiere(schlüssel)`**
+    trägt die geklickte Zelle in `state.markiert` ein, und `draw(state)` malt in
+    jede markierte Zelle ein ✗:
   </script>
 
   <script id="grid-demo" type="module">
     const code_grid = view(codeEditor("canvas:click-grid", {
-      value: 'const feld = 80\nconst markiert = {}   // merkt sich angeklickte Zellen\n\nfunction draw() {\n  resetOnClicks()\n  ctx.fillStyle = "white"\n  ctx.fillRect(0, 0, canvas.width, canvas.height)\n  ctx.font = "48px Arial"\n  ctx.textAlign = "center"\n  ctx.textBaseline = "middle"\n\n  for (let zeile = 0; zeile < 3; zeile++) {\n    for (let spalte = 0; spalte < 3; spalte++) {\n      const x = spalte * feld\n      const y = zeile * feld\n\n      ctx.strokeStyle = "black"\n      ctx.lineWidth = 2\n      ctx.strokeRect(x, y, feld, feld)\n\n      const schlüssel = zeile + "," + spalte\n      if (markiert[schlüssel]) {\n        ctx.fillStyle = "#ef4444"\n        ctx.fillText("✗", x + feld / 2, y + feld / 2)\n      }\n\n      onClick(x, y, feld, feld, () => {\n        markiert[schlüssel] = true\n        draw()\n      })\n    }\n  }\n}\n\ndraw()'
+      value: 'const feld = 80\n\nexport function draw(state) {\n  ctx.fillStyle = "white"\n  ctx.fillRect(0, 0, canvas.width, canvas.height)\n  ctx.font = "48px Arial"\n  ctx.textAlign = "center"\n  ctx.textBaseline = "middle"\n\n  for (let zeile = 0; zeile < 3; zeile++) {\n    for (let spalte = 0; spalte < 3; spalte++) {\n      const x = spalte * feld\n      const y = zeile * feld\n\n      ctx.strokeStyle = "black"\n      ctx.lineWidth = 2\n      ctx.strokeRect(x, y, feld, feld)\n\n      const schlüssel = zeile + "," + spalte\n      if (state.markiert[schlüssel]) {\n        ctx.fillStyle = "#ef4444"\n        ctx.fillText("✗", x + feld / 2, y + feld / 2)\n      }\n\n      onClick(x, y, feld, feld, () => {\n        markiere(schlüssel)\n      })\n    }\n  }\n}'
     }));
   </script>
   <script id="grid-out" type="module">
-    display(clickableCanvas(code_grid, { width: 240, height: 240 }));
+    display(clickableCanvas(code_grid, {
+      width: 240, height: 240,
+      initialState: { markiert: {} },
+      moves: {
+        markiere: (state, schlüssel) => { state.markiert[schlüssel] = true }
+      }
+    }));
   </script>
 
   <script id="debug-md" type="text/markdown">
@@ -263,34 +232,32 @@ onClick(150, 70, 200, 90, () => {
 
     ## Übung 1 🎯 — Dein eigener Zähler
 
-    Baue einen Klick-Zähler:
+    Baue einen Klick-Zähler in `draw(state)`:
 
     - Zeichne einen **Knopf** (ein Rechteck mit Beschriftung).
-    - Lege mit `onClick` einen klickbaren Bereich **auf den Knopf**.
-    - Bei jedem Klick wird eine Zahl **um 1 größer**.
-    - Zeige den aktuellen **Zählerstand** mit `fillText` an.
+    - Zeige den aktuellen **Zählerstand** `state.anzahl` mit `fillText` an.
+    - Lege mit `onClick` einen klickbaren Bereich **auf den Knopf**, dessen
+      `handler` den Move **`hochzaehlen()`** aufruft — er erhöht `state.anzahl` um 1.
 
-    Denk an das Muster mit `draw()` und `resetOnClicks()` von oben. Klick im
-    Canvas oben links, um deine Lösung zu testen — die Prüfung simuliert
-    außerdem automatisch einen Klick.
+    Um das Neuzeichnen kümmert sich die Umgebung. Klick im Canvas oben links, um
+    deine Lösung zu testen — die Prüfung simuliert außerdem automatisch einen Klick.
   </script>
 
   <script id="ex1-demo" type="module">
     const code_ex1 = view(codeEditor("canvas:click-ex1", {
-      value: `let anzahl = 0
-
-function draw() {
-  resetOnClicks()
+      value: `export function draw(state) {
   // 1. Hintergrund + Knopf zeichnen
-  // 2. Zählerstand mit fillText anzeigen
-  // 3. onClick(...) auf den Knopf legen, der anzahl erhöht und draw() aufruft
-}
-
-draw()`
+  // 2. Zählerstand state.anzahl mit fillText anzeigen
+  // 3. onClick(...) auf den Knopf legen, dessen handler hochzaehlen() aufruft
+}`
     }));
   </script>
   <script id="ex1-out" type="module">
-    display(clickableCanvas(code_ex1, { width: 320, height: 240 }));
+    display(clickableCanvas(code_ex1, {
+      width: 320, height: 240,
+      initialState: { anzahl: 0 },
+      moves: { hochzaehlen: (state) => { state.anzahl = state.anzahl + 1 } }
+    }));
   </script>
   <script id="ex1-test" type="module">
     const lastNumber = (p) => {
@@ -301,6 +268,8 @@ draw()`
     };
     display(canvasTestReport(canvasTest(code_ex1, {
       width: 320, height: 240,
+      initialState: { anzahl: 0 },
+      moves: { hochzaehlen: (state) => { state.anzahl = state.anzahl + 1 } },
       checks: [
         { name: "Ein klickbarer Bereich (`onClick`)", run: ({ base }) => {
             const n = base.clickHandlers.length;
@@ -326,29 +295,32 @@ draw()`
     ## Übung 2 🎯 — Ein Schalter
 
     Baue einen **Schalter**, der bei jedem Klick zwischen zwei **Farben**
-    umschaltet (z. B. rot und grün). Tipp: Merke dir mit einer Variablen, ob der
-    Schalter „an" ist, drehe sie im `handler` um (`an = !an`) und zeichne neu.
+    umschaltet (z. B. rot und grün). Der Zustand `state.an` sagt, ob der Schalter
+    „an" ist: Zeichne den Schalter je nach `state.an` in der einen oder anderen
+    Farbe und lege einen `onClick`-Bereich darauf, dessen `handler` den Move
+    **`umschalten()`** aufruft.
   </script>
 
   <script id="ex2-demo" type="module">
     const code_ex2 = view(codeEditor("canvas:click-ex2", {
-      value: `let an = false
-
-function draw() {
-  resetOnClicks()
-  // Schalter je nach 'an' in einer von zwei Farben zeichnen
-  // onClick(...) legen, der 'an' umdreht und draw() aufruft
-}
-
-draw()`
+      value: `export function draw(state) {
+  // Schalter je nach state.an in einer von zwei Farben zeichnen
+  // onClick(...) legen, dessen handler umschalten() aufruft
+}`
     }));
   </script>
   <script id="ex2-out" type="module">
-    display(clickableCanvas(code_ex2, { width: 320, height: 240 }));
+    display(clickableCanvas(code_ex2, {
+      width: 320, height: 240,
+      initialState: { an: false },
+      moves: { umschalten: (state) => { state.an = !state.an } }
+    }));
   </script>
   <script id="ex2-test" type="module">
     display(canvasTestReport(canvasTest(code_ex2, {
       width: 320, height: 240,
+      initialState: { an: false },
+      moves: { umschalten: (state) => { state.an = !state.an } },
       checks: [
         { name: "Ein klickbarer Bereich (`onClick`)", run: ({ base }) => {
             const n = base.clickHandlers.length;
@@ -386,10 +358,11 @@ draw()`
 
     ## Geschafft! 🎉
 
-    Du kannst jetzt das Canvas **interaktiv** machen: Mit `onClick` legst du
-    klickbare Bereiche fest, mit `resetOnClicks` räumst du sie vor dem Neuzeichnen
-    auf, und mit dem Muster aus `draw()` + Neuzeichnen reagiert dein Bild live auf
-    Klicks.
+    Du kannst jetzt das Canvas **interaktiv** machen: Du schreibst eine Funktion
+    `draw(state)`, die den **Zustand** liest und zeichnet, legst mit `onClick`
+    klickbare Bereiche fest und rufst in den `handler`n **Moves** auf. Um den
+    Zustand zu speichern und nach jedem Move neu zu zeichnen, kümmert sich die
+    Umgebung — du liest nur und löst Moves aus.
 
     Damit hast du **alle Bausteine** für ein eigenes Brettspiel: Formen, Farben,
     Text, Bilder — und jetzt auch die **Steuerung**. 🚀
