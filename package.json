@@ -3,8 +3,8 @@
     "type": "module",
     "scripts": {
         "notebooks:preview": "notebooks preview --root notebooks",
-        "notebooks:build": "notebooks build --root notebooks --out ../dist -- notebooks/*.html",
-        "notebooks:build:pages": "notebooks build --root notebooks --out ../dist --base /javascript-template/ -- notebooks/*.html"
+        "notebooks:build": "notebooks build --root notebooks --out ../dist -- notebooks/*.html notebooks/canvas/*.html",
+        "notebooks:build:pages": "notebooks build --root notebooks --out ../dist --base /javascript-template/ -- notebooks/*.html notebooks/canvas/*.html"
     },
     "devDependencies": {
         "@codemirror/commands": "^6.10.3",

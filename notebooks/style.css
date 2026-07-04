@@ -804,3 +804,52 @@ html.bg-panel-hidden .bg-panel-tab { display: block; }
 /* game-info rows */
 :root[data-theme="dark"] .debug-panel label { color: #b8bdc6 !important; }
 :root[data-theme="dark"] .debug-panel .value { color: #e6e6e6 !important; }
+
+/* === Canvas output (canvas tutorial) =======================================
+ * Mirrors the console-output box: a small uppercase label above a framed
+ * drawing surface. The canvas keeps a checkerboard backdrop behind it so a
+ * white drawing is still visible as a distinct surface in both themes.
+ */
+.canvas-output {
+  margin: 0.4em 0 1em;
+}
+.canvas-label {
+  font: 500 10px/1 var(--sans-serif), sans-serif;
+  color: var(--theme-foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3em;
+}
+.canvas-frame {
+  display: inline-block;
+  padding: 0;
+  border: 1px solid var(--theme-foreground-faintest);
+  border-radius: 0.4em;
+  overflow: hidden;
+  line-height: 0;
+  /* subtle checkerboard so transparent/cleared regions are visible */
+  background-color: var(--theme-background-alt);
+  background-image:
+    linear-gradient(45deg, color-mix(in srgb, var(--theme-foreground-faintest) 60%, transparent) 25%, transparent 25%),
+    linear-gradient(-45deg, color-mix(in srgb, var(--theme-foreground-faintest) 60%, transparent) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, color-mix(in srgb, var(--theme-foreground-faintest) 60%, transparent) 75%),
+    linear-gradient(-45deg, transparent 75%, color-mix(in srgb, var(--theme-foreground-faintest) 60%, transparent) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+}
+.canvas-surface {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.canvas-error {
+  white-space: pre-wrap;
+  margin-top: 0.4em;
+  font-family: var(--monospace), monospace;
+  font-size: 13px;
+  color: color-mix(in srgb, #a32a1a 100%, var(--theme-foreground));
+}
+:root[data-theme="dark"] .canvas-error { color: #f08071; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .canvas-error { color: #f08071; }
+}

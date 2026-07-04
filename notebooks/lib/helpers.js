@@ -57,6 +57,114 @@ export {
   importAll
 } from "./progress.js";
 
+// --- Sprites & drawPicture ---------------------------------------------------
+//
+// The boardgame template ships a `drawPicture(ctx, path, ...args)` helper that
+// loads an image file and draws it onto the canvas. Loading a real file is
+// asynchronous (and would need bundled assets), which doesn't fit the notebooks'
+// synchronous "run + grade" model. So here we generate a handful of recognizable
+// sprites by *drawing them onto offscreen canvases* once. A `<canvas>` is a
+// valid `drawImage` source, so `drawPicture` can draw them synchronously — which
+// means live examples AND the automatic checks behave identically. The student
+// uses the exact same call shape they'd use in the boardgame template; only the
+// "path" is one of these built-in names instead of a file.
+
+let _sprites = null;
+function getSprites() {
+  if (_sprites) return _sprites;
+  const S = 100;
+  const make = (paint) => {
+    const c = document.createElement("canvas");
+    c.width = S;
+    c.height = S;
+    paint(c.getContext("2d"), S);
+    return c;
+  };
+  const starPath = (x, cx, cy, r, ri, spikes = 5) => {
+    let rot = -Math.PI / 2;
+    const step = Math.PI / spikes;
+    x.beginPath();
+    x.moveTo(cx + Math.cos(rot) * r, cy + Math.sin(rot) * r);
+    for (let i = 0; i < spikes; i++) {
+      rot += step;
+      x.lineTo(cx + Math.cos(rot) * ri, cy + Math.sin(rot) * ri);
+      rot += step;
+      x.lineTo(cx + Math.cos(rot) * r, cy + Math.sin(rot) * r);
+    }
+    x.closePath();
+  };
+  _sprites = {
+    smiley: make((x, s) => {
+      const c = s / 2;
+      x.fillStyle = "#FFD93B";
+      x.beginPath(); x.arc(c, c, s * 0.45, 0, 7); x.fill();
+      x.fillStyle = "#000";
+      x.beginPath(); x.arc(s * 0.35, s * 0.4, s * 0.06, 0, 7); x.fill();
+      x.beginPath(); x.arc(s * 0.65, s * 0.4, s * 0.06, 0, 7); x.fill();
+      x.lineWidth = s * 0.05; x.strokeStyle = "#000";
+      x.beginPath(); x.arc(c, c, s * 0.25, 0.15 * Math.PI, 0.85 * Math.PI); x.stroke();
+    }),
+    herz: make((x, s) => {
+      const c = s / 2;
+      x.fillStyle = "#E63946";
+      x.beginPath();
+      x.moveTo(c, s * 0.82);
+      x.bezierCurveTo(s * 0.05, s * 0.5, s * 0.2, s * 0.12, c, s * 0.32);
+      x.bezierCurveTo(s * 0.8, s * 0.12, s * 0.95, s * 0.5, c, s * 0.82);
+      x.closePath(); x.fill();
+    }),
+    stern: make((x, s) => {
+      x.fillStyle = "#FFC107";
+      starPath(x, s / 2, s / 2 + s * 0.04, s * 0.46, s * 0.2, 5);
+      x.fill();
+    }),
+    baum: make((x, s) => {
+      const c = s / 2;
+      x.fillStyle = "#8B5A2B";
+      x.fillRect(c - s * 0.08, s * 0.6, s * 0.16, s * 0.32);
+      x.fillStyle = "#2E8B57";
+      x.beginPath();
+      x.moveTo(c, s * 0.08); x.lineTo(s * 0.12, s * 0.66); x.lineTo(s * 0.88, s * 0.66);
+      x.closePath(); x.fill();
+    }),
+    haus: make((x, s) => {
+      const c = s / 2;
+      x.fillStyle = "#F4A259";
+      x.fillRect(s * 0.2, s * 0.45, s * 0.6, s * 0.45);
+      x.fillStyle = "#BC4749";
+      x.beginPath();
+      x.moveTo(s * 0.12, s * 0.45); x.lineTo(c, s * 0.12); x.lineTo(s * 0.88, s * 0.45);
+      x.closePath(); x.fill();
+      x.fillStyle = "#6B4226";
+      x.fillRect(s * 0.44, s * 0.62, s * 0.16, s * 0.28);
+    })
+  };
+  return _sprites;
+}
+
+/** Names of the built-in sprites usable with `drawPicture`. */
+export function spriteNames() {
+  return Object.keys(getSprites());
+}
+
+// Returns a `drawPicture(ctx, name, ...args)` that mirrors the boardgame
+// template's signature. `...args` is forwarded verbatim to `ctx.drawImage`, so
+// students learn all three drawImage forms (dx,dy / dx,dy,w,h / sx,sy,sw,sh,...).
+// Exported so the boardgame helpers (bgio.js) can hand the same `drawPicture`
+// to the board-rendering chapter.
+export function makeDrawPicture() {
+  const sprites = getSprites();
+  return function drawPicture(targetCtx, name, ...args) {
+    const key = String(name).replace(/\.(png|jpe?g|svg|gif)$/i, "");
+    const img = sprites[key];
+    if (!img) {
+      throw new Error(`Unbekanntes Bild "${name}". Verfügbar: ${Object.keys(sprites).join(", ")}`);
+    }
+    if (args.length === 0) targetCtx.drawImage(img, 0, 0);
+    else targetCtx.drawImage(img, ...args);
+  };
+}
+
 // --- UI-Factory -------------------------------------------------------------
 
 const STORAGE_PREFIX = "jskurs:";
@@ -150,6 +258,315 @@ export function createUI({ html }) {
     return wrapper;
   }
 
+  // Runs canvas-drawing code on a REAL, on-page <canvas> (not the Web Worker
+  // sandbox — the worker has no DOM and OffscreenCanvas fonts/metrics differ).
+  // The student's code gets `ctx` (a 2D context) and `canvas` as locals and can
+  // either draw directly (`ctx.fillRect(...)`) or define a `draw(ctx)` function
+  // — if one exists it's called automatically, mirroring the App.js workflow
+  // from the original tutorial.
+  function canvasOutput(code, { width = 500, height = 400, background = "white" } = {}) {
+    const canvas = html`<canvas class="canvas-surface" width="${width}" height="${height}"></canvas>`;
+    const ctx = canvas.getContext("2d");
+
+    // Reset to a clean, predictable starting state on every run.
+    if (background) {
+      ctx.fillStyle = background;
+      ctx.fillRect(0, 0, width, height);
+    }
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+
+    const logs = [];
+    const fakeConsole = {
+      log: (...a) => logs.push(a.map(fmtVal).join(" ")),
+      error: (...a) => logs.push("⚠ " + a.map(fmtVal).join(" ")),
+      warn: (...a) => logs.push("⚠ " + a.map(fmtVal).join(" "))
+    };
+
+    let error = null;
+    const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+    const drawPicture = makeDrawPicture();
+    try {
+      const body = `"use strict";\n${cleaned}\n;\nif (typeof draw === "function") draw(ctx);`;
+      new Function("ctx", "canvas", "console", "drawPicture", body)(ctx, canvas, fakeConsole, drawPicture);
+    } catch (e) {
+      error = e.message;
+    }
+
+    const wrap = html`<div class="canvas-output"></div>`;
+    wrap.appendChild(html`<div class="canvas-label">Canvas</div>`);
+    const frame = html`<div class="canvas-frame"></div>`;
+    frame.appendChild(canvas);
+    wrap.appendChild(frame);
+    for (const l of logs) wrap.appendChild(html`<div class="console-line" style="font-family:var(--monospace);font-size:13px">${l}</div>`);
+    if (error) wrap.appendChild(html`<div class="canvas-error">⚠ ${error}</div>`);
+    return wrap;
+  }
+
+  // A fresh, independent copy of an example's initial state, so re-running the
+  // code always starts from the same place (and nested objects like `markiert`
+  // aren't shared between runs).
+  function cloneState(s) {
+    if (s == null) return {};
+    try { return typeof structuredClone === "function" ? structuredClone(s) : JSON.parse(JSON.stringify(s)); }
+    catch { return { ...s }; }
+  }
+
+  // Like canvasOutput, but the canvas is actually CLICKABLE — and it mirrors the
+  // boardgame.io finale: the student only writes `export function draw(state)`
+  // and registers clickable areas with `onClick(...)`. The HARNESS owns the
+  // state and the redraw loop, exactly like boardgame.io owns `G`:
+  //   • `initialState` is the starting state object,
+  //   • `moves` are named reducers `(state, ...args) => { ...mutate state... }`;
+  //     each is injected as a global the student calls from a handler (e.g.
+  //     `onClick(x, y, w, h, () => makeBigger())` — just like `clickCell(i)`),
+  //   • after any move the harness calls `resetOnClicks()` and re-runs
+  //     `draw(state)`, so the picture updates live. Students never call
+  //     `resetOnClicks()` or `draw()` themselves.
+  function clickableCanvas(code, { width = 500, height = 400, background = "white", initialState = {}, moves = {} } = {}) {
+    const canvas = html`<canvas class="canvas-surface" style="cursor:pointer" width="${width}" height="${height}"></canvas>`;
+    const ctx = canvas.getContext("2d");
+
+    if (background) { ctx.fillStyle = background; ctx.fillRect(0, 0, width, height); }
+    ctx.fillStyle = "black";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+
+    // The harness-owned state and click areas — the student sees neither directly.
+    let state = cloneState(initialState);
+    let handlers = [];
+    const onClick = (x, y, w, h, handler) => { handlers.push({ x, y, width: w, height: h, handler }); };
+    const resetOnClicks = () => { handlers = []; };
+    const drawPicture = makeDrawPicture();
+
+    // Assemble the output DOM *before* running the code, so a `console.log`
+    // during the initial draw can render straight away.
+    const wrap = html`<div class="canvas-output"></div>`;
+    wrap.appendChild(html`<div class="canvas-label">Canvas — klickbar 🖱️</div>`);
+    const frame = html`<div class="canvas-frame"></div>`;
+    frame.appendChild(canvas);
+    wrap.appendChild(frame);
+    const errSlot = html`<div></div>`;
+    wrap.appendChild(errSlot);
+    let logBox = html`<div></div>`;
+    wrap.appendChild(logBox);
+
+    const logs = [];
+    function renderLogs() {
+      const next = html`<div></div>`;
+      for (const l of logs) next.appendChild(html`<div class="console-line" style="font-family:var(--monospace);font-size:13px">${l}</div>`);
+      logBox.replaceWith(next);
+      logBox = next;
+    }
+    const fakeConsole = {
+      log: (...a) => { logs.push(a.map(fmtVal).join(" ")); renderLogs(); },
+      error: (...a) => { logs.push("⚠ " + a.map(fmtVal).join(" ")); renderLogs(); },
+      warn: (...a) => { logs.push("⚠ " + a.map(fmtVal).join(" ")); renderLogs(); }
+    };
+
+    // The redraw loop we take off the student's hands: clear the old click areas,
+    // then let their draw(state) repaint and register fresh ones.
+    let drawFn = null;
+    function render() {
+      errSlot.innerHTML = "";
+      resetOnClicks();
+      if (typeof drawFn !== "function") {
+        errSlot.appendChild(html`<div class="feedback feedback-hint">⏳ Exportiere eine Funktion <code>draw(state)</code> — dann zeichne ich dein Canvas.</div>`);
+        return;
+      }
+      try { drawFn(state); }
+      catch (e) { errSlot.appendChild(html`<div class="canvas-error">⚠ Fehler in <code>draw</code>: ${e.message}</div>`); }
+    }
+
+    // Each move becomes a global the student calls from a handler: it updates the
+    // harness state (reducers may mutate `state` or return a new one) and redraws.
+    const moveNames = Object.keys(moves);
+    const moveImpls = moveNames.map((name) => (...args) => {
+      const next = moves[name](state, ...args);
+      if (next !== undefined) state = next;
+      render();
+    });
+
+    canvas.addEventListener("click", (event) => {
+      const rect = canvas.getBoundingClientRect();
+      // Map the on-screen click to the canvas' internal pixel coordinates
+      // (the surface may be displayed at a different CSS size than its
+      // intrinsic width/height).
+      const x = (event.clientX - rect.left) * (canvas.width / rect.width);
+      const y = (event.clientY - rect.top) * (canvas.height / rect.height);
+      // Iterate over a copy: a handler triggers a move → render() rebuilds the
+      // list while we're still notifying the current click.
+      for (const h of handlers.slice()) {
+        if (x >= h.x && x <= h.x + h.width && y >= h.y && y <= h.y + h.height) h.handler();
+      }
+    });
+
+    let error = null;
+    const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+    try {
+      const body = `"use strict";\n${cleaned}\n;\nreturn typeof draw === "function" ? draw : undefined;`;
+      const params = ["ctx", "canvas", "console", "drawPicture", "onClick", "resetOnClicks", ...moveNames];
+      const values = [ctx, canvas, fakeConsole, drawPicture, onClick, resetOnClicks, ...moveImpls];
+      drawFn = new Function(...params, body)(...values);
+    } catch (e) {
+      error = e.message;
+    }
+
+    if (error) errSlot.appendChild(html`<div class="canvas-error">⚠ ${error}</div>`);
+    else render();
+    return wrap;
+  }
+
+  // Runs canvas code on a hidden real canvas while RECORDING every ctx call and
+  // property set, then reads the rendered pixels back via getImageData. This
+  // lets exercises be graded on the *outcome* (which pixels ended up which
+  // color, which calls were made) instead of diffing against a reference image.
+  //
+  // Each `check` is `{ name, run({ base, probe }) }` and returns `true`/`false`
+  // or `{ passed, detail }`. `base` is the rendered API for the student's code
+  // as-is; `probe({ callArgs })` re-runs the code and — when `extract` names a
+  // function — calls that function with `callArgs` (for parametric exercises).
+  function canvasTest(code, { width = 300, height = 300, background = "white", checks = [], extract = null, initialState = null, moves = null } = {}) {
+    const cleaned = code.replace(/\bexport\s+(function|const|let|async)/g, "$1");
+    // Stateful mode mirrors clickableCanvas / the finale: grade an exported
+    // `draw(state)` where the harness owns the state + the redraw loop and
+    // provides named `moves`. Opt-in so the other canvas chapters (which run
+    // top-level code or use `extract`) keep working unchanged.
+    const stateful = !extract && (moves != null || initialState != null);
+    const moveNames = stateful && moves ? Object.keys(moves) : [];
+
+    function colorEq(px, rgb, tol = 24) {
+      return Math.abs(px[0] - rgb[0]) <= tol && Math.abs(px[1] - rgb[1]) <= tol && Math.abs(px[2] - rgb[2]) <= tol;
+    }
+
+    function probe({ callArgs = null } = {}) {
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const real = canvas.getContext("2d", { willReadFrequently: true });
+      if (background) { real.fillStyle = background; real.fillRect(0, 0, width, height); }
+      real.fillStyle = "black";
+      real.strokeStyle = "black";
+      real.lineWidth = 1;
+
+      const calls = [];
+      const ctx = new Proxy(real, {
+        get(t, p) {
+          const v = t[p];
+          if (typeof v === "function") return (...a) => { calls.push({ name: String(p), args: a }); return v.apply(t, a); };
+          return v;
+        },
+        set(t, p, val) { calls.push({ name: String(p), set: true, value: val }); t[p] = val; return true; }
+      });
+      const logs = [];
+      const fakeConsole = { log: (...a) => logs.push(a.map(fmtVal).join(" ")), error: () => {}, warn: () => {} };
+
+      const drawPicture = makeDrawPicture();
+      let clickHandlers = [];
+      const onClick = (x, y, w, h, handler) => { clickHandlers.push({ x, y, width: w, height: h, handler }); };
+      const resetOnClicks = () => { clickHandlers = []; };
+
+      // Stateful mode: own the state, redraw via resetOnClicks() + draw(state),
+      // and expose each move as a global that updates state and redraws.
+      let state = stateful ? cloneState(initialState) : null;
+      let fn;
+      const redraw = () => { resetOnClicks(); if (typeof fn === "function") fn(state); };
+      const moveImpls = moveNames.map((name) => (...args) => {
+        const next = moves[name](state, ...args);
+        if (next !== undefined) state = next;
+        redraw();
+      });
+
+      let error = null;
+      try {
+        let body = `"use strict";\n${cleaned}\n;`;
+        if (extract) body += `\nreturn typeof ${extract} !== "undefined" ? ${extract} : undefined;`;
+        else if (stateful) body += `\nreturn typeof draw === "function" ? draw : undefined;`;
+        else body += `\nif (typeof draw === "function") draw(ctx);`;
+        const params = ["ctx", "canvas", "console", "drawPicture", "onClick", "resetOnClicks", ...moveNames];
+        const values = [ctx, canvas, fakeConsole, drawPicture, onClick, resetOnClicks, ...moveImpls];
+        fn = new Function(...params, body)(...values);
+        if (extract && callArgs) {
+          if (typeof fn !== "function") error = `Die Funktion \`${extract}\` wurde nicht gefunden.`;
+          else fn(...callArgs);
+        } else if (stateful) {
+          if (typeof fn !== "function") error = "Die Funktion `draw` wurde nicht gefunden — exportiere `function draw(state)`.";
+          else redraw();
+        }
+      } catch (e) { error = e.message; }
+
+      const img = real.getImageData(0, 0, width, height);
+      const pixel = (x, y) => {
+        const i = (Math.round(y) * width + Math.round(x)) * 4;
+        return [img.data[i], img.data[i + 1], img.data[i + 2], img.data[i + 3]];
+      };
+      // A region/connected blob summary for a target color, sampled on a grid.
+      const region = (rgb, tol = 30) => {
+        let count = 0, sx = 0, sy = 0, minX = width, minY = height, maxX = 0, maxY = 0;
+        for (let y = 0; y < height; y += 2) for (let x = 0; x < width; x += 2) {
+          if (colorEq(pixel(x, y), rgb, tol)) {
+            count++; sx += x; sy += y;
+            if (x < minX) minX = x; if (x > maxX) maxX = x;
+            if (y < minY) minY = y; if (y > maxY) maxY = y;
+          }
+        }
+        return { count, cx: count ? sx / count : 0, cy: count ? sy / count : 0, minX, minY, maxX, maxY };
+      };
+      // Re-read the current pixels (handlers may have changed the canvas since
+      // the initial render). `pixel`/`region` above use the first snapshot;
+      // `pixelNow` reflects the live canvas after clicks.
+      const pixelNow = (x, y) => {
+        const im = real.getImageData(0, 0, width, height);
+        const i = (Math.round(y) * width + Math.round(x)) * 4;
+        return [im.data[i], im.data[i + 1], im.data[i + 2], im.data[i + 3]];
+      };
+      return {
+        calls, logs, error, width, height, pixel, pixelNow, region, fnFound: typeof fn === "function",
+        clickHandlers,
+        // Simulate a click at (x, y): runs every handler whose rectangle contains
+        // the point, exactly like a real click on the surface.
+        clickAt: (x, y) => {
+          for (const h of clickHandlers.slice()) {
+            if (x >= h.x && x <= h.x + h.width && y >= h.y && y <= h.y + h.height) h.handler();
+          }
+        },
+        isColor: (x, y, rgb, tol) => colorEq(pixel(x, y), rgb, tol),
+        isBackground: (x, y, tol) => colorEq(pixel(x, y), [255, 255, 255], tol ?? 8),
+        callsTo: (name) => calls.filter(c => c.name === name && !c.set),
+        setsOf: (name) => calls.filter(c => c.name === name && c.set).map(c => c.value)
+      };
+    }
+
+    const base = probe();
+    if (base.error) return { error: base.error, results: [] };
+    const results = [];
+    for (const chk of checks) {
+      try {
+        const r = chk.run({ base, probe });
+        const passed = r === true ? true : r === false ? false : !!r.passed;
+        results.push({ name: chk.name, passed, detail: (r && r.detail) || null });
+      } catch (e) {
+        results.push({ name: chk.name, passed: false, detail: "Test-Fehler: " + e.message });
+      }
+    }
+    return { error: null, results };
+  }
+
+  function canvasTestReport({ error, results }, title = "Aufgabe") {
+    if (error) return err(html`Dein Code hat einen Fehler: <code>${error}</code>`);
+    if (!results || !results.length) return hint(html`Schreib deine Lösung — dann prüfe ich sie automatisch.`);
+    const passed = results.filter(r => r.passed).length;
+    const total = results.length;
+    const allOk = passed === total;
+    const wrap = html`<div class="feedback ${allOk ? 'feedback-ok' : 'feedback-err'}"></div>`;
+    wrap.appendChild(html`<div class="test-report-head">${allOk ? `🎉 ${title}: Alle ${total} Checks bestanden!` : `${title}: ${passed} von ${total} Checks bestanden`}</div>`);
+    for (const r of results) {
+      wrap.appendChild(html`<div class="test-report-row">${r.passed ? "✅" : "❌"} ${r.name}${r.detail ? html` — <span style="opacity:.8">${r.detail}</span>` : ""}</div>`);
+    }
+    return wrap;
+  }
+
   function ok(msg) {
     return html`<div class="feedback feedback-ok">✅ ${msg}</div>`;
   }
@@ -196,7 +613,7 @@ export function createUI({ html }) {
     return wrap;
   }
 
-  return { codeEditor, ok, err, hint, consoleOutput, testReport };
+  return { codeEditor, ok, err, hint, consoleOutput, testReport, canvasOutput, clickableCanvas, canvasTest, canvasTestReport };
 }
 
 function fmtArg(v) {
@@ -254,6 +671,10 @@ export function installHashImportBanner({ html, display }) {
 // Direct named-import (in addition to the re-export above) so we can call it
 // from `installHashImportBanner` without a circular path.
 import { installHashImport as doInstallHashImport } from "./progress.js";
+
+// Direct import so `canvasOutput` can format console.log args without relying
+// on the re-exported binding (re-exports aren't in module-local scope).
+import { formatValue as fmtVal } from "./run.js";
 
 // === Hint blockquote classifier =============================================
 // Markdown blockquotes don't carry a class, so we tag them at runtime based on

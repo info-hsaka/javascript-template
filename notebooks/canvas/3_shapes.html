@@ -1,0 +1,255 @@
+<!doctype html>
+<notebook theme="air">
+  <title>Canvas 4 — Andere Formen</title>
+
+  <script id="styles" type="text/html">
+    <link rel="stylesheet" href="../style.css">
+  </script>
+
+  <script id="setup" type="module">
+    import { createUI, installHashImportBanner, installThemeToggle } from "../lib/helpers.js";
+    installThemeToggle({ html, display });
+    installHashImportBanner({ html, display });
+    const { codeEditor, canvasOutput, canvasTest, canvasTestReport } = createUI({ html });
+  </script>
+
+  <script id="intro" type="text/markdown">
+    # Andere Formen ⚪
+
+    Rechtecke sind ein guter Start, aber für die meisten Grafiken brauchen wir
+    mehr: Kreise, Linien, Dreiecke. Dafür gibt es in Canvas das Konzept der
+    **Pfade** (Paths).
+
+    Ein Pfad ist wie eine Linie, die du mit einem Stift zeichnest, ohne ihn
+    abzusetzen:
+
+    ```javascript
+    ctx.beginPath()   // 1. Neuen Pfad starten
+    // ... Pfad zeichnen (arc, moveTo, lineTo, ...) ...
+    ctx.fill()        // 3a. Pfad ausfüllen
+    ctx.stroke()      // 3b. Pfad als Umriss zeichnen
+    ```
+
+    > 📌 `beginPath()` startet immer einen neuen Pfad. Du kannst danach nur
+    > `fill()`, nur `stroke()` oder beides verwenden.
+  </script>
+
+  <script id="circle-md" type="text/markdown">
+    ## Kreise zeichnen
+
+    Kreise (und Kreisbögen) zeichnet man mit `arc()`:
+
+    ```javascript
+    ctx.arc(x, y, radius, startWinkel, endWinkel)
+    ```
+
+    - `x`, `y`: Mittelpunkt des Kreises
+    - `radius`: Radius (Abstand vom Mittelpunkt zum Rand)
+    - `startWinkel`, `endWinkel`: in **Radiant** (nicht Grad!)
+
+    ### Was sind Radianten?
+
+    - `0` = 0° (rechts)
+    - `Math.PI / 2` = 90° (unten)
+    - `Math.PI` = 180° (links)
+    - `2 * Math.PI` = 360° (voller Kreis)
+
+    > ⚠️ Die Reihenfolge von `fill()` und `stroke()` kann das Ergebnis
+    > beeinflussen — der zweite Aufruf malt über den ersten.
+  </script>
+
+  <script id="circle-demo" type="module">
+    const code_circle = view(codeEditor("canvas:shapes-circle", {
+      value: `ctx.fillStyle = "red" // Man kann auch die Namen von Farben verwenden
+ctx.strokeStyle = "green" // statt RGB-Werte
+ctx.lineWidth = 40
+
+ctx.beginPath()
+ctx.arc(150, 150, 100, 0, 2 * Math.PI)
+ctx.fill()    // erst füllen
+ctx.stroke()  // dann den Rand`
+    }));
+  </script>
+  <script id="circle-out" type="module">
+    display(canvasOutput(code_circle, { width: 320, height: 320 }));
+  </script>
+
+  <script id="line1-md" type="text/markdown">
+    ## Linien zeichnen
+
+    - `moveTo(x, y)`: setzt den „Stift“ an eine Position (**ohne** zu zeichnen)
+    - `lineTo(x, y)`: zieht eine Linie von der aktuellen Position zu `(x, y)`
+  </script>
+
+  <script id="line1-demo" type="module">
+    const code_line1 = view(codeEditor("canvas:shapes-line1", {
+      value: `ctx.beginPath()
+ctx.moveTo(50, 50)     // Startpunkt
+ctx.lineTo(200, 150)   // Endpunkt
+ctx.stroke()`
+    }));
+  </script>
+  <script id="line1-out" type="module">
+    display(canvasOutput(code_line1, { width: 300, height: 220 }));
+  </script>
+
+  <script id="line2-md" type="text/markdown">
+    ### Mehrere verbundene Linien
+
+    Mehrere `lineTo` hintereinander ergeben einen Linienzug:
+  </script>
+
+  <script id="line2-demo" type="module">
+    const code_line2 = view(codeEditor("canvas:shapes-line2", {
+      value: `ctx.beginPath()
+ctx.moveTo(50, 50)
+ctx.lineTo(250, 50)
+ctx.lineTo(250, 250)
+ctx.lineTo(50, 250)
+ctx.stroke()`
+    }));
+  </script>
+  <script id="line2-out" type="module">
+    display(canvasOutput(code_line2, { width: 320, height: 320 }));
+  </script>
+
+  <script id="line3-md" type="text/markdown">
+    ### Geschlossene Form (Dreieck)
+
+    `closePath()` schließt den Pfad automatisch zum Startpunkt zurück — praktisch
+    für gefüllte Formen wie ein Dreieck:
+  </script>
+
+  <script id="line3-demo" type="module">
+    const code_line3 = view(codeEditor("canvas:shapes-line3", {
+      value: `ctx.beginPath()
+ctx.moveTo(100, 50)    // Spitze oben
+ctx.lineTo(50, 150)    // Ecke unten links
+ctx.lineTo(150, 150)   // Ecke unten rechts
+ctx.closePath()        // zurück zum Start
+ctx.fill()`
+    }));
+  </script>
+  <script id="line3-out" type="module">
+    display(canvasOutput(code_line3, { width: 220, height: 220 }));
+  </script>
+
+  <script id="linewidth-md" type="text/markdown">
+    ## Linienbreite steuern
+
+    Mit `lineWidth` änderst du die Dicke von Linien und Umrissen (Standard: `1`).
+
+    > 📌 `lineWidth` bleibt aktiv wie `fillStyle` und `strokeStyle` — setze es
+    > **vor** dem Zeichnen!
+  </script>
+
+  <script id="linewidth-demo" type="module">
+    const code_lw = view(codeEditor("canvas:shapes-linewidth", {
+      value: `ctx.strokeStyle = "black"
+
+for (const line of [[40, 1], [90, 5], [140, 15], [190, 25]]) {
+  const y = line[0]
+  const breite = line[1]
+  ctx.lineWidth = breite
+  ctx.beginPath()
+  ctx.moveTo(50, y)
+  ctx.lineTo(250, y)
+  ctx.stroke()
+}`
+    }));
+  </script>
+  <script id="linewidth-out" type="module">
+    display(canvasOutput(code_lw, { width: 300, height: 240 }));
+  </script>
+
+  <script id="ex-md" type="text/markdown">
+    ---
+
+    ## Übung 🎯 — Regenbogen
+
+    Ein `arc` muss **kein voller Kreis** sein! Du gibst Start- und Endwinkel an
+    und zeichnest so nur einen Teil davon — einen **Bogen**. Genau das nutzen wir
+    hier für einen Regenbogen aus mehreren farbigen Bögen.
+
+    Zeichne **fünf Bögen** übereinander, von außen nach innen:
+
+    - **Mittelpunkt:** `(160, 210)`
+    - **Radien:** `130`, `112`, `94`, `76`, `58` (jeder Bogen `18` kleiner)
+    - **Farben:** rot, orange, gelb, grün, blau
+    - **Winkel:** jeder Bogen geht von **`Math.PI`** bis **`2 * Math.PI`** — das
+      ist genau der **obere** Halbkreis (von links über oben nach rechts)
+    - **Linienbreite:** `18`
+
+    > 💡 Du brauchst **kein** `fill` und **kein** `closePath` — jeder Bogen ist
+    > eine einzelne Linie mit `stroke()`. Tipp: eine Schleife über ein Array aus
+    > `[Farbe, Radius]` spart viel Tipparbeit (wie im `lineWidth`-Beispiel oben).
+
+    **Zielbild:**
+  </script>
+
+  <script id="ex-target" type="module">
+    display(canvasOutput(`const cx = 160
+const cy = 210
+ctx.lineWidth = 18
+
+// [Farbe, Radius] — von außen nach innen
+const baender = [["red", 130], ["orange", 112], ["yellow", 94], ["green", 76], ["blue", 58]]
+for (const band of baender) {
+  ctx.strokeStyle = band[0]
+  const radius = band[1]
+  ctx.beginPath()
+  ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI)   // oberer Halbkreis
+  ctx.stroke()
+}`, { width: 320, height: 320 }));
+  </script>
+
+  <script id="ex-demo" type="module">
+    const code_ex = view(codeEditor("canvas:shapes-pacman", {
+      value: `// Zeichne einen Regenbogen:
+`
+    }));
+  </script>
+  <script id="ex-out" type="module">
+    display(canvasOutput(code_ex, { width: 320, height: 320 }));
+  </script>
+  <script id="ex-test" type="module">
+    display(canvasTestReport(canvasTest(code_ex, {
+      width: 320, height: 320,
+      checks: [
+        { name: "Mehrere bunte Bögen (rot, gelb, blau)", run: ({ base }) => {
+            const farben = [[255, 0, 0], [255, 255, 0], [0, 0, 255]];
+            const da = farben.filter(c => base.region(c, 40).count > 30).length;
+            return { passed: da >= 3, detail: da >= 3 ? null : `nur ${da} von 3 erwarteten Farben (rot/gelb/blau) gefunden` };
+        } },
+        { name: "Bögen zentriert um x = 160", run: ({ base }) => {
+            const r = base.region([255, 0, 0], 40);
+            if (r.count < 30) return { passed: false, detail: "kein roter Bogen gefunden" };
+            const ok = Math.abs(r.cx - 160) <= 40;
+            return { passed: ok, detail: ok ? null : `Mittelpunkt der Bögen bei x ≈ ${Math.round(r.cx)} statt 160` };
+        } },
+        { name: "Nur oberer Halbkreis (Bögen öffnen nach unten)", run: ({ base }) => {
+            const r = base.region([255, 0, 0], 40);
+            if (r.count < 30) return { passed: false, detail: "kein roter Bogen gefunden" };
+            const ok = r.cy < 195;
+            return { passed: ok, detail: ok ? null : `Bögen liegen nicht im oberen Halbkreis (Schwerpunkt y ≈ ${Math.round(r.cy)})` };
+        } },
+        { name: "Hohle Mitte (Bögen statt gefüllter Fläche)", run: ({ base }) =>
+            base.isBackground(160, 180, 20) || { passed: false, detail: "die Mitte ist gefüllt — zeichne nur Bögen mit stroke(), nicht fill()" }
+        }
+      ]
+    }), "Übung"));
+  </script>
+
+  <script id="outro" type="text/markdown">
+    ---
+
+    ## Geschafft! 🚀
+
+    Du kennst jetzt **Pfade** (`beginPath` / `fill` / `stroke`), **Kreise**
+    (`arc`), **Linien** (`moveTo` / `lineTo` / `closePath`) und **`lineWidth`**.
+
+    Weiter geht's mit **[Text →](./4_text)**
+
+    ← [Zurück zur Canvas-Übersicht](./)
+  </script>
+</notebook>
