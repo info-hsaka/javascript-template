@@ -52,6 +52,47 @@
     kommentiere die Zeile mit `//` aus und schau, was passiert.
   </script>
 
+  <script id="for-md" type="text/markdown">
+    ## `for`-Loop — die kompakte Alternative
+
+    Das Muster von oben — eine Variable setzen, eine Bedingung prüfen und die Variable
+    am Ende jeder Runde hochzählen — kommt so oft vor, dass es dafür eine kürzere
+    Schreibweise gibt: den **`for`-Loop**.
+
+    Ein `for`-Loop packt alle drei Teile in **eine Zeile**, getrennt durch Semikolons:
+
+    ```
+    for (Startwert; Bedingung; Schritt) {
+      // Code, der wiederholt wird
+    }
+    ```
+
+    - **Startwert**: `let i = 1` — wird **einmal am Anfang** ausgeführt.
+    - **Bedingung**: `i <= 10` — wird **vor jeder Runde** geprüft (wie bei `while`).
+    - **Schritt**: `i++` — wird **am Ende jeder Runde** ausgeführt. `i++` ist eine
+      Kurzform für `i = i + 1`.
+
+    Der folgende `for`-Loop macht **exakt dasselbe** wie unser erster `while`-Loop,
+    braucht aber weniger Zeilen und man kann das Hochzählen nicht mehr vergessen:
+  </script>
+
+  <script id="for-demo" type="module">
+    const demo_for = view(codeEditor("loops:for", {
+      value: 'for (let i = 1; i <= 10; i++) {\n  console.log(i)\n}\n\nconsole.log("Fertig!")'
+    }));
+  </script>
+
+  <script id="for-out" type="module">
+    display(consoleOutput(await runWithTimeout(demo_for)));
+  </script>
+
+  <script id="for-md2" type="text/markdown">
+    Beide Schleifen sind gleichwertig — nimm die, die dir besser gefällt. In der Praxis
+    verwendet man `for`, wenn man **von vornherein weiß, wie oft** gezählt werden soll,
+    und `while`, wenn man nur eine **Bedingung** hat und nicht weiß, wie viele Runden es
+    werden.
+  </script>
+
   <script id="break-md" type="text/markdown">
     ## `break` — Schleife abbrechen
 
@@ -179,6 +220,7 @@
     Du beherrschst jetzt:
 
     - **`while`** — Schleifen mit einer Bedingung
+    - **`for`** — die kompakte Variante mit Startwert, Bedingung und Schritt
     - **`break`** — Schleife sofort abbrechen
     - **`continue`** — eine Runde überspringen
 
